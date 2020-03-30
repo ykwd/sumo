@@ -624,7 +624,8 @@ MSLane::insertVehicle(MSVehicle& veh) {
 bool
 MSLane::checkFailure(const MSVehicle* aVehicle, double& speed, double& dist, const double nspeed, const bool patchSpeed, const std::string errorMsg) const {
     if (nspeed < speed) {
-        if (patchSpeed) {
+        // if (patchSpeed) { // edited by yk
+        if (true) { // edited by yk
             speed = MIN2(nspeed, speed);
             dist = aVehicle->getCarFollowModel().brakeGap(speed) + aVehicle->getVehicleType().getMinGap();
         } else if (speed > 0) {
