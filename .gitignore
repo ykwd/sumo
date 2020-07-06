@@ -1,3 +1,7 @@
+# edit by yk, for cmake external_project
+tools/libsumo.egg-info/
+tools/sumolib.egg-info/
+tools/traci.egg-info/
 # root dir, mostly configure / make stuff
 /aclocal.m4
 /autom4te.cache
