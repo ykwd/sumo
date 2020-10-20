@@ -21,11 +21,6 @@
 ///
 // C++ TraCI client API implementation
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/shapes/PointOfInterest.h>
@@ -44,6 +39,7 @@ namespace libsumo {
 // ===========================================================================
 SubscriptionResults POI::mySubscriptionResults;
 ContextSubscriptionResults POI::myContextSubscriptionResults;
+NamedRTree* POI::myTree(nullptr);
 
 
 // ===========================================================================
@@ -112,6 +108,9 @@ POI::getParameter(const std::string& poiID, const std::string& key) {
 }
 
 
+LIBSUMO_GET_PARAMETER_WITH_KEY_IMPLEMENTATION(POI)
+
+
 void
 POI::setType(const std::string& poiID, const std::string& type) {
     getPoI(poiID)->setShapeType(type);
@@ -159,18 +158,33 @@ POI::setImageFile(const std::string& poiID, const std::string& imageFile) {
 bool
 POI::add(const std::string& poiID, double x, double y, const TraCIColor& color, const std::string& poiType, int layer, const std::string& imgFile, double width, double height, double angle) {
     ShapeContainer& shapeCont = MSNet::getInstance()->getShapeContainer();
-    return shapeCont.addPOI(poiID, poiType, Helper::makeRGBColor(color), Position(x, y), false, "", 0, 0, (double)layer,
-                            angle,
-                            imgFile,
-                            Shape::DEFAULT_RELATIVEPATH,
-                            width,
-                            height);
+    bool ok = shapeCont.addPOI(poiID, poiType,
+                               Helper::makeRGBColor(color),
+                               Position(x, y), false, "", 0, 0, (double)layer,
+                               angle,
+                               imgFile,
+                               Shape::DEFAULT_RELATIVEPATH,
+                               width,
+                               height);
+    if (ok && myTree != nullptr) {
+        PointOfInterest* p = shapeCont.getPOIs().get(poiID);
+        const float cmin[2] = {(float)p->x(), (float)p->y()};
+        const float cmax[2] = {(float)p->x(), (float)p->y()};
+        myTree->Insert(cmin, cmax, p);
+    }
+    return ok;
 }
 
 
 bool
 POI::remove(const std::string& poiID, int /* layer */) {
     ShapeContainer& shapeCont = MSNet::getInstance()->getShapeContainer();
+    PointOfInterest* p = shapeCont.getPOIs().get(poiID);
+    if (p != nullptr && myTree != nullptr) {
+        const float cmin[2] = {(float)p->x(), (float)p->y()};
+        const float cmax[2] = {(float)p->x(), (float)p->y()};
+        myTree->Remove(cmin, cmax, p);
+    }
     return shapeCont.removePOI(poiID);
 }
 
@@ -252,14 +266,22 @@ POI::getPoI(const std::string& id) {
 
 NamedRTree*
 POI::getTree() {
-    NamedRTree* t = new NamedRTree();
-    ShapeContainer& shapeCont = MSNet::getInstance()->getShapeContainer();
-    for (const auto& i : shapeCont.getPOIs()) {
-        const float cmin[2] = {(float)i.second->x(), (float)i.second->y()};
-        const float cmax[2] = {(float)i.second->x(), (float)i.second->y()};
-        t->Insert(cmin, cmax, i.second);
+    if (myTree == nullptr) {
+        myTree = new NamedRTree();
+        ShapeContainer& shapeCont = MSNet::getInstance()->getShapeContainer();
+        for (const auto& i : shapeCont.getPOIs()) {
+            const float cmin[2] = {(float)i.second->x(), (float)i.second->y()};
+            const float cmax[2] = {(float)i.second->x(), (float)i.second->y()};
+            myTree->Insert(cmin, cmax, i.second);
+        }
     }
-    return t;
+    return myTree;
+}
+
+void
+POI::cleanup() {
+    delete myTree;
+    myTree = nullptr;
 }
 
 

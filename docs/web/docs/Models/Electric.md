@@ -50,6 +50,7 @@ An example of a vehicle with electric attribute:
 ```
 <routes>
     <vType id="ElectricBus" accel="1.0" decel="1.0" lenght="12" maxSpeed="100.0" sigma="0.0" minGap="2.5" color="1,1,1">
+        <param key="has.battery.device" value="true"/>
         <param key="maximumBatteryCapacity" value="2000"/>
         <param key="maximumPower" value="1000"/>
         <param key="vehicleMass" value="10000"/>
@@ -89,7 +90,7 @@ of bus stops were used for the implementation of charging stations.
 | **lane**            | string     | valid lane id                                                                              |           | Lane of the charging station location                                                                                           |
 | **startPos**        | float      | lane.length < x < lane.length (negative values count backwards from the end of the lane) | 0         | Begin position in the specified lane                                                                                            |
 | **endPos**          | float      | lane.length < x < lane.length (negative values count backwards from the end of the lane) |           | End position in the specified lane                                                                                              |
-| **power**           | float      | power \> 0                                                                                 | 22000(Wh) | Charging power *P<sub>chrg</sub>*                                                                                               |
+| **power**           | float      | power \> 0                                                                                 | 22000(W) | Charging power *P<sub>chrg</sub>*                                                                                               |
 | **efficiency**      | float      | 0 <= efficiency <= 1                                                                     | 0.95      | Charging efficiency *η<sub>chrg</sub>*                                                                                          |
 | **chargeInTransit** | bool       | 0 or 1                                                                                     | 0         | Enable or disable charge in transit, i.e. vehicle is forced/not forced to stop for charging                                     |
 | **chargeDelay**     | float      | chargeDelay \> 0                                                                           | 0         | Time delay after the vehicles have reached / stopped on the charging station, before the energy transfer (charging) is starting |

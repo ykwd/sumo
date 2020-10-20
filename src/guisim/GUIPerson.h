@@ -20,13 +20,7 @@
 ///
 // A MSVehicle extended by some values for usage within the gui
 /****************************************************************************/
-#ifndef GUIPerson_h
-#define GUIPerson_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -111,6 +105,10 @@ public:
      */
     virtual void drawGLAdditional(GUISUMOAbstractView* const parent, const GUIVisualizationSettings& s) const;
     //* @}
+
+    /* @brief proceeds to the next step of the route,
+     * @return Whether the transportables plan continues  */
+    bool proceed(MSNet* net, SUMOTime time, const bool vehicleArrived = false);
 
     /* @brief set the position of a person while riding in a vehicle
      * @note This must be called by the vehicle before the call to drawGl */
@@ -269,9 +267,3 @@ private:
     /// @brief Enabled visualisations, per view
     std::map<GUISUMOAbstractView*, int> myAdditionalVisualizations;
 };
-
-
-#endif
-
-/****************************************************************************/
-

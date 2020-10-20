@@ -17,13 +17,7 @@
 ///
 // A device which stands as an implementation example and which outputs movereminder calls
 /****************************************************************************/
-#ifndef MSDevice_Bluelight_h
-#define MSDevice_Bluelight_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSVehicleDevice.h"
@@ -143,8 +137,7 @@ private:
      * @param[in] holder The vehicle that holds this device
      * @param[in] id The ID of the device
      */
-    MSDevice_Bluelight(SUMOVehicle& holder, const std::string& id, double customValue1,
-                       double customValue2, double customValue3);
+    MSDevice_Bluelight(SUMOVehicle& holder, const std::string& id, double reactionDist);
 
 
 
@@ -155,15 +148,8 @@ private:
     // @brief collects all VehicleTypes of the vehicles which had to react to the emergency vehicle
     std::map<std::string, std::string> influencedTypes;
 
-    /// @brief a value which is initialised based on a commandline/configuration option
-    double myCustomValue1;
-
-    /// @brief a value which is initialised based on a vehicle parameter
-    double myCustomValue2;
-
-    /// @brief a value which is initialised based on a vType parameter
-    double myCustomValue3;
-
+    /// @brief reaction distance of other vehicle (i.e. due to different noise levels of the siren)
+    double myReactionDist;
 
 
 private:
@@ -175,9 +161,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

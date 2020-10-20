@@ -20,10 +20,6 @@
 ///
 // A connnection between lanes
 /****************************************************************************/
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <iostream>
@@ -51,6 +47,7 @@
 //#define DEBUG_COND (myLane->getID()=="end_0")
 //#define DEBUG_COND (true)
 //#define DEBUG_COND2(obj) (obj->isSelected())
+#define DEBUG_COND2(obj) (obj->getID() == "train2")
 //#define DEBUG_COND_ZIPPER (gDebugFlag1)
 //#define DEBUG_COND_ZIPPER (true)
 #define DEBUG_COND_ZIPPER (ego->isSelected())
@@ -174,16 +171,26 @@ MSLink::setRequestInformation(int index, bool hasFoes, bool isCont,
             if (sameTarget && !beforeInternalJunction && !contIntersect(lane, *it_lane)) {
                 //if (myLane == (*it_lane)->getLinkCont()[0]->getLane()) {
                 // this foeLane has the same target and merges at the end (lane exits the junction)
-                myLengthsBehindCrossing.push_back(std::make_pair(0, 0)); // dummy value, never used
+                const MSLane* sibling = *it_lane;
+                const double minDist = MIN2(DIVERGENCE_MIN_WIDTH, 0.5 * (lane->getWidth() + sibling->getWidth()));
+                if (lane->getShape().back().distanceTo2D(sibling->getShape().back()) >= minDist) {
+                    // account for lateral shift by the entry links
+                    myLengthsBehindCrossing.push_back(std::make_pair(0, 0)); // dummy value, never used
+                } else {
+                    const double distAfterDivergence = computeDistToDivergence(lane, sibling, minDist, false);
+                    const double lbcLane = lane->interpolateGeometryPosToLanePos(distAfterDivergence);
+                    const double lbcSibling = sibling->interpolateGeometryPosToLanePos(distAfterDivergence);
+                    myLengthsBehindCrossing.push_back(std::make_pair(lbcLane, lbcSibling));
 #ifdef MSLink_DEBUG_CROSSING_POINTS
-                std::cout
-                        << " " << lane->getID()
-                        << " merges with " << (*it_lane)->getID()
-                        << " nextLane " << lane->getLinkCont()[0]->getViaLaneOrLane()->getID()
-                        << " dist1=" << myLengthsBehindCrossing.back().first
-                        << " dist2=" << myLengthsBehindCrossing.back().second
-                        << "\n";
+                    std::cout
+                            << " " << lane->getID()
+                            << " merges with " << (*it_lane)->getID()
+                            << " nextLane " << lane->getLinkCont()[0]->getViaLaneOrLane()->getID()
+                            << " dist1=" << myLengthsBehindCrossing.back().first
+                            << " dist2=" << myLengthsBehindCrossing.back().second
+                            << "\n";
 #endif
+                }
             } else {
                 std::vector<double> intersections1 = lane->getShape().intersectsAtLengths2D((*it_lane)->getShape());
 #ifdef MSLink_DEBUG_CROSSING_POINTS
@@ -248,71 +255,16 @@ MSLink::setRequestInformation(int index, bool hasFoes, bool isCont,
             const MSLane* sibling = it->getViaLane();
             if (sibling != lane && sibling != nullptr) {
                 const double minDist = MIN2(DIVERGENCE_MIN_WIDTH, 0.5 * (lane->getWidth() + sibling->getWidth()));
-                const PositionVector& l = lane->getShape();
-                const PositionVector& s = sibling->getShape();
-                if (l.front().distanceTo2D(s.front()) >= minDist) {
+                if (lane->getShape().front().distanceTo2D(sibling->getShape().front()) >= minDist) {
                     // account for lateral shift by the entry links
                     continue;
                 }
-                double lbcSibling = 0;
-                double lbcLane = 0;
-                if (l.back().distanceTo2D(s.back()) > minDist) {
-                    // compute the final divergence point
-                    // this position serves two purposes:
-                    // 1) once the foe vehicle back (on sibling) has passed this point, we can safely ignore it
-                    // 2) both vehicles are put into a cf-relationship while before the point.
-                    //    Since the actual crossing point is at the start of the junction,
-                    //    we want to make sure that both vehicles have the same distance to the crossing point and thus follow each other naturally
-                    std::vector<double> distances = l.distances(s);
-#ifdef MSLink_DEBUG_CROSSING_POINTS
-                    std::cout << "   distances=" << toString(distances) << "\n";
-#endif
-                    assert(distances.size() == l.size() + s.size());
-                    if (distances.back() > minDist && distances[l.size() - 1] > minDist) {
-                        // do a pairwise check between lane and sibling to make because we do not know which of them bends more
-                        for (int j = (int)s.size() - 2; j >= 0; j--) {
-                            const int i = j + (int)l.size();
-                            const double segLength = s[j].distanceTo2D(s[j + 1]);
-                            if (distances[i] > minDist) {
-                                lbcSibling += segLength;
-                            } else {
-                                // assume no sharp bends and just interpolate the last segment
-                                lbcSibling += segLength - (minDist - distances[i]) * segLength / (distances[i + 1] - distances[i]);
-                                break;
-                            }
-                        }
-                        for (int i = (int)l.size() - 2; i >= 0; i--) {
-                            const double segLength = l[i].distanceTo2D(l[i + 1]);
-                            if (distances[i] > minDist) {
-                                lbcLane += segLength;
-                            } else {
-                                // assume no sharp bends and just interpolate the last segment
-                                lbcLane += segLength - (minDist - distances[i]) * segLength / (distances[i + 1] - distances[i]);
-                                break;
-                            }
-                        }
-                    }
-                    assert(lbcSibling >= -NUMERICAL_EPS);
-                    assert(lbcLane >= -NUMERICAL_EPS);
-                }
-                const double distToDivergence1 = sibling->getLength() - lbcSibling;
-                const double distToDivergence2 = lane->getLength() - lbcLane;
-                const double distToDivergence = MIN3(
-                                                    MAX2(distToDivergence1, distToDivergence2),
-                                                    sibling->getLength(), lane->getLength());
-                lbcLane = MAX2(0.0, lane->getLength() - distToDivergence);
-                lbcLane = lane->interpolateGeometryPosToLanePos(lbcLane);
-                lbcSibling = MAX2(0.0, sibling->getLength() - distToDivergence);
-                lbcSibling = lane->interpolateGeometryPosToLanePos(lbcSibling);
+                const double distToDivergence = computeDistToDivergence(lane, sibling, minDist, true);
+                const double lbcLane = MAX2(0.0, lane->getLength() - lane->interpolateGeometryPosToLanePos(distToDivergence));
+                const double lbcSibling = MAX2(0.0, sibling->getLength() - sibling->interpolateGeometryPosToLanePos(distToDivergence));
                 myLengthsBehindCrossing.push_back(std::make_pair(lbcLane, lbcSibling));
                 myFoeLanes.push_back(sibling);
 #ifdef MSLink_DEBUG_CROSSING_POINTS
-                std::cout << "   distToDivergence=" << distToDivergence
-                          << " distTD1=" << distToDivergence1
-                          << " distTD2=" << distToDivergence2
-                          << " length=" << lane->getLength()
-                          << " sibLength=" << sibling->getLength()
-                          << "\n";
                 std::cout << " adding same-origin foe" << sibling->getID()
                           << " dist1=" << myLengthsBehindCrossing.back().first
                           << " dist2=" << myLengthsBehindCrossing.back().second
@@ -335,7 +287,7 @@ MSLink::setRequestInformation(int index, bool hasFoes, bool isCont,
 #ifdef MSLink_DEBUG_CROSSING_POINTS
                 std::cout << "  sublaneFoeLink (same target): " << it->getViaLaneOrLane()->getID() << "\n";
 #endif
-            } else if (myDirection != LINKDIR_STRAIGHT && it->getDirection() == LINKDIR_STRAIGHT) {
+            } else if (myDirection != LinkDirection::STRAIGHT && it->getDirection() == LinkDirection::STRAIGHT) {
                 // potential turn conflicht
                 mySublaneFoeLinks2.push_back(it);
 #ifdef MSLink_DEBUG_CROSSING_POINTS
@@ -346,16 +298,82 @@ MSLink::setRequestInformation(int index, bool hasFoes, bool isCont,
         // save foes for exit links
         if (fromInternalLane()) {
             //std::cout << " setRequestInformation link=" << getViaLaneOrLane()->getID() << " before=" << myLaneBefore->getID() << " before2=" << myLaneBefore->getIncomingLanes().front().lane->getID() << "\n";
-            const MSLinkCont& predLinks2 = myLaneBefore->getIncomingLanes().front().lane->getLinkCont();
-            for (MSLinkCont::const_iterator it = predLinks2.begin(); it != predLinks2.end(); ++it) {
-                const MSEdge* target = &((*it)->getLane()->getEdge());
-                if ((*it)->getViaLane() != myInternalLaneBefore && target == myTarget) {
+            for (const MSLink* const link : myLaneBefore->getIncomingLanes().front().lane->getLinkCont()) {
+                if (link->getViaLane() != myInternalLaneBefore && &link->getLane()->getEdge() == myTarget) {
                     //std::cout << " add sublaneFoe=" << (*it)->getViaLane()->getID() << "\n";
-                    mySublaneFoeLanes.push_back((*it)->getViaLane());
+                    mySublaneFoeLanes.push_back(link->getViaLane());
                 }
             }
         }
     }
+}
+
+
+double
+MSLink::computeDistToDivergence(const MSLane* lane, const MSLane* sibling, double minDist, bool sameSource) const {
+    PositionVector l = lane->getShape();
+    PositionVector s = sibling->getShape();
+    if (!sameSource) {
+        l = l.reverse();
+        s = s.reverse();
+    }
+
+    double lbcSibling = 0;
+    double lbcLane = 0;
+    //std::cout << " sameSource=" << sameSource << " minDist=" << minDist << " backDist=" << l.back().distanceTo2D(s.back()) << "\n";
+    if (l.back().distanceTo2D(s.back()) > minDist) {
+        // compute the final divergence point
+        // this position serves two purposes:
+        // 1) once the foe vehicle back (on sibling) has passed this point, we can safely ignore it
+        // 2) both vehicles are put into a cf-relationship while before the point.
+        //    Since the actual crossing point is at the start of the junction,
+        //    we want to make sure that both vehicles have the same distance to the crossing point and thus follow each other naturally
+        std::vector<double> distances = l.distances(s);
+#ifdef MSLink_DEBUG_CROSSING_POINTS
+        std::cout << "   distances=" << toString(distances) << "\n";
+#endif
+        assert(distances.size() == l.size() + s.size());
+        if (distances.back() > minDist && distances[l.size() - 1] > minDist) {
+            // do a pairwise check between lane and sibling to make because we do not know which of them bends more
+            for (int j = (int)s.size() - 2; j >= 0; j--) {
+                const int i = j + (int)l.size();
+                const double segLength = s[j].distanceTo2D(s[j + 1]);
+                if (distances[i] > minDist) {
+                    lbcSibling += segLength;
+                } else {
+                    // assume no sharp bends and just interpolate the last segment
+                    lbcSibling += segLength - (minDist - distances[i]) * segLength / (distances[i + 1] - distances[i]);
+                    break;
+                }
+            }
+            for (int i = (int)l.size() - 2; i >= 0; i--) {
+                const double segLength = l[i].distanceTo2D(l[i + 1]);
+                if (distances[i] > minDist) {
+                    lbcLane += segLength;
+                } else {
+                    // assume no sharp bends and just interpolate the last segment
+                    lbcLane += segLength - (minDist - distances[i]) * segLength / (distances[i + 1] - distances[i]);
+                    break;
+                }
+            }
+        }
+        assert(lbcSibling >= -NUMERICAL_EPS);
+        assert(lbcLane >= -NUMERICAL_EPS);
+    }
+    const double distToDivergence1 = sibling->getLength() - lbcSibling;
+    const double distToDivergence2 = lane->getLength() - lbcLane;
+    const double distToDivergence = MIN3(
+                                        MAX2(distToDivergence1, distToDivergence2),
+                                        s.length2D(), l.length2D());
+#ifdef MSLink_DEBUG_CROSSING_POINTS
+    std::cout << "   distToDivergence=" << distToDivergence
+              << " distTD1=" << distToDivergence1
+              << " distTD2=" << distToDivergence2
+              << " length=" << l.length2D()
+              << " sibLength=" << s.length2D()
+              << "\n";
+#endif
+    return distToDivergence;
 }
 
 
@@ -375,7 +393,7 @@ MSLink::setApproaching(const SUMOVehicle* approaching, const SUMOTime arrivalTim
     const SUMOTime leaveTime = getLeaveTime(arrivalTime, arrivalSpeed, leaveSpeed, approaching->getVehicleType().getLength());
 #ifdef DEBUG_APPROACHING
     if (DEBUG_COND2(approaching)) {
-        std::cout << SIMTIME << " Link ''" << (myLaneBefore == 0 ? "NULL" : myLaneBefore->getID()) << "'->'" << (myLane == 0 ? "NULL" : myLane->getID()) << "' Adding approaching vehicle '" << approaching->getID() << "'\nCurrently registered vehicles:" << std::endl;
+        std::cout << SIMTIME << " Link '" << (myLaneBefore == 0 ? "NULL" : myLaneBefore->getID()) << "'->'" << (myLane == 0 ? "NULL" : myLane->getID()) << "' Adding approaching vehicle '" << approaching->getID() << "'\nCurrently registered vehicles:" << std::endl;
         for (auto i = myApproachingVehicles.begin(); i != myApproachingVehicles.end(); ++i) {
             std::cout << "'" << i->first->getID() << "'" << std::endl;
         }
@@ -392,7 +410,7 @@ MSLink::setApproaching(const SUMOVehicle* approaching, ApproachingVehicleInforma
 
 #ifdef DEBUG_APPROACHING
     if (DEBUG_COND2(approaching)) {
-        std::cout << SIMTIME << " Link ''" << (myLaneBefore == 0 ? "NULL" : myLaneBefore->getID()) << "'->'" << (myLane == 0 ? "NULL" : myLane->getID()) << "' Adding approaching vehicle '" << approaching->getID() << "'\nCurrently registered vehicles:" << std::endl;
+        std::cout << SIMTIME << " Link '" << (myLaneBefore == 0 ? "NULL" : myLaneBefore->getID()) << "'->'" << (myLane == 0 ? "NULL" : myLane->getID()) << "' Adding approaching vehicle '" << approaching->getID() << "'\nCurrently registered vehicles:" << std::endl;
         for (auto i = myApproachingVehicles.begin(); i != myApproachingVehicles.end(); ++i) {
             std::cout << "'" << i->first->getID() << "'" << std::endl;
         }
@@ -425,7 +443,7 @@ MSLink::removeApproaching(const SUMOVehicle* veh) {
 
 #ifdef DEBUG_APPROACHING
     if (DEBUG_COND2(veh)) {
-        std::cout << SIMTIME << " Link ''" << (myLaneBefore == 0 ? "NULL" : myLaneBefore->getID()) << "'->'" << (myLane == 0 ? "NULL" : myLane->getID()) << std::endl;
+        std::cout << SIMTIME << " Link '" << (myLaneBefore == 0 ? "NULL" : myLaneBefore->getID()) << "'->'" << (myLane == 0 ? "NULL" : myLane->getID()) << std::endl;
         std::cout << "' Removing approaching vehicle '" << veh->getID() << "'\nCurrently registered vehicles:" << std::endl;
         for (auto i = myApproachingVehicles.begin(); i != myApproachingVehicles.end(); ++i) {
             std::cout << "'" << i->first->getID() << "'" << std::endl;
@@ -446,6 +464,10 @@ MSLink::getApproaching(const SUMOVehicle* veh) const {
     }
 }
 
+void
+MSLink::clearState() {
+    myApproachingVehicles.clear();
+}
 
 SUMOTime
 MSLink::getLeaveTime(const SUMOTime arrivalTime, const double arrivalSpeed,
@@ -457,7 +479,7 @@ MSLink::getLeaveTime(const SUMOTime arrivalTime, const double arrivalSpeed,
 bool
 MSLink::opened(SUMOTime arrivalTime, double arrivalSpeed, double leaveSpeed, double vehicleLength,
                double impatience, double decel, SUMOTime waitingTime, double posLat,
-               BlockingFoes* collectFoes, bool ignoreRed, const SUMOVehicle* ego) const {
+               BlockingFoes* collectFoes, bool ignoreRed, const SUMOTrafficObject* ego) const {
     if (haveRed() && !ignoreRed) {
         return false;
     }
@@ -505,13 +527,13 @@ MSLink::opened(SUMOTime arrivalTime, double arrivalSpeed, double leaveSpeed, dou
         // (straight movers take precedence if the paths cross)
         const int lhSign = MSGlobals::gLefthand ? -1 : 1;
         for (const MSLink* foeLink : mySublaneFoeLinks2) {
-            assert(myDirection != LINKDIR_STRAIGHT);
+            assert(myDirection != LinkDirection::STRAIGHT);
             for (const auto& it : foeLink->myApproachingVehicles) {
                 const SUMOVehicle* foe = it.first;
                 // there only is a conflict if the paths cross
-                if (((myDirection == LINKDIR_RIGHT || myDirection == LINKDIR_PARTRIGHT)
+                if (((myDirection == LinkDirection::RIGHT || myDirection == LinkDirection::PARTRIGHT)
                         && (posLat * lhSign > foe->getLateralPositionOnLane() * lhSign))
-                        || ((myDirection == LINKDIR_LEFT || myDirection == LINKDIR_PARTLEFT)
+                        || ((myDirection == LinkDirection::LEFT || myDirection == LinkDirection::PARTLEFT)
                             && (posLat * lhSign < foe->getLateralPositionOnLane() * lhSign))) {
                     if (blockedByFoe(foe, it.second, arrivalTime, leaveTime, arrivalSpeed, leaveSpeed, false,
                                      impatience, decel, waitingTime, ego)) {
@@ -530,7 +552,7 @@ MSLink::opened(SUMOTime arrivalTime, double arrivalSpeed, double leaveSpeed, dou
             }
         }
     }
-    if (havePriority() && myState != LINKSTATE_ZIPPER) {
+    if ((havePriority() || lastWasContMajorGreen()) && myState != LINKSTATE_ZIPPER) {
         // priority usually means the link is open but there are exceptions:
         // zipper still needs to collect foes
         // sublane model could have detected a conflict
@@ -549,18 +571,18 @@ MSLink::opened(SUMOTime arrivalTime, double arrivalSpeed, double leaveSpeed, dou
     if (MSGlobals::gUseMesoSim && impatience == 1) {
         return true;
     }
-    for (std::vector<MSLink*>::const_iterator i = myFoeLinks.begin(); i != myFoeLinks.end(); ++i) {
+    for (const MSLink* const link : myFoeLinks) {
         if (MSGlobals::gUseMesoSim) {
-            if ((*i)->haveRed()) {
+            if (link->haveRed()) {
                 continue;
             }
         }
 #ifdef MSLink_DEBUG_OPENED
         if (gDebugFlag1) {
-            std::cout << "    foeLink=" << (*i)->getViaLaneOrLane()->getID() << " numApproaching=" << (*i)->getApproaching().size() << "\n";
+            std::cout << "    foeLink=" << link->getViaLaneOrLane()->getID() << " numApproaching=" << link->getApproaching().size() << "\n";
         }
 #endif
-        if ((*i)->blockedAtTime(arrivalTime, leaveTime, arrivalSpeed, leaveSpeed, myLane == (*i)->getLane(),
+        if (link->blockedAtTime(arrivalTime, leaveTime, arrivalSpeed, leaveSpeed, myLane == link->getLane(),
                                 impatience, decel, waitingTime, collectFoes, ego)) {
             return false;
         }
@@ -575,7 +597,7 @@ MSLink::opened(SUMOTime arrivalTime, double arrivalSpeed, double leaveSpeed, dou
 bool
 MSLink::blockedAtTime(SUMOTime arrivalTime, SUMOTime leaveTime, double arrivalSpeed, double leaveSpeed,
                       bool sameTargetLane, double impatience, double decel, SUMOTime waitingTime,
-                      BlockingFoes* collectFoes, const SUMOVehicle* ego) const {
+                      BlockingFoes* collectFoes, const SUMOTrafficObject* ego) const {
     for (const auto& it : myApproachingVehicles) {
 #ifdef MSLink_DEBUG_OPENED
         if (gDebugFlag1) {
@@ -613,7 +635,7 @@ bool
 MSLink::blockedByFoe(const SUMOVehicle* veh, const ApproachingVehicleInformation& avi,
                      SUMOTime arrivalTime, SUMOTime leaveTime, double arrivalSpeed, double leaveSpeed,
                      bool sameTargetLane, double impatience, double decel, SUMOTime waitingTime,
-                     const SUMOVehicle* ego) const {
+                     const SUMOTrafficObject* ego) const {
 #ifdef MSLink_DEBUG_OPENED
     if (gDebugFlag1) {
         std::stringstream stream; // to reduce output interleaving from different threads
@@ -690,13 +712,13 @@ MSLink::blockedByFoe(const SUMOVehicle* veh, const ApproachingVehicleInformation
 
 bool
 MSLink::hasApproachingFoe(SUMOTime arrivalTime, SUMOTime leaveTime, double speed, double decel) const {
-    for (std::vector<MSLink*>::const_iterator i = myFoeLinks.begin(); i != myFoeLinks.end(); ++i) {
-        if ((*i)->blockedAtTime(arrivalTime, leaveTime, speed, speed, myLane == (*i)->getLane(), 0, decel, 0)) {
+    for (const MSLink* const link : myFoeLinks) {
+        if (link->blockedAtTime(arrivalTime, leaveTime, speed, speed, myLane == link->getLane(), 0, decel, 0)) {
             return true;
         }
     }
-    for (std::vector<const MSLane*>::const_iterator i = myFoeLanes.begin(); i != myFoeLanes.end(); ++i) {
-        if ((*i)->getVehicleNumberWithPartials() > 0) {
+    for (const MSLane* const lane : myFoeLanes) {
+        if (lane->getVehicleNumberWithPartials() > 0) {
             return true;
         }
     }
@@ -727,24 +749,12 @@ MSLink::getFirstApproachingFoe(const MSLink* wrapAround) const {
 }
 
 
-LinkDirection
-MSLink::getDirection() const {
-    return myDirection;
-}
-
-
 void
 MSLink::setTLState(LinkState state, SUMOTime t) {
     if (myState != state) {
         myLastStateChange = t;
     }
     myState = state;
-}
-
-
-MSLane*
-MSLink::getLane() const {
-    return myLane;
 }
 
 
@@ -764,11 +774,30 @@ MSLink::lastWasContMajor() const {
         if (!pred->getEdge().isInternal()) {
             return false;
         } else {
-            MSLane* pred2 = pred->getLogicalPredecessorLane();
-            assert(pred2 != 0);
-            MSLink* predLink = MSLinkContHelper::getConnectingLink(*pred2, *pred);
-            assert(predLink != 0);
+            const MSLane* const pred2 = pred->getLogicalPredecessorLane();
+            assert(pred2 != nullptr);
+            const MSLink* const predLink = pred2->getLinkTo(pred);
+            assert(predLink != nullptr);
             return predLink->havePriority() || predLink->haveYellow();
+        }
+    }
+}
+
+
+bool
+MSLink::lastWasContMajorGreen() const {
+    if (myInternalLane == nullptr || myAmCont || myHavePedestrianCrossingFoe) {
+        return false;
+    } else {
+        MSLane* pred = myInternalLane->getLogicalPredecessorLane();
+        if (!pred->getEdge().isInternal()) {
+            return false;
+        } else {
+            const MSLane* const pred2 = pred->getLogicalPredecessorLane();
+            assert(pred2 != nullptr);
+            const MSLink* const predLink = pred2->getLinkTo(pred);
+            assert(predLink != nullptr);
+            return predLink->getState() == LINKSTATE_TL_GREEN_MAJOR || predLink->getState() == LINKSTATE_TL_RED;
         }
     }
 }
@@ -892,12 +921,6 @@ MSLink::getLengthBeforeCrossing(const MSLane* foeLane) const {
 }
 
 
-MSLane*
-MSLink::getViaLane() const {
-    return myInternalLane;
-}
-
-
 bool
 MSLink::isEntryLink() const {
     if (MSGlobals::gUsingInternalLanes) {
@@ -951,216 +974,284 @@ MSLink::isInternalJunctionLink() const {
     return getInternalLaneBefore() != nullptr && myInternalLane != nullptr;
 }
 
-bool
-MSLink::fromInternalLane() const {
-    return myInternalLaneBefore != nullptr;
-}
 
-MSLink::LinkLeaders
+const MSLink::LinkLeaders
 MSLink::getLeaderInfo(const MSVehicle* ego, double dist, std::vector<const MSPerson*>* collectBlockers, bool isShadowLink) const {
     LinkLeaders result;
-    if (ego != nullptr && ego->getLaneChangeModel().isOpposite()) {
+    // this link needs to start at an internal lane (either an exit link or between two internal lanes)
+    // or it must be queried by the pedestrian model (ego == 0)
+    if (ego != nullptr && (!fromInternalLane() || ego->getLaneChangeModel().isOpposite())) {
         // ignore link leaders
         return result;
     }
     //gDebugFlag1 = true;
-    // this link needs to start at an internal lane (either an exit link or between two internal lanes)
-    // or it must be queried by the pedestrian model (ego == 0)
-    if (fromInternalLane() || ego == nullptr) {
+    if (gDebugFlag1) {
+        std::cout << SIMTIME << " getLeaderInfo link=" << getViaLaneOrLane()->getID() << " dist=" << dist << " isShadowLink=" << isShadowLink << "\n";
+    }
+    // this is an exit link
+    for (int i = 0; i < (int)myFoeLanes.size(); ++i) {
+        const MSLane* foeLane = myFoeLanes[i];
+        // distance from the querying vehicle to the crossing point with foeLane
+        double distToCrossing = dist - myLengthsBehindCrossing[i].first;
+        const bool sameTarget = (myLane == foeLane->getLinkCont()[0]->getLane()) && !isInternalJunctionLink();
+        const bool sameSource = (myInternalLaneBefore != nullptr && myInternalLaneBefore->getLogicalPredecessorLane() == foeLane->getLogicalPredecessorLane());
+        const double crossingWidth = (sameTarget || sameSource) ? 0 : foeLane->getWidth();
+        const double foeCrossingWidth = (sameTarget || sameSource) ? 0 : myInternalLaneBefore->getWidth();
+        // special treatment of contLane foe only applies if this lane is not a contLane or contLane follower itself
+        const bool contLane = (foeLane->getLinkCont()[0]->getViaLaneOrLane()->getEdge().isInternal() && !(
+                                    isInternalJunctionLink() || isExitLinkAfterInternalJunction()));
         if (gDebugFlag1) {
-            std::cout << SIMTIME << " getLeaderInfo link=" << getViaLaneOrLane()->getID() << " dist=" << dist << " isShadowLink=" << isShadowLink << "\n";
+            std::cout << " distToCrossing=" << distToCrossing << " foeLane=" << foeLane->getID() << " cWidth=" << crossingWidth
+                        << " ijl=" << isInternalJunctionLink() << " sT=" << sameTarget << " sS=" << sameSource
+                        << " lbc=" << myLengthsBehindCrossing[i].first
+                        << " flbc=" << myLengthsBehindCrossing[i].second
+                        << " contLane=" << contLane
+                        << " state=" << toString(myState)
+                        << " foeState=" << toString(foeLane->getLinkCont()[0]->getState())
+                        << "\n";
         }
-        // this is an exit link
-        for (int i = 0; i < (int)myFoeLanes.size(); ++i) {
-            const MSLane* foeLane = myFoeLanes[i];
-            // distance from the querying vehicle to the crossing point with foeLane
-            double distToCrossing = dist - myLengthsBehindCrossing[i].first;
-            const bool sameTarget = (myLane == foeLane->getLinkCont()[0]->getLane()) && !isInternalJunctionLink();
-            const bool sameSource = (myInternalLaneBefore != nullptr && myInternalLaneBefore->getLogicalPredecessorLane() == foeLane->getLogicalPredecessorLane());
-            const double crossingWidth = (sameTarget || sameSource) ? 0 : foeLane->getWidth();
-            const double foeCrossingWidth = (sameTarget || sameSource) ? 0 : myInternalLaneBefore->getWidth();
+        if (distToCrossing + crossingWidth < 0 && !sameTarget
+                && (ego == nullptr || !MSGlobals::gComputeLC || distToCrossing + crossingWidth + ego->getVehicleType().getLength() < 0)) {
+            continue; // vehicle is behind the crossing point, continue with next foe lane
+        }
+        bool ignoreGreenCont = false;
+        if (contLane) {
+            const MSLink* entry = getLaneBefore()->getEntryLink();
+            const MSLink* foeEntry = foeLane->getEntryLink();
+            if (entry != nullptr && entry->haveGreen()
+                    && foeEntry != nullptr && foeEntry->haveGreen()
+                    && entry->myLaneBefore != foeEntry->myLaneBefore)  {
+                // ignore vehicles before an internaljunction as long as they are still in green minor mode
+                ignoreGreenCont = true;
+            }
+        }
+        const double foeDistToCrossing = foeLane->getLength() - myLengthsBehindCrossing[i].second;
+        // it is not sufficient to return the last vehicle on the foeLane because ego might be its leader
+        // therefore we return all vehicles on the lane
+        //
+        // special care must be taken for continuation lanes. (next lane is also internal)
+        // vehicles on these lanes should always block (gap = -1)
+        // vehicles on cont. lanes or on internal lanes with the same target as this link can never be ignored
+        MSLane::AnyVehicleIterator end = foeLane->anyVehiclesEnd();
+        for (MSLane::AnyVehicleIterator it_veh = foeLane->anyVehiclesBegin(); it_veh != end; ++it_veh) {
+            MSVehicle* leader = (MSVehicle*)*it_veh;
+            const double leaderBack = leader->getBackPositionOnLane(foeLane);
+            const double leaderBackDist = foeDistToCrossing - leaderBack;
+            const bool pastTheCrossingPoint = leaderBackDist + foeCrossingWidth < 0;
+            const bool ignoreIndirectBicycleTurn = (pastTheCrossingPoint
+                                                    && leader->getVehicleType().getVehicleClass() == SVC_BICYCLE
+                                                    && foeLane->getIncomingLanes().front().viaLink->getDirection() == LinkDirection::LEFT);
+            const bool cannotIgnore = ((contLane && !ignoreIndirectBicycleTurn) || sameTarget || sameSource) && ego != nullptr;
+            const bool inTheWay = (((!pastTheCrossingPoint && distToCrossing > 0) || (sameTarget && distToCrossing > leaderBackDist - leader->getLength()))
+                                    && leaderBackDist < leader->getVehicleType().getLength());
+            const bool isOpposite = leader->getLaneChangeModel().isOpposite();
             if (gDebugFlag1) {
-                std::cout << " distToCrossing=" << distToCrossing << " foeLane=" << foeLane->getID() << " cWidth=" << crossingWidth
-                          << " ijl=" << isInternalJunctionLink() << " sT=" << sameTarget << " sS=" << sameSource
-                          << " lbc=" << myLengthsBehindCrossing[i].first
-                          << " flbc=" << myLengthsBehindCrossing[i].second
-                          << "\n";
+                std::cout << " candiate leader=" << leader->getID()
+                            << " cannotIgnore=" << cannotIgnore
+                            << " fdtc=" << foeDistToCrossing
+                            << " lb=" << leaderBack
+                            << " lbd=" << leaderBackDist
+                            << " fcwidth=" << foeCrossingWidth
+                            << " foePastCP=" << pastTheCrossingPoint
+                            << " inTheWay=" << inTheWay
+                            << " willPass=" << foeLane->getLinkCont()[0]->getApproaching(leader).willPass
+                            << " isFrontOnLane=" << leader->isFrontOnLane(foeLane)
+                            << " isOpposite=" << isOpposite << "\n";
             }
-            // special treatment of contLane foe only applies if this lane is not a contLane or contLane follower itself
-            const bool contLane = (foeLane->getLinkCont()[0]->getViaLaneOrLane()->getEdge().isInternal() && !(
-                                       isInternalJunctionLink() || isExitLinkAfterInternalJunction()));
-            if (distToCrossing + crossingWidth < 0
-                    && (ego == nullptr || !MSGlobals::gComputeLC || distToCrossing + crossingWidth + ego->getVehicleType().getLength() < 0)) {
-                continue; // vehicle is behind the crossing point, continue with next foe lane
+            if (leader == ego) {
+                continue;
             }
-            const double foeDistToCrossing = foeLane->getLength() - myLengthsBehindCrossing[i].second;
-            // it is not sufficient to return the last vehicle on the foeLane because ego might be its leader
-            // therefore we return all vehicles on the lane
-            //
-            // special care must be taken for continuation lanes. (next lane is also internal)
-            // vehicles on these lanes should always block (gap = -1)
-            // vehicles on cont. lanes or on internal lanes with the same target as this link can never be ignored
+            // ignore greenCont foe vehicles that are not in the way
+            if (ignoreGreenCont && !inTheWay) {
+                continue;
+            }
+            // after entering the conflict area, ignore foe vehicles that are not in the way
+            if (distToCrossing < -POSITION_EPS && !inTheWay
+                    && (ego == nullptr || !MSGlobals::gComputeLC || distToCrossing < -ego->getVehicleType().getLength())) {
+                continue;
+            }
+            // ignore foe vehicles that will not pass
+            if ((!cannotIgnore || leader->isStopped() || sameTarget)
+                    && !foeLane->getLinkCont()[0]->getApproaching(leader).willPass
+                    && leader->isFrontOnLane(foeLane)
+                    && !isOpposite
+                    && !inTheWay
+                    // do not ignore vehicles that have already entered the roundabout (they might block the way to the exit)
+                    && !myLane->getEdge().isRoundabout()
+                    // willPass is false if the vehicle is already on the stopping edge
+                    && !leader->willStop()) {
+                continue;
+            }
+            if (MSGlobals::gSublane && ego != nullptr && (sameSource || sameTarget)) {
+                const double posLat = ego->getLateralPositionOnLane();
+                const double posLatLeader = leader->getLateralPositionOnLane() + leader->getLatOffset(foeLane);
+                const double latGap = (fabs(posLat - posLatLeader)
+                                        - 0.5 * (ego->getVehicleType().getWidth() + leader->getVehicleType().getWidth()));
+                if (gDebugFlag1) {
+                    std::cout << " sublaneFoe lane=" << myInternalLaneBefore->getID()
+                                << " sameSource=" << sameSource
+                                << " sameTarget=" << sameTarget
+                                << " foeLane=" << foeLane->getID()
+                                << " leader=" << leader->getID()
+                                << " egoLane=" << ego->getLane()->getID()
+                                << " leaderLane=" << leader->getLane()->getID()
+                                << " egoLat=" << posLat
+                                << " leaderLat=" << posLatLeader
+                                << " leaderLatOffset=" << leader->getLatOffset(foeLane)
+                                << " latGap=" << latGap
+                                << "\n";
+                }
+                if (latGap > 0) {
+                    const MSLink* foeEntryLink = foeLane->getIncomingLanes().front().viaLink;
+                    if (sameSource) {
+                        // for lanes from the same edge, higer index implies a
+                        // connection further to the left
+                        const bool leaderFromRight = (myIndex > foeEntryLink->getIndex());
+                        if ((posLat > posLatLeader) == leaderFromRight) {
+                            // ignore speed since lanes diverge
+                            continue;
+                        }
+                    } else {
+                        // for lanes from different edges we cannot rely on the
+                        // index due to wrap-around issues
+                        if (myDirection != foeEntryLink->getDirection()) {
+                            bool leaderFromRight = foeEntryLink->getDirection() < myDirection;
+                            // leader vehicle should not move towards ego
+                            if (MSGlobals::gLefthand) {
+                                leaderFromRight = !leaderFromRight;
+                            }
+                            if ((posLat > posLatLeader) == leaderFromRight
+                                    // leader should keep lateral position or move away from ego
+                                    && (leader->getLaneChangeModel().getSpeedLat() == 0
+                                        || leaderFromRight == (leader->getLaneChangeModel().getSpeedLat() < latGap))
+                                    && (ego->getLaneChangeModel().getSpeedLat() == 0
+                                        || leaderFromRight == (ego->getLaneChangeModel().getSpeedLat() > latGap))) {
+                                continue;
+                            }
+                        } else {
+                            // XXX figure out relative direction somehow
+                        }
+                    }
+                }
+            }
+            if (cannotIgnore || inTheWay || leader->getWaitingTime() < MSGlobals::gIgnoreJunctionBlocker) {
+                // compute distance between vehicles on the the superimposition of both lanes
+                // where the crossing point is the common point
+                double gap;
+                bool fromLeft = true;
+                if (ego == nullptr) {
+                    // request from pedestrian model. return distance between leaderBack and crossing point
+                    //std::cout << "   foeLane=" << foeLane->getID() << " leaderBack=" << leaderBack << " foeDistToCrossing=" << foeDistToCrossing << " foeLength=" << foeLane->getLength() << " foebehind=" << myLengthsBehindCrossing[i].second << " dist=" << dist << " behind=" << myLengthsBehindCrossing[i].first << "\n";
+                    gap = leaderBackDist;
+                    // distToCrossing should not take into account the with of the foe lane
+                    // (which was subtracted in setRequestInformation)
+                    // Instead, the width of the foe vehicle is used directly by the caller.
+                    distToCrossing += foeLane->getWidth() / 2;
+                    if (gap + foeCrossingWidth < 0) {
+                        // leader is completely past the crossing point
+                        // or there is no crossing point
+                        continue; // next vehicle
+                    }
+                    // we need to determine whether the vehicle passes the
+                    // crossing from the left or the right (heuristic)
+                    fromLeft = foeDistToCrossing > 0.5 * foeLane->getLength();
+                } else if ((contLane && !sameSource && !ignoreIndirectBicycleTurn) || isOpposite) {
+                    gap = -1; // always break for vehicles which are on a continuation lane or for opposite-direction vehicles
+                } else {
+                    if (gDebugFlag1) {
+                        std::cout << " distToCrossing=" << distToCrossing << " leader back=" << leaderBack << " backDist=" << leaderBackDist
+                                    << " blockedStrategic=" << leader->getLaneChangeModel().isStrategicBlocked()
+                                    //<< " stateRight=" << toString((LaneChangeAction)leader->getLaneChangeModel().getSavedState(-1).second)
+                                    << "\n";
+                    }
+                    if (leaderBackDist + foeCrossingWidth < 0 && !sameTarget) {
+                        // leader is completely past the crossing point
+                        // or there is no crossing point
+                        continue; // next vehicle
+                    }
+                    gap = distToCrossing - ego->getVehicleType().getMinGap() - leaderBackDist - foeCrossingWidth;
+                    // factor 2 is to give some slack for lane-changing
+                    if (gap < leader->getVehicleType().getLength() * 2 && leader->getLaneChangeModel().isStrategicBlocked()) {
+                        // do not encroach on leader when it tries to change lanes
+                        gap = -1;
+                    }
+                }
+                // if the foe is already moving off the intersection, we may
+                // advance up to the crossing point unless we have the same target or same source
+                // (for sameSource, the crossing point indicates the point of divergence)
+                const bool stopAsap = leader->isFrontOnLane(foeLane) ? cannotIgnore : (sameTarget || sameSource);
+                if (gDebugFlag1) {
+                    std::cout << " leader=" << leader->getID() << " contLane=" << contLane << " cannotIgnore=" << cannotIgnore << " stopAsap=" << stopAsap << "\n";
+                }
+                result.emplace_back(leader, gap, stopAsap ? -1 : distToCrossing, fromLeft, inTheWay);
+            }
+
+        }
+        if (ego != nullptr && MSNet::getInstance()->hasPersons()) {
+            // check for crossing pedestrians (keep driving if already on top of the crossing
+            const double distToPeds = distToCrossing - MSPModel::SAFETY_GAP;
+            const double vehWidth = ego->getVehicleType().getWidth() + MSPModel::SAFETY_GAP; // + configurable safety gap
+            /// @todo consider lateral position (depending on whether the crossing is encountered on the way in or out)
+            // @check lefthand?!
+            const bool wayIn = myLengthsBehindCrossing[i].first < myLaneBefore->getLength() * 0.5;
+            const double vehSideOffset = (foeDistToCrossing + myLaneBefore->getWidth() * 0.5 - vehWidth * 0.5
+                                            + ego->getLateralPositionOnLane() * (wayIn ? -1 : 1));
+            // can access the movement model here since we already checked for existing persons above
+            if (distToPeds >= -MSPModel::SAFETY_GAP && MSNet::getInstance()->getPersonControl().getMovementModel()->blockedAtDist(foeLane, vehSideOffset, vehWidth,
+                    ego->getVehicleType().getParameter().getJMParam(SUMO_ATTR_JM_CROSSING_GAP, JM_CROSSING_GAP_DEFAULT),
+                    collectBlockers)) {
+                result.emplace_back(nullptr, -1, distToPeds);
+            }
+        }
+    }
+
+    //std::cout << SIMTIME << " ego=" << Named::getIDSecure(ego) << " link=" << getViaLaneOrLane()->getID() << " myWalkingAreaFoe=" << Named::getIDSecure(myWalkingAreaFoe) << "\n";
+    if (ego != nullptr) {
+        checkWalkingAreaFoe(ego, myWalkingAreaFoe, collectBlockers, result);
+        checkWalkingAreaFoe(ego, myWalkingAreaFoeExit, collectBlockers, result);
+    }
+
+    if (MSGlobals::gLateralResolution > 0 && ego != nullptr && !isShadowLink) {
+        // check for foes on the same lane
+        for (std::vector<MSLane*>::const_iterator it = mySublaneFoeLanes.begin(); it != mySublaneFoeLanes.end(); ++it) {
+            const MSLane* foeLane = *it;
             MSLane::AnyVehicleIterator end = foeLane->anyVehiclesEnd();
             for (MSLane::AnyVehicleIterator it_veh = foeLane->anyVehiclesBegin(); it_veh != end; ++it_veh) {
                 MSVehicle* leader = (MSVehicle*)*it_veh;
-                const double leaderBack = leader->getBackPositionOnLane(foeLane);
-                const double leaderBackDist = foeDistToCrossing - leaderBack;
-                const bool pastTheCrossingPoint = leaderBackDist + foeCrossingWidth < 0;
-                const bool ignoreIndirectBicycleTurn = (pastTheCrossingPoint
-                                                        && leader->getVehicleType().getVehicleClass() == SVC_BICYCLE
-                                                        && foeLane->getIncomingLanes().front().viaLink->getDirection() == LINKDIR_LEFT);
-                const bool cannotIgnore = ((contLane && !ignoreIndirectBicycleTurn) || sameTarget || sameSource) && ego != nullptr;
-                const bool inTheWay = !pastTheCrossingPoint && leaderBackDist < leader->getVehicleType().getLength();
-                const bool isOpposite = leader->getLaneChangeModel().isOpposite();
-                if (gDebugFlag1) {
-                    std::cout << " candiate leader=" << leader->getID()
-                              << " cannotIgnore=" << cannotIgnore
-                              << " fdtc=" << foeDistToCrossing
-                              << " lb=" << leaderBack
-                              << " lbd=" << leaderBackDist
-                              << " fcwidth=" << foeCrossingWidth
-                              << " foePastCP=" << pastTheCrossingPoint
-                              << " inTheWay=" << inTheWay
-                              << " willPass=" << foeLane->getLinkCont()[0]->getApproaching(leader).willPass
-                              << " isFrontOnLane=" << leader->isFrontOnLane(foeLane)
-                              << " isOpposite=" << isOpposite << "\n";
-                }
                 if (leader == ego) {
                     continue;
                 }
-                // after entering the conflict area, ignore foe vehicles that are not in the way
-                if (distToCrossing < -POSITION_EPS && !inTheWay
-                        && (ego == nullptr || !MSGlobals::gComputeLC || distToCrossing < -ego->getVehicleType().getLength())) {
+                const double maxLength = MAX2(myInternalLaneBefore->getLength(), foeLane->getLength());
+                const double gap = dist - maxLength - ego->getVehicleType().getMinGap() + leader->getBackPositionOnLane(foeLane);
+                if (gap < -(ego->getVehicleType().getMinGap() + leader->getLength())) {
+                    // ego is ahead of leader
                     continue;
                 }
-                // ignore foe vehicles that will not pass
-                if ((!cannotIgnore || leader->isStopped() || sameTarget)
-                        && !foeLane->getLinkCont()[0]->getApproaching(leader).willPass
-                        && leader->isFrontOnLane(foeLane)
-                        && !isOpposite
-                        && !inTheWay
-                        // willPass is false if the vehicle is already on the stopping edge
-                        && !leader->willStop()) {
-                    continue;
+
+                const double posLat = ego->getLateralPositionOnLane();
+                const double posLatLeader = leader->getLateralPositionOnLane() + leader->getLatOffset(foeLane);
+                if (gDebugFlag1) {
+                    std::cout << " sublaneFoe lane=" << myInternalLaneBefore->getID()
+                                << " foeLane=" << foeLane->getID()
+                                << " leader=" << leader->getID()
+                                << " egoLane=" << ego->getLane()->getID()
+                                << " leaderLane=" << leader->getLane()->getID()
+                                << " egoLat=" << posLat
+                                << " leaderLat=" << posLatLeader
+                                << " leaderLatOffset=" << leader->getLatOffset(foeLane)
+                                << " egoIndex=" << myInternalLaneBefore->getIndex()
+                                << " foeIndex=" << foeLane->getIndex()
+                                << " dist=" << dist
+                                << " leaderBack=" << leader->getBackPositionOnLane(foeLane)
+                                << "\n";
                 }
-                if (cannotIgnore || inTheWay || leader->getWaitingTime() < MSGlobals::gIgnoreJunctionBlocker) {
-                    // compute distance between vehicles on the the superimposition of both lanes
-                    // where the crossing point is the common point
-                    double gap;
-                    bool fromLeft = true;
-                    if (ego == nullptr) {
-                        // request from pedestrian model. return distance between leaderBack and crossing point
-                        //std::cout << "   foeLane=" << foeLane->getID() << " leaderBack=" << leaderBack << " foeDistToCrossing=" << foeDistToCrossing << " foeLength=" << foeLane->getLength() << " foebehind=" << myLengthsBehindCrossing[i].second << " dist=" << dist << " behind=" << myLengthsBehindCrossing[i].first << "\n";
-                        gap = leaderBackDist;
-                        // distToCrossing should not take into account the with of the foe lane
-                        // (which was subtracted in setRequestInformation)
-                        // Instead, the width of the foe vehicle is used directly by the caller.
-                        distToCrossing += foeLane->getWidth() / 2;
-                        if (gap + foeCrossingWidth < 0) {
-                            // leader is completely past the crossing point
-                            // or there is no crossing point
-                            continue; // next vehicle
-                        }
-                        // we need to determine whether the vehicle passes the
-                        // crossing from the left or the right (heuristic)
-                        fromLeft = foeDistToCrossing > 0.5 * foeLane->getLength();
-                    } else if ((contLane && !sameSource && !ignoreIndirectBicycleTurn) || isOpposite) {
-                        gap = -1; // always break for vehicles which are on a continuation lane or for opposite-direction vehicles
-                    } else {
-                        if (gDebugFlag1) {
-                            std::cout << " distToCrossing=" << distToCrossing << " leader back=" << leaderBack << " backDist=" << leaderBackDist
-                                      << " blockedStrategic=" << leader->getLaneChangeModel().isStrategicBlocked()
-                                      //<< " stateRight=" << toString((LaneChangeAction)leader->getLaneChangeModel().getSavedState(-1).second)
-                                      << "\n";
-                        }
-                        if (leaderBackDist + foeCrossingWidth < 0) {
-                            // leader is completely past the crossing point
-                            // or there is no crossing point
-                            continue; // next vehicle
-                        }
-                        gap = distToCrossing - ego->getVehicleType().getMinGap() - leaderBackDist - foeCrossingWidth;
-                        if (gap < leader->getVehicleType().getLength() && leader->getLaneChangeModel().isStrategicBlocked()) {
-                            // do not encroach on leader when it tries to change lanes
-                            gap = -1;
-                        }
-                    }
-                    // if the foe is already moving off the intersection, we may
-                    // advance up to the crossing point unless we have the same target or same source
-                    // (for sameSource, the crossing point indicates the point of divergence)
-                    const bool stopAsap = leader->isFrontOnLane(foeLane) ? cannotIgnore : (sameTarget || sameSource);
+                // there only is a conflict if the paths cross
+                if ((posLat < posLatLeader && myInternalLaneBefore->getIndex() > foeLane->getIndex())
+                        || (posLat > posLatLeader && myInternalLaneBefore->getIndex() < foeLane->getIndex())) {
                     if (gDebugFlag1) {
-                        std::cout << " leader=" << leader->getID() << " contLane=" << contLane << " cannotIgnore=" << cannotIgnore << " stopAsap=" << stopAsap << "\n";
+                        std::cout << SIMTIME << " blocked by " << leader->getID() << " (sublane split) foeLane=" << foeLane->getID() << "\n";
                     }
-                    result.push_back(LinkLeader(leader, gap, stopAsap ? -1 : distToCrossing, fromLeft));
-                }
-
-            }
-            if (ego != nullptr && MSNet::getInstance()->hasPersons()) {
-                // check for crossing pedestrians (keep driving if already on top of the crossing
-                const double distToPeds = distToCrossing - MSPModel::SAFETY_GAP;
-                const double vehWidth = ego->getVehicleType().getWidth() + MSPModel::SAFETY_GAP; // + configurable safety gap
-                /// @todo consider lateral position (depending on whether the crossing is encountered on the way in or out)
-                // @check lefthand?!
-                const bool wayIn = myLengthsBehindCrossing[i].first < myLaneBefore->getLength() * 0.5;
-                const double vehSideOffset = (foeDistToCrossing + myLaneBefore->getWidth() * 0.5 - vehWidth * 0.5
-                                              + ego->getLateralPositionOnLane() * (wayIn ? -1 : 1));
-                // can access the movement model here since we already checked for existing persons above
-                if (distToPeds >= -MSPModel::SAFETY_GAP && MSNet::getInstance()->getPersonControl().getMovementModel()->blockedAtDist(foeLane, vehSideOffset, vehWidth,
-                        ego->getVehicleType().getParameter().getJMParam(SUMO_ATTR_JM_CROSSING_GAP, JM_CROSSING_GAP_DEFAULT),
-                        collectBlockers)) {
-                    result.push_back(LinkLeader((MSVehicle*)nullptr, -1, distToPeds));
-                }
-            }
-        }
-
-        //std::cout << SIMTIME << " ego=" << Named::getIDSecure(ego) << " link=" << getViaLaneOrLane()->getID() << " myWalkingAreaFoe=" << Named::getIDSecure(myWalkingAreaFoe) << "\n";
-        if (ego != nullptr) {
-            checkWalkingAreaFoe(ego, myWalkingAreaFoe, collectBlockers, result);
-            checkWalkingAreaFoe(ego, myWalkingAreaFoeExit, collectBlockers, result);
-        }
-
-        if (MSGlobals::gLateralResolution > 0 && ego != nullptr && !isShadowLink) {
-            // check for foes on the same lane
-            for (std::vector<MSLane*>::const_iterator it = mySublaneFoeLanes.begin(); it != mySublaneFoeLanes.end(); ++it) {
-                const MSLane* foeLane = *it;
-                MSLane::AnyVehicleIterator end = foeLane->anyVehiclesEnd();
-                for (MSLane::AnyVehicleIterator it_veh = foeLane->anyVehiclesBegin(); it_veh != end; ++it_veh) {
-                    MSVehicle* leader = (MSVehicle*)*it_veh;
-                    if (leader == ego) {
-                        continue;
-                    }
-                    const double maxLength = MAX2(myInternalLaneBefore->getLength(), foeLane->getLength());
-                    const double gap = dist - maxLength - ego->getVehicleType().getMinGap() + leader->getBackPositionOnLane(foeLane);
-                    if (gap < -(ego->getVehicleType().getMinGap() + leader->getLength())) {
-                        // ego is ahead of leader
-                        continue;
-                    }
-
-                    const double posLat = ego->getLateralPositionOnLane();
-                    const double posLatLeader = leader->getLateralPositionOnLane() + leader->getLatOffset(foeLane);
-                    if (gDebugFlag1) {
-                        std::cout << " sublaneFoe lane=" << myInternalLaneBefore->getID()
-                                  << " foeLane=" << foeLane->getID()
-                                  << " leader=" << leader->getID()
-                                  << " egoLane=" << ego->getLane()->getID()
-                                  << " leaderLane=" << leader->getLane()->getID()
-                                  << " egoLat=" << posLat
-                                  << " leaderLat=" << posLatLeader
-                                  << " leaderLatOffset=" << leader->getLatOffset(foeLane)
-                                  << " egoIndex=" << myInternalLaneBefore->getIndex()
-                                  << " foeIndex=" << foeLane->getIndex()
-                                  << " dist=" << dist
-                                  << " leaderBack=" << leader->getBackPositionOnLane(foeLane)
-                                  << "\n";
-                    }
-                    // there only is a conflict if the paths cross
-                    if ((posLat < posLatLeader && myInternalLaneBefore->getIndex() > foeLane->getIndex())
-                            || (posLat > posLatLeader && myInternalLaneBefore->getIndex() < foeLane->getIndex())) {
-                        if (gDebugFlag1) {
-                            std::cout << SIMTIME << " blocked by " << leader->getID() << " (sublane split) foeLane=" << foeLane->getID() << "\n";
-                        }
-                        result.push_back(LinkLeader(leader, gap, -1));
-                    }
+                    result.emplace_back(leader, gap, -1);
                 }
             }
         }
@@ -1188,29 +1279,9 @@ MSLink::checkWalkingAreaFoe(const MSVehicle* ego, const MSLane* foeLane, std::ve
             }
         }
         if (distToPeds != std::numeric_limits<double>::max()) {
-            result.push_back(LinkLeader((MSVehicle*)nullptr, -1, distToPeds));
+            result.emplace_back(nullptr, -1, distToPeds);
         }
     }
-}
-
-
-MSLane*
-MSLink::getViaLaneOrLane() const {
-    if (myInternalLane != nullptr) {
-        return myInternalLane;
-    }
-    return myLane;
-}
-
-
-const MSLane*
-MSLink::getLaneBefore() const {
-    if (myInternalLaneBefore != nullptr) {
-        if (myLaneBefore != myInternalLaneBefore) {
-            throw ProcessError("lane before mismatch!");
-        }
-    }
-    return myLaneBefore;
 }
 
 
@@ -1229,19 +1300,16 @@ MSLink::getParallelLink(int direction) const {
 
 MSLink*
 MSLink::computeParallelLink(int direction) {
-    MSLane* before = getLaneBefore()->getParallelLane(direction);
-    MSLane* after = getLane()->getParallelLane(direction);
+    const MSLane* const before = getLaneBefore()->getParallelLane(direction);
+    const MSLane* const after = getLane()->getParallelLane(direction);
     if (before != nullptr && after != nullptr) {
-        return MSLinkContHelper::getConnectingLink(*before, *after);
-    } else {
-        return nullptr;
+        for (MSLink* const link : before->getLinkCont()) {
+            if (link->getLane() == after) {
+                return link;
+            }
+        }
     }
-}
-
-
-const MSLane*
-MSLink::getInternalLaneBefore() const {
-    return myInternalLaneBefore;
+    return nullptr;
 }
 
 
@@ -1416,5 +1484,5 @@ MSLink::getDescription() const {
     return myLaneBefore->getID() + "->" + getViaLaneOrLane()->getID();
 }
 
-/****************************************************************************/
 
+/****************************************************************************/

@@ -19,13 +19,7 @@
 ///
 // Importer for networks stored in Elmar's format
 /****************************************************************************/
-#ifndef NIImporter_DlrNavteq_h
-#define NIImporter_DlrNavteq_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -72,6 +66,9 @@ public:
 
     /// @brief scaling factor for geo coordinates (DLRNavteq format uses this to increase floating point precisions)
     static const std::string GEO_SCALE;
+
+    /// @brief decides whether the edge length of the input format should be used
+    static bool keepLength;
 
     /// @brief magic value for undefined stuff
     static const std::string UNDEFINED;
@@ -518,9 +515,3 @@ protected:
     static time_t readDate(const std::string& yyyymmdd);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -17,11 +17,10 @@ permalink: /Z/Changes_from_Version_0.12.0_to_Version_0.12.1/
     [Definition of Vehicles, Vehicle Types, and Routes\#Vehicles and Routes](../Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#vehicles_and_routes)).
   - addressing teleports
     - corrected "incoming lanes" determination
-    - added the option **--lanechange.allow-swap**; if enabled, vehicles blocking each other
-      are exchanged (see [Purgatory/Lane Changing](../Purgatory/Lane_Changing.md), in work)
+    - added the option **--lanechange.allow-swap**; if enabled, vehicles blocking each other are exchanged
 - GUI
   - debugged traffic lights tracker broken when moving to subseconds
-- NETCONVERT
+- netconvert
   - OSM-Import
     - osm importer fails fast - furtherly given files are not
       processed in the case of an error

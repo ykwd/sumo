@@ -18,6 +18,7 @@
 # @author  Jakob Erdmann
 # @date    2011-11-28
 
+import sumolib.geomhelper
 from .connection import Connection
 from .lane import addJunctionPos
 
@@ -26,7 +27,7 @@ class Edge:
 
     """ Edges from a sumo network """
 
-    def __init__(self, id, fromN, toN, prio, function, name):
+    def __init__(self, id, fromN, toN, prio, function, name, edgeType=''):
         self._id = id
         self._from = fromN
         self._to = toN
@@ -50,7 +51,9 @@ class Edge:
         self._function = function
         self._tls = None
         self._name = name
+        self._type = edgeType
         self._params = {}
+        self._bidi = None
 
     def getName(self):
         return self._name
@@ -68,6 +71,9 @@ class Edge:
 
     def getPriority(self):
         return self._priority
+
+    def getType(self):
+        return self._type
 
     def getTLS(self):
         return self._tls
@@ -151,16 +157,7 @@ class Edge:
         return self._shape3D
 
     def getBoundingBox(self, includeJunctions=True):
-        s = self.getShape(includeJunctions)
-        xmin = s[0][0]
-        xmax = s[0][0]
-        ymin = s[0][1]
-        ymax = s[0][1]
-        for p in s[1:]:
-            xmin = min(xmin, p[0])
-            xmax = max(xmax, p[0])
-            ymin = min(ymin, p[1])
-            ymax = max(ymax, p[1])
+        xmin, ymin, xmax, ymax = sumolib.geomhelper.addToBoundingBox(self.getShape(includeJunctions))
         assert(xmin != xmax or ymin != ymax or self._function == "internal")
         return (xmin, ymin, xmax, ymax)
 
@@ -235,6 +232,9 @@ class Edge:
 
     def getToNode(self):
         return self._to
+
+    def getBidi(self):
+        return self._bidi
 
     def is_fringe(self, connections=None):
         """true if this edge has no incoming or no outgoing connections (except turnarounds)

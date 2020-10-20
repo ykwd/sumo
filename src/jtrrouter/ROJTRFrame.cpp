@@ -19,11 +19,6 @@
 ///
 // Sets and checks options for jtr-routing
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <iostream>
@@ -56,7 +51,6 @@ ROJTRFrame::fillOptions() {
     oc.addOptionSubTopic("Processing");
     oc.addOptionSubTopic("Defaults");
     oc.addOptionSubTopic("Time");
-    SystemFrame::addReportOptions(oc); // fill this subtopic, too
 
     ROFrame::fillOptions(oc);
 
@@ -91,7 +85,7 @@ ROJTRFrame::fillOptions() {
     oc.addDescription("sources-are-sinks", "Processing", "Use all source edges as sink edges.");
 
     oc.doRegister("discount-sources", 'D',  new Option_Bool(false));
-    oc.addDescription("discount-sources", "Processing", "Subtract upstream flow when inserting a new flow. When option --sources-are-sinks is set, the upstream flow is limited to the value of the source flow and the remainig part termines.");
+    oc.addDescription("discount-sources", "Processing", "Subtract upstream flow when inserting a new flow. When option --sources-are-sinks is set, the upstream flow is limited to the value of the source flow and the remaining part terminates.");
 
     // add rand options
     RandHelper::insertRandOptions();

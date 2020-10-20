@@ -35,12 +35,14 @@ won't be affected by further changes to the original type.
 | change route by id (0x53) | string (route id)  | Assigns the named route to the vehicle, assuming a) the named route exists, and b) it starts on the edge the vehicle is currently at<sup>(1)(2)</sup>.  | [setRouteID](https://sumo.dlr.de/pydoc/traci._vehicle.html#VehicleDomain-setRouteID) |
 | change route (0x57)  | stringList (ids of edges to pass) | Assigns the list of edges as the vehicle's new route assuming the first edge given is the one the vehicle is curently at<sup>(1)(2)</sup>.  | [setRoute](https://sumo.dlr.de/pydoc/traci._vehicle.html#VehicleDomain-setRoute) |
 | reroute parking area (0xc2) | string (parking area id) | Changes the next parking area in parkingAreaID, updates the vehicle route, and preserve consistency in case of passengers/containers on board. | [rerouteParkingArea](https://sumo.dlr.de/pydoc/traci._vehicle.html#VehicleDomain-rerouteParkingArea) |
+| dispatchTaxi | stringList (reservation ids)  | dispatches the taxi with the given id to service the given reservations. If only a single reservation is given, this implies pickup and drop-off If multiple reservations are given, each reservation id must occur twice (once for pickup and once for drop-off) and the list encodes ride sharing of passengers (in pickup and drop-off order)  | [dispatchTaxi](https://sumo.dlr.de/pydoc/traci._vehicle.html#VehicleDomain-dispatchTaxi) |
 | change edge travel time information (0x58)  | compound (begin time, end time, edgeID, value), see below  | Inserts the information about the travel time (in seconds) of edge "edgeID" valid from begin time to end time (in seconds) into the vehicle's internal edge weights container.  | [setAdaptedTraveltime](https://sumo.dlr.de/pydoc/traci._vehicle.html#VehicleDomain-setAdaptedTraveltime) |
 | change edge effort information (0x59)  | compound (begin time, end time, edgeID, value), see below  | Inserts the information about the effort of edge "edgeID" valid from begin time to end time (in seconds) into the vehicle's internal edge weights container.  | [setEffort](https://sumo.dlr.de/pydoc/traci._vehicle.html#VehicleDomain-setEffort) |
 | signal states (0x5b)  |  	int  |  	Sets a new state of signal. See [TraCI/Vehicle Signalling](../TraCI/Vehicle_Signalling.md) for more information.  |  	[setSignals](https://sumo.dlr.de/pydoc/traci._vehicle.html#VehicleDomain-setSignals) |
 | routing mode (0x89)  |  	int  |  	Sets the [routing mode](../Simulation/Routing.md#travel-time_values_for_routing) (0: default, 1: aggregated)  |  [setRoutingMode](https://sumo.dlr.de/pydoc/traci._vehicle.html#VehicleDomain-setRoutingMode) |
 | move to (0x5c)  | compound (lane ID, position along lane)  | Moves the vehicle to a new position along the current route <sup>(3)</sup>.  | [moveTo](https://sumo.dlr.de/pydoc/traci._vehicle.html#VehicleDomain-moveTo) |
 | move to XY (0xb4) | compound (edgeID, laneIndex, x, y, angle, keepRoute) (see below)  | Moves the vehicle to a new position after normal vehicle movements have taken place. Also forces the angle of the vehicle to the given value (navigational angle in degree). [See below for additional details](../TraCI/Change_Vehicle_State.md#move_to_xy_0xb4) | [moveToXY](https://sumo.dlr.de/pydoc/traci._vehicle.html#VehicleDomain-moveToXY) |
+| replaceStop (0x17) | compound (edgeID, vehID, nextStopIndex, edgeID, pos, laneIndex, duration, flags, startPos, until) (see below)  | Replaces stop at the given index with a new stop. Automatically modifies the route if the replacement stop is at another location. [See below for additional details](../TraCI/Change_Vehicle_State.md#replaceStop-0x17) | [replaceStop](https://sumo.dlr.de/pydoc/traci._vehicle.html#VehicleDomain-replaceStop) |
 | reroute (compute new route) by travel time (0x90)  | compound (<empty\>), see below  | Computes a new route to the current destination that minimizes travel time. The assumed values for each edge in the network can be customized in various ways. See [Simulation/Routing#Travel-time_values_for_routing](../Simulation/Routing.md#travel-time_values_for_routing). Replaces the current route by the found<sup>(2)</sup>.  | [rerouteTraveltime](https://sumo.dlr.de/pydoc/traci._vehicle.html#VehicleDomain-rerouteTraveltime) |
 | reroute (compute new route) by effort (0x91) | compound (<empty\>), see below  | Computes a new route using the vehicle's internal and the global edge effort information. Replaces the current route by the found<sup(2)</sup>. | [rerouteEffort](https://sumo.dlr.de/pydoc/traci._vehicle.html#VehicleDomain-rerouteEffort) |
 | speed mode (0xb3) | int bitset (see below)  | Sets how the values set by speed (0x40) and slowdown (0x14) shall be treated. Also allows to configure the behavior at junctions. See below.  | [setSpeedMode](https://sumo.dlr.de/pydoc/traci._vehicle.html#VehicleDomain-setSpeedMode) |
@@ -124,7 +126,7 @@ The stop flags are a bitset with the following additive components
 
 This command induces a temporary increase of the vehicles desired time
 headway (car-following parameter tau) and specifies a minimal space
-headway to keep, as well. The execution is seperated into an adaptation
+headway to keep, as well. The execution is separated into an adaptation
 phase, where the headways are gradually altered at the specified rate.
 As soon as the desired headways are established they are kept for the
 specified duration. Afterwards they are reset to the original value.
@@ -154,28 +156,34 @@ The vehicle will be removed from its lane and moved to the given position on the
 ### move to XY (0xb4)
 
 The vehicle (the center of it's front bumper) is moved to the network
-position that best matches the given x,y network coordinates. The edgeID
-and laneIndex are compared against the original [OpenDRIVE lane
-id](../Networks/Import/OpenDRIVE.md#referencing_original_ids) when
-possible to resolve ambiguities. The optional keepRoute flag influences
-mapping as follows
+position that best matches the given x,y network coordinates. 
 
-- keepRoute = **1**: The vehicle is mapped to the closest edge within
-  it's existing route. If no suitable position is found within 100m
-  mapping fails with an error.
-- keepRoute = **0**: The vehicle is mapped to the closest edge within
-  the network. If that edge does not belong to the original route, the
-  current route is replaced by a new route which consists of that edge
-  only. If no suitable position is found within 100m mapping fails
-  with an error. When using the [sublane
-  model](../Simulation/SublaneModel.md) the best lateral position
-  that is fully within the lane will be used. Otherwise, the vehicle
-  will drive in the center of the closest lane.
-- keepRoute = **2**: The vehicle is mapped to the exact position in
+The arguments edgeID and lane are optional and can be set to "" and -1 respectively if not known.
+Their use is to resolve ambiguities when there are multiple roads on top of each other (i.e. at bridges) or to provide additional guidance on intersections (where internal edges overlap). 
+If the edgeID and lane are given, they are compared against the 'origID'-attribute of the road lanes (which may be set to providate a mapping to some other network such as OpenDRIVE) and if the attribute isn't set against the actual lane id.
+
+The optional keepRoute flag is a bitset that influences
+mapping as follows:
+
+- **bit0** (keepRoute = 1 when only this bit is set)
+  - **1**: The vehicle is mapped to the closest edge within it's existing route. 
+           If no suitable position is found within 100m   mapping fails with an error.
+  - **0**: The vehicle is mapped to the closest edge within the network.
+           If that edge does not belong to the original route, the current route is replaced by a new 
+           route which consists of that edge only.
+           If no suitable position is found within 100m mapping fails with an error.
+           When using the [sublane model](../Simulation/SublaneModel.md) the best lateral position
+           that is fully within the lane will be used. Otherwise, the vehicle  will drive in the center of the closest lane.
+- **bit1** (keepRoute = 2 when only this bit is set)           
+  - **1**: The vehicle is mapped to the exact position in
   the network (including the exact lateral position). If that position
   lies outside the road network, the vehicle stops moving on it's own
   accord until it is placed back into the network with another TraCI
-  command.
+  command. (if keeproute = 3, the position must still be within 100m of the vehicle route)
+  - **0**: The vehicle is always on a road
+- **bit2** (keepRoute = 4 when only this bit is set)
+  - **1**: lane permissions are ignored when mapping
+  - **0**: The vehicle is mapped only to lanes that allow it's vehicle class       
 
 The angle value is assumed to be in navigational degrees (between 0 and
 360 with 0 at the top, going clockwise). The angle is used when scoring
@@ -195,8 +203,15 @@ previous and the new position instead.
 
 |         byte          |       integer        |        byte         |                       string                       |       byte       |                        double                         | | | | | | | | |
 | :-------------------: | :------------------: | :-----------------: | :------------------------------------------------: | :--------------: | :---------------------------------------------------: | :-: |:-: |:-: |:-: |:-: |:-: |:-: |:-: |
-| value type *compound* | item number (5 or 6) | value type *string* | edge ID (to resolve ambiguities, may be arbitrary) | value type *int* | lane index (to resolve ambiguities, may be arbitrary) | value type double | x Position (network coordinates) | value type double | y Position (network coordinates) | value type double | angle | value type byte | keepRoute (0 - 2) |
+| value type *compound* | item number (5 or 6) | value type *string* | edge ID (to resolve ambiguities, may be arbitrary) | value type *int* | lane index (to resolve ambiguities, may be arbitrary) | value type double | x Position (network coordinates) | value type double | y Position (network coordinates) | value type double | angle | value type byte | keepRoute (0 - 7) |
 
+### replaceStop (0x17)
+
+| string | int           | string | double  | integer     | double                 | integer | double                 | double              |
+| :----: | :-----------: | :----: | :-----: | :---------: | :--------------------: | :-----: | :--------------------: | :-----------------: |
+| vehID  | nextStopIndex | edgeID | pos=1.0 | laneIndex=0 | duration=-1073741824.0 | flags=0 | startPos=-1073741824.0 | until=-1073741824.0 |
+
+Replaces stop at the given index with a new stop. Automatically modifies the route if the replacement stop is at another location
 
 ### resume (0x19)
 
@@ -417,10 +432,10 @@ controlled vehicle (moveToXY).
 
 |         byte          |              int               |        byte         |        string         |        byte         |            string            |        byte         |   string    |        byte         |   string    |        byte         |     string      |        byte         |    string    |        byte         |    string    |        byte         |      string      |        byte         |    string     |        byte         |           string           |        byte         |            string             |        byte         |           string            |         byte         |       int       |         byte         |      int      |
 | :-------------------: | :----------------------------: | :-----------------: | :-------------------: | :-----------------: | :--------------------------: | :-----------------: | :---------: | :-----------------: | :---------: | :-----------------: | :-------------: | :-----------------: | :----------: | :-----------------: | :----------: | :-----------------: | :--------------: | :-----------------: | :-----------: | :-----------------: | :------------------------: | :-----------------: | :---------------------------: | :-----------------: | :-------------------------: | :------------------: | :-------------: | :------------------: | :-----------: |
-| value type *compound* | number of elements (always=14) | value type *string* | route ID (must exist) | value type *string* | vehicle type ID (must exist) | value type *string* | depart time | value type *string* | depart lane | value type *string* | depart position | value type *string* | depart speed | value type *string* | arrival lane | value type *string* | arrival position | value type *string* | arrival speed | value type *string* | from taz (origin district) | value type *string* | to taz (destination district) | value type *string* | line (for public ttansport) | value type *integer* | person capacity | value type *integer* | person number |
+| value type *compound* | number of elements (always=14) | value type *string* | route ID (must exist) | value type *string* | vehicle type ID (must exist) | value type *string* | depart time | value type *string* | depart lane | value type *string* | depart position | value type *string* | depart speed | value type *string* | arrival lane | value type *string* | arrival position | value type *string* | arrival speed | value type *string* | from taz (origin district) | value type *string* | to taz (destination district) | value type *string* | line (for public transport) | value type *integer* | person capacity | value type *integer* | person number |
 
 If an empty routeID is given, the vehicle will be placed on an route
-that consists of a single arbitrary edge (with suitalbe vClass
+that consists of a single arbitrary edge (with suitable vClass
 permissions). This can be used to simply the initialization of remote
 controlled vehicle (moveToXY).
 
@@ -469,6 +484,20 @@ call](../TraCI/GenericParameters.md#set_parameter).
   time for rerouting for **all** vehicles (where EDGE_ID is the id if
   a network edge). This value is overwritten at the next update
   interval (**--device.rerouting.adaptation-interval**).
+- device.driverstate.awareness
+- device.driverstate.errorState
+- device.driverstate.errorTimeScale
+- device.driverstate.errorNoiseIntensity
+- device.driverstate.minAwareness
+- device.driverstate.initialAwareness
+- device.driverstate.errorTimeScaleCoefficient
+- device.driverstate.errorNoiseIntensityCoefficient
+- device.driverstate.speedDifferenceErrorCoefficient
+- device.driverstate.headwayErrorCoefficient
+- device.driverstate.speedDifferenceChangePerceptionThreshold
+- device.driverstate.headwayChangePerceptionThreshold
+- device.driverstate.maximalReactionTime
+- device.driverstate.originalReactionTime
 - device.example.customValue1 (double literal)
 - has.rerouting.device ("true"): can be used to dynamically enable
   [automatic rerouting](../Demand/Automatic_Routing.md)

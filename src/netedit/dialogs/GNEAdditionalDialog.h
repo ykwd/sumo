@@ -17,13 +17,7 @@
 ///
 // A abstract class for editing additional elements
 /****************************************************************************/
-#ifndef GNEAdditionalDialog_h
-#define GNEAdditionalDialog_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-
+#pragma once
 #include <config.h>
 
 #include <fx.h>
@@ -131,4 +125,3 @@ private:
     GNEAdditionalDialog& operator=(const GNEAdditionalDialog&) = delete;
 };
 
-#endif

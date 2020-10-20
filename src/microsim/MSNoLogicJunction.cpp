@@ -19,18 +19,14 @@
 ///
 // -------------------
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
-#include "MSNoLogicJunction.h"
-#include "MSLane.h"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include "MSLane.h"
+#include "MSLink.h"
+#include "MSNoLogicJunction.h"
 
 
 // ===========================================================================
@@ -44,8 +40,9 @@ MSNoLogicJunction::MSNoLogicJunction(const std::string& id,
                                      SumoXMLNodeType type,
                                      const Position& position,
                                      const PositionVector& shape,
+                                     const std::string& name,
                                      std::vector<MSLane*> incoming, std::vector<MSLane*> internal):
-    MSJunction(id, type, position, shape),
+    MSJunction(id, type, position, shape, name),
     myIncomingLanes(incoming),
     myInternalLanes(internal) {
 }
@@ -56,12 +53,10 @@ MSNoLogicJunction::~MSNoLogicJunction() {}
 
 void
 MSNoLogicJunction::postloadInit() {
-    std::vector<MSLane*>::iterator i;
     // inform links where they have to report approaching vehicles to
-    for (i = myIncomingLanes.begin(); i != myIncomingLanes.end(); ++i) {
-        const MSLinkCont& links = (*i)->getLinkCont();
-        for (MSLinkCont::const_iterator j = links.begin(); j != links.end(); j++) {
-            (*j)->setRequestInformation(-1, false, false, std::vector<MSLink*>(), std::vector<MSLane*>());
+    for (const MSLane* const l : myIncomingLanes) {
+        for (MSLink* const link : l->getLinkCont()) {
+            link->setRequestInformation(-1, false, false, std::vector<MSLink*>(), std::vector<MSLane*>());
         }
     }
 }
@@ -91,6 +86,4 @@ MSNoLogicJunction::getInternalLanes() const {
 }
 
 
-
 /****************************************************************************/
-

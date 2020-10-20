@@ -20,13 +20,7 @@
 ///
 // with one ore more logics.
 /****************************************************************************/
-#ifndef MSLogicJunction_h
-#define MSLogicJunction_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSJunction.h"
@@ -81,6 +75,7 @@ protected:
                     SumoXMLNodeType type,
                     const Position& position,
                     const PositionVector& shape,
+                    const std::string& name,
                     std::vector<MSLane*> incoming,
                     std::vector<MSLane*> internal
                    );
@@ -100,9 +95,3 @@ private:
     MSLogicJunction& operator=(const MSLogicJunction&);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

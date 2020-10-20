@@ -20,12 +20,7 @@
 ///
 // Krauss car-following model, changing accel and speed by slope
 /****************************************************************************/
-#ifndef MSCFModel_KraussPS_h
-#define MSCFModel_KraussPS_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSCFModel_Krauss.h"
@@ -89,5 +84,4 @@ public:
 
 };
 
-#endif /* MSCFModel_KraussPS_H */
 

@@ -19,16 +19,16 @@ The transition of control can take place in two directions:
 - automation-\>driver ("downward transition")
 
 Presumably, the more complex process is the downward transition, where
-the human driver's is supposed to take back control from the vehicle
-automation, as the drivers condition right after the take-over event may
+the human driver is supposed to take back control from the vehicle
+automation, as the driver's condition right after the take-over event may
 allow only a reduced driving performance. The ToC Device divides the
 downward transition into two states:
 
 - The 'preparing' state, where a take-over request (TOR) has been
-  issued, but the driver has not taken back back the control of the
+  issued, but the driver has not taken back the control of the
   vehicle.
 - The 'recovering' state, just after the ToC, where the driver shows
-  decreased driving performance \[see below for details\].
+  decreased driving performance (see below for details).
 
 Further, the device induces a minimum risk maneuver (MRM) if the driver
 does not take back the vehicle control within a specified lead time (see
@@ -40,7 +40,7 @@ figure).
 
 ## Configuration
 
-To equip vehicles with the ToC functionality the generic equipment
+To equip vehicles with the ToC functionality, the generic equipment
 functionality of devices can be employed, see [the description of
 equipment
 procedures](Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#devices)
@@ -76,6 +76,8 @@ element of the form `<param key=<PARAMETER NAME> value=<PARAMETER VALUE>` of the
 | dynamicToCThreshold   | float            | 0.0              | Time, which the vehicle requires to have ahead to continue in automated mode. The default value of 0.0 indicates no dynamic triggering of ToCs.                                                                                                                |
 | dynamicMRMProbability | float            | 0.05             | Probability that a dynamically triggered TOR is not answered in time.                                                                                                                                                                                          |
 | mrmKeepRight          | bool             | false            | If true, the vehicle tries to change to the right during an MRM.                                                                                                                                                                                               |
+| mrmSafeSpot           | string           | ""               | If set, the vehicle tries to reach the given named stopping place during an MRM.                                                                                                                                                                                               |
+| mrmSafeSpotDuration   | float            | 60.0             | Duration the vehicle stays at the safe spot after an MRM.                                                                                                                                                                                               |
 | maxPreparationAccel   | float            | 0.0              | Maximal acceleration that may be applied during the ToC preparation phase.                                                                                                                                                                                     |
 | ogNewSpaceHeadway     | float            | 0.0              | The target additional space headway during the preparatory phase before a ToC (see [openGap()](TraCI/Change_Vehicle_State.md#open_gap_0x16)).                                                                                                    |
 | ogNewTimeHeadway      | float            | original value   | The target time headway during the preparatory phase before a ToC (see [openGap()](TraCI/Change_Vehicle_State.md#open_gap_0x16)).                                                                                                                |
@@ -100,14 +102,14 @@ traci.vehicle.setParameter(<VEHICLE_ID>, "device.toc.requestToC", <AVAILABLE_LEA
 
 If the current driving mode is automated, this will induce a switch to
 the manual vehicle type after the specified (or default) `responseTime`,
-or, if `responseTime > availableLeadTime` an MRM is initiated (and
+or, if `responseTime > availableLeadTime`, an MRM is initiated (and
 interrupted after `responseTime`). During the MRM, the vehicle brakes at
 the specified (or default) constant rate `mrmDecel`. After
 `responseTime` has elapsed, the vehicle type is switched and the
 awareness parameter of the vehicle's [driver
 state](Driver_State.md) is set to the `initialAwareness`.
-Hereafter the awareness grows linearly with rate `recoveryRate` until it
-reaches its maximal value (=1.0) after
+Hereafter, the awareness grows linearly with rate `recoveryRate` until it
+reaches its maximum value (=1.0) after
 `(1.0-initialAwareness)/recoveryRate` seconds.
 
 If the current driving mode is manual, a TOR will induce an immediate
@@ -119,14 +121,14 @@ values are given).
 
 A TOR can be issued without external command if the parameter
 `dynamicToCThreshold` is supplied with a positive value. It induces a
-TOR if the vehicle cannot continue on its current route for longer then
+TOR if the vehicle cannot continue on its current route for longer than
 the given value (in seconds) due to impeded lane changes. The
 corresponding TOR is currently issued with a lead time of 3/4 of the
 given dynamic-ToC threshold.
 
 ## Reduced Driving Performance
 
-During the recovering phase following a ToC the driver of the automated
+During the recovering phase following a ToC, the driver of the automated
 vehicle is assumed to drive with a decreased performance. This is
 modeled by temporarily elevated magnitudes of the driver's perception
 errors, i.e., a decreased driver awareness (see [Driver

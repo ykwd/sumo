@@ -17,13 +17,7 @@
 ///
 // The StopEdge is a special intermodal edge representing bus and train stops
 /****************************************************************************/
-#ifndef StopEdge_h
-#define StopEdge_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "IntermodalEdge.h"
@@ -43,8 +37,3 @@ public:
         return true;
     }
 };
-
-
-#endif
-
-/****************************************************************************/

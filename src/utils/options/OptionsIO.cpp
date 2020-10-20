@@ -18,11 +18,6 @@
 ///
 // Helper for parsing command line arguments and reading configuration files
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <string>
@@ -43,6 +38,11 @@
 #include <utils/common/FileHelpers.h>
 #include <utils/common/MsgHandler.h>
 #include <utils/common/StringUtils.h>
+#ifdef HAVE_ZLIB
+#include <foreign/zstr/zstr.hpp>
+#endif
+#include <utils/xml/IStreamInputSource.h>
+
 
 // ===========================================================================
 // static member definitions
@@ -80,7 +80,9 @@ OptionsIO::getOptions(const bool commandLineOnly) {
     if (myArgC == 2 && myArgV[1][0] != '-') {
         // special case only one parameter, check who can handle it
         if (OptionsCont::getOptions().setByRootElement(getRoot(myArgV[1]), myArgV[1])) {
-            loadConfiguration();
+            if (!commandLineOnly) {
+                loadConfiguration();
+            }
             return;
         }
     }
@@ -91,12 +93,7 @@ OptionsIO::getOptions(const bool commandLineOnly) {
     }
     if (!commandLineOnly || OptionsCont::getOptions().isSet("save-configuration", false)) {
         // read the configuration when everything's ok
-        OptionsCont::getOptions().resetWritable();
         loadConfiguration();
-        // reparse the options
-        //  (overwrite the settings from the configuration file)
-        OptionsCont::getOptions().resetWritable();
-        OptionsParser::parse(myArgC, myArgV);
     }
 }
 
@@ -107,11 +104,12 @@ OptionsIO::loadConfiguration() {
     if (!oc.exists("configuration-file") || !oc.isSet("configuration-file")) {
         return;
     }
-    std::string path = oc.getString("configuration-file");
+    const std::string path = oc.getString("configuration-file");
     if (!FileHelpers::isReadable(path)) {
         throw ProcessError("Could not access configuration '" + oc.getString("configuration-file") + "'.");
     }
     PROGRESS_BEGIN_MESSAGE("Loading configuration");
+    oc.resetWritable();
     // build parser
     XERCES_CPP_NAMESPACE::SAXParser parser;
     parser.setValidationScheme(XERCES_CPP_NAMESPACE::SAXParser::Val_Auto);
@@ -130,6 +128,11 @@ OptionsIO::loadConfiguration() {
         throw ProcessError("Could not load configuration '" + path + "':\n " + StringUtils::transcode(e.getMessage()));
     }
     oc.relocateFiles(path);
+    if (myArgC > 2) {
+        // reparse the options (overwrite the settings from the configuration file)
+        oc.resetWritable();
+        OptionsParser::parse(myArgC, myArgV);
+    }
     PROGRESS_DONE_MESSAGE();
 }
 
@@ -144,7 +147,17 @@ OptionsIO::getRoot(const std::string& filename) {
         parser.setDocumentHandler(&handler);
         parser.setErrorHandler(&handler);
         XERCES_CPP_NAMESPACE::XMLPScanToken token;
-        if (!parser.parseFirst(filename.c_str(), token)) {
+        if (!FileHelpers::isReadable(filename) || FileHelpers::isDirectory(filename)) {
+            throw ProcessError("Could not open '" + filename + "'.");
+        }
+#ifdef HAVE_ZLIB
+        zstr::ifstream istream(filename.c_str(), std::fstream::in | std::fstream::binary);
+        IStreamInputSource inputStream(istream);
+        const bool result = parser.parseFirst(inputStream, token);
+#else
+        const bool result = parser.parseFirst(filename.c_str(), token);
+#endif
+        if (!result) {
             throw ProcessError("Can not read XML-file '" + filename + "'.");
         }
         while (parser.parseNext(token) && handler.getItem() == "");
@@ -159,4 +172,3 @@ OptionsIO::getRoot(const std::string& filename) {
 
 
 /****************************************************************************/
-

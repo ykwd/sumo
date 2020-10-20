@@ -22,11 +22,6 @@
 ///
 // Builds detectors for microsim
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <string>
@@ -185,8 +180,8 @@ NLDetectorBuilder::buildE2Detector(const std::string& id, MSLane* lane, double p
         // add the file output (XXX: Where's the corresponding delete?)
         if (toLaneGiven) {
             // Detector also associated to specific link
-            MSLane* lastLane = det->getLastLane();
-            MSLink* link = MSLinkContHelper::getConnectingLink(*lastLane, *toLane);
+            const MSLane* const lastLane = det->getLastLane();
+            const MSLink* const link = lastLane->getLinkTo(toLane);
             if (link == nullptr) {
                 throw InvalidArgument(
                     "The detector '" + id + "' cannot be build as no connection between lanes '"
@@ -263,7 +258,7 @@ NLDetectorBuilder::buildE2Detector(const std::string& id, std::vector<MSLane*> l
         if (toLaneGiven) {
             // Detector also associated to specific link
             const MSLane* const lastDetLane = det->getLastLane();
-            const MSLink* const link = MSLinkContHelper::getConnectingLink(*lastDetLane, *toLane);
+            const MSLink* const link = lastDetLane->getLinkTo(toLane);
             if (link == nullptr) {
                 throw InvalidArgument(
                     "The detector '" + id + "' cannot be build as no connection between lanes '"
@@ -385,7 +380,7 @@ NLDetectorBuilder::createInductLoop(const std::string& id,
     if (MSGlobals::gUseMesoSim) {
         return new MEInductLoop(id, MSGlobals::gMesoNet->getSegmentForEdge(lane->getEdge(), pos), pos, vTypes);
     }
-    return new MSInductLoop(id, lane, pos, vTypes);
+    return new MSInductLoop(id, lane, pos, vTypes, false);
 }
 
 
@@ -458,6 +453,7 @@ NLDetectorBuilder::createEdgeLaneMeanData(const std::string& id, SUMOTime freque
         const bool withInternal, const bool trackVehicles, const int detectPersons,
         const double maxTravelTime, const double minSamples,
         const double haltSpeed, const std::string& vTypes,
+        const std::string& writeAttributes,
         const std::string& device) {
     if (begin < 0) {
         throw InvalidArgument("Negative begin time for meandata dump '" + id + "'.");
@@ -472,19 +468,19 @@ NLDetectorBuilder::createEdgeLaneMeanData(const std::string& id, SUMOTime freque
     MSMeanData* det = nullptr;
     if (type == "" || type == "performance" || type == "traffic") {
         det = new MSMeanData_Net(id, begin, end, useLanes, withEmpty,
-                                 printDefaults, withInternal, trackVehicles, detectPersons, maxTravelTime, minSamples, haltSpeed, vTypes);
+                                 printDefaults, withInternal, trackVehicles, detectPersons, maxTravelTime, minSamples, haltSpeed, vTypes, writeAttributes);
     } else if (type == "emissions" || type == "hbefa") {
         if (type == "hbefa") {
             WRITE_WARNING("The netstate type 'hbefa' is deprecated. Please use the type 'emissions' instead.");
         }
         det = new MSMeanData_Emissions(id, begin, end, useLanes, withEmpty,
-                                       printDefaults, withInternal, trackVehicles, maxTravelTime, minSamples, vTypes);
+                                       printDefaults, withInternal, trackVehicles, maxTravelTime, minSamples, vTypes, writeAttributes);
     } else if (type == "harmonoise") {
         det = new MSMeanData_Harmonoise(id, begin, end, useLanes, withEmpty,
-                                        printDefaults, withInternal, trackVehicles, maxTravelTime, minSamples, vTypes);
+                                        printDefaults, withInternal, trackVehicles, maxTravelTime, minSamples, vTypes, writeAttributes);
     } else if (type == "amitran") {
         det = new MSMeanData_Amitran(id, begin, end, useLanes, withEmpty,
-                                     printDefaults, withInternal, trackVehicles, detectPersons, maxTravelTime, minSamples, haltSpeed, vTypes);
+                                     printDefaults, withInternal, trackVehicles, detectPersons, maxTravelTime, minSamples, haltSpeed, vTypes, writeAttributes);
     } else {
         throw InvalidArgument("Invalid type '" + type + "' for meandata dump '" + id + "'.");
     }

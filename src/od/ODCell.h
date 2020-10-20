@@ -19,13 +19,7 @@
 ///
 // A single O/D-matrix cell
 /****************************************************************************/
-#ifndef ODCell_h
-#define ODCell_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -82,9 +76,3 @@ struct ODCell {
     /// @brief the destination "district" is an edge id
     bool destinationIsEdge = false;
 };
-
-
-#endif
-
-/****************************************************************************/
-

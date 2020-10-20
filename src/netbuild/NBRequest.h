@@ -20,13 +20,7 @@
 ///
 // This class computes the logic of a junction
 /****************************************************************************/
-#ifndef NBRequest_h
-#define NBRequest_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -164,6 +158,9 @@ public:
     /// @brief whether there are conflicting streams of traffic at this node
     bool hasConflict() const;
 
+    /// @brief whether there are conflicting streams of traffic for the given link index
+    bool hasConflictAtLink(int linkIndex) const;
+
 private:
     /** sets the information that the edge from1->to1 blocks the edge
         from2->to2 (is higher priorised than this) */
@@ -283,8 +280,3 @@ private:
     /// @brief Invalidated assignment operator
     NBRequest& operator=(const NBRequest& s) = delete;
 };
-
-#endif
-
-/****************************************************************************/
-

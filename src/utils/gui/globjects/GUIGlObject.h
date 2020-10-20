@@ -20,13 +20,7 @@
 ///
 // Base class for all objects that may be displayed within the openGL-gui
 /****************************************************************************/
-#ifndef GUIGlObject_h
-#define GUIGlObject_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -287,7 +281,3 @@ private:
     /// @brief Invalidated assignment operator.
     GUIGlObject& operator=(const GUIGlObject&) = delete;
 };
-#endif
-
-/****************************************************************************/
-

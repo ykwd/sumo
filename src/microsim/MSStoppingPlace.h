@@ -18,13 +18,7 @@
 ///
 // A lane area vehicles can halt at
 /****************************************************************************/
-#ifndef MSStoppingPlace_h
-#define MSStoppingPlace_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -74,7 +68,8 @@ public:
     MSStoppingPlace(const std::string& id,
                     const std::vector<std::string>& lines, MSLane& lane,
                     double begPos, double endPos, const std::string name = "",
-                    int capacity = 0);
+                    int capacity = 0,
+                    double parkingLength = 0);
 
 
 
@@ -114,7 +109,7 @@ public:
      * @param[in] what The end halting position of the vehicle
      * @see computeLastFreePos
      */
-    void enter(SUMOVehicle* what, double beg, double end);
+    void enter(SUMOVehicle* veh, bool parking);
 
 
     /** @brief Called if a vehicle leaves this stop
@@ -204,6 +199,20 @@ public:
 
     static int getPersonsAbreast(double length);
 
+    /// @brief get list of vehicles waiting at this stop
+    std::vector<const SUMOVehicle*> getStoppedVehicles() const;
+
+    /// @brief get number of persons waiting at this stop
+    inline int getNumWaitingPersons() const {
+        return (int)myWaitingTransportables.size();
+    }
+
+    /// @brief get IDs of persons waiting at this stop
+    void getWaitingPersonIDs(std::vector<std::string>& into) const;
+
+    /** @brief Remove all vehicles before quick-loading state */
+    void clearState();
+
 protected:
     /** @brief Computes the last free position on this stop
      *
@@ -220,7 +229,7 @@ protected:
     std::vector<std::string> myLines;
 
     /// @brief A map from objects (vehicles) to the areas they acquire after entering the stop
-    std::map<const SUMOVehicle*, std::pair<double, double> > myEndPositions;
+    std::map<const SUMOVehicle*, std::pair<double, double>, ComparatorNumericalIdLess> myEndPositions;
 
     /// @brief The lane this bus stop is located at
     const MSLane& myLane;
@@ -240,6 +249,9 @@ protected:
     /// @brief The number of transportables that can wait here
     const int myTransportableCapacity;
 
+    /// @brief the scaled space capacity for parking vehicles
+    const double myParkingFactor;
+
 protected:
 
     /// @brief Persons waiting at this stop (mapped to waiting position)
@@ -258,9 +270,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

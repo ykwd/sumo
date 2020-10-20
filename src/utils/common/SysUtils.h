@@ -17,14 +17,7 @@
 ///
 // A few system-specific functions
 /****************************************************************************/
-#ifndef SysUtils_h
-#define SysUtils_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-
+#pragma once
 #include <string>
 
 // ===========================================================================
@@ -41,7 +34,7 @@ public:
     static long getCurrentMillis();
 
 
-#ifdef _MSC_VER
+#ifdef WIN32
     /** @brief Returns the CPU ticks (windows only)
      *
      * Used for random number initialisation, linux version
@@ -54,8 +47,3 @@ public:
     /// @brief run a shell command without popping up any windows (particuarly on win32)
     static unsigned long runHiddenCommand(const std::string& cmd);
 };
-
-#endif
-
-/****************************************************************************/
-

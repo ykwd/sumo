@@ -30,7 +30,14 @@ DLR electronic library
 
 All models implement different vehicle emission classes. These classes
 can be assigned to vehicles by using the vehicle type attribute
-"`emissionClass`". Available emission classes
+`emissionClass`. If the model has different classes, the definition 
+has the form `emissionClass="<model>/<class>"` e.g. `HBEFA3/PC_G_EU4`.
+If the model has only one class (for instance the Electric Vehicle Model),
+the `<class>` can be omitted in the input and will show up as `default` 
+in the output. There is one special model `Zero` which does not 
+generate emissions or energy consumption at all.
+
+Available emission classes
 can be found within the emission model descriptions ([HBEFA
 v2.1-based](../Models/Emissions/HBEFA-based.md), [HBEFA
 v3.1-based](../Models/Emissions/HBEFA3-based.md),
@@ -38,12 +45,12 @@ v3.1-based](../Models/Emissions/HBEFA3-based.md),
 model is `HBEFA3/PC_G_EU4` (a gasoline powered Euro norm 4 passenger car
 modeled using the HBEFA3 based model).
 
-# Pollutants covered by models
+# Pollutants / Measurements covered by models
 
 <table class="tg">
   <tr>
     <th class="tg-uzvj" rowspan="2">model</th>
-    <th class="tg-7btt" colspan="6">pollutant / measurement</th>
+    <th class="tg-7btt" colspan="7">pollutant / measurement</th>
   </tr>
   <tr>
     <td class="tg-7btt">CO<sub>2</sub></td>
@@ -51,42 +58,66 @@ modeled using the HBEFA3 based model).
     <td class="tg-7btt">HC</td>
     <td class="tg-7btt">NO<sub>x</sub></td>
     <td class="tg-7btt">PM<sub>x</sub></td>
-    <td class="tg-uzvj">fuel consumption</td>
+    <td class="tg-7btt">fuel consumption</td>
+    <td class="tg-uzvj">electricity consumption</td>
   </tr>
   <tr>
-    <td class="tg-0pky">HBEFA v2.1-based</td>
+    <td class="tg-0pky">HBEFA v2.1-based<br><code>emissionClass="HBEFA/..."</code></td>
     <td class="tg-c3ow">x</td>
     <td class="tg-c3ow">x</td>
     <td class="tg-c3ow">x</td>
     <td class="tg-c3ow">x</td>
     <td class="tg-c3ow">x</td>
+    <td class="tg-c3ow">x</td>
+    <td class="tg-c3ow">-</td>
+  </tr>
+  <tr>
+    <td class="tg-0pky">HBEFA v3.1-based<br><code>emissionClass="HBEFA3/..."</code></td>
+    <td class="tg-c3ow">x</td>
+    <td class="tg-c3ow">x</td>
+    <td class="tg-c3ow">x</td>
+    <td class="tg-c3ow">x</td>
+    <td class="tg-c3ow">x</td>
+    <td class="tg-c3ow">x</td>
+    <td class="tg-c3ow">-</td>
+  </tr>
+  <tr>
+    <td class="tg-0pky">PHEMlight<br><code>emissionClass="PHEMlight/..."</code></td>
+    <td class="tg-c3ow">x</td>
+    <td class="tg-c3ow">x</td>
+    <td class="tg-c3ow">x</td>
+    <td class="tg-c3ow">x</td>
+    <td class="tg-c3ow">x</td>
+    <td class="tg-c3ow">x</td>
+    <td class="tg-c3ow">-</td>
+  </tr>
+  <tr>
+    <td class="tg-0pky">Electric Vehicle Model<br><code>emissionClass="Energy"</code></td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
     <td class="tg-c3ow">x</td>
   </tr>
   <tr>
-    <td class="tg-0pky">HBEFA v3.1-based</td>
-    <td class="tg-c3ow">x</td>
-    <td class="tg-c3ow">x</td>
-    <td class="tg-c3ow">x</td>
-    <td class="tg-c3ow">x</td>
-    <td class="tg-c3ow">x</td>
-    <td class="tg-c3ow">x</td>
-  </tr>
-  <tr>
-    <td class="tg-lboi">PHEMlight</td>
-    <td class="tg-c3ow">x</td>
-    <td class="tg-c3ow">x</td>
-    <td class="tg-c3ow">x</td>
-    <td class="tg-c3ow">x</td>
-    <td class="tg-c3ow">x</td>
-    <td class="tg-9wq8">x</td>
+    <td class="tg-lboi">No Emissions<br><code>emissionClass="Zero"</code></td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-9wq8">-</td>
   </tr>
 </table>
 
 # Outputs
 
 Pollutants emitted by the simulated vehicles can be visualised using
-[SUMO-GUI](../SUMO-GUI.md) or be written into output files, both by
-[SUMO](../SUMO.md) and [SUMO-GUI](../SUMO-GUI.md). The
+[sumo-gui](../sumo-gui.md) or be written into output files, both by
+[sumo](../sumo.md) and [sumo-gui](../sumo-gui.md). The
 following output can be used:
 
 - [trip information](../Simulation/Output/TripInfo.md): In
@@ -103,11 +134,11 @@ following output can be used:
 - [emission-output](../Simulation/Output/EmissionOutput.md):
   Unaggregated emission values for every vehicle and time step
 - [Color vehicles by
-  emissions](../SUMO-GUI.md#vehicle_visualisation_settings): This
+  emissions](../sumo-gui.md#vehicle_visualisation_settings): This
   can be used to show the emissions for each vehicle during each
   simulation step
 - [Color lanes/edges by
-  emissions](../SUMO-GUI.md#edgelane_visualisation_settings):
+  emissions](../sumo-gui.md#edgelane_visualisation_settings):
   This can be used to show the emissions for all vehicles on a lane
   during each simulation step (or for the whole edge in
   [Simulation/Meso](../Simulation/Meso.md)).

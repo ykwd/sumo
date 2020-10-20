@@ -19,13 +19,7 @@
 ///
 // Encapsulated SAX-Attributes
 /****************************************************************************/
-#ifndef SUMOSAXAttributes_h
-#define SUMOSAXAttributes_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -538,9 +532,3 @@ T SUMOSAXAttributes::getOpt(int attr, const char* objectid,
     ok = false;
     return invalid_return<T>::value;
 }
-
-
-#endif
-
-/****************************************************************************/
-

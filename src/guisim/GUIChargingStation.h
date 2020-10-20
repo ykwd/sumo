@@ -21,13 +21,7 @@
 ///
 // A lane area vehicles can halt at (gui-version)
 /****************************************************************************/
-#ifndef GUIChargingStation_h
-#define GUIChargingStation_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -142,5 +136,4 @@ private:
     double myFGSignRot;
 };
 
-#endif
 

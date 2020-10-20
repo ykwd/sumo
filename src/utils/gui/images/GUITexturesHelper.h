@@ -19,13 +19,7 @@
 ///
 // Global storage for textures; manages and draws them
 /****************************************************************************/
-#ifndef GUITexturesHelper_h
-#define GUITexturesHelper_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <fx.h>
@@ -78,8 +72,3 @@ private:
     /// @brief whether textures are drawn
     static bool myAllowTextures;
 };
-
-
-#endif
-
-/****************************************************************************/

@@ -17,29 +17,10 @@
 ///
 // A network change in which the attribute of some object is modified
 /****************************************************************************/
-#ifndef GNEChange_Attribute_h
-#define GNEChange_Attribute_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
-#include <fx.h>
-#include <utils/foxtools/fxexdefs.h>
-#include <utils/xml/SUMOXMLDefinitions.h>
 #include "GNEChange.h"
-
-// ===========================================================================
-// class declarations
-// ===========================================================================
-class GNEAttributeCarrier;
-class GNENetElement;
-class GNEAdditional;
-class GNEDemandElement;
-class GNEShape;
-class GNENet;
 
 // ===========================================================================
 // class definitions
@@ -52,31 +33,21 @@ class GNEChange_Attribute : public GNEChange {
     FXDECLARE_ABSTRACT(GNEChange_Attribute)
 
 public:
-    /**@brief Constructor
+    /**@brief constructor
      * @param[in] ac The attribute-carrier to be modified
-     * @param[in] net Net in which AC is saved
      * @param[in] key The attribute key
      * @param[in] value The new value
      */
-    GNEChange_Attribute(GNEAttributeCarrier* ac,
-                        GNENet* net,
-                        const SumoXMLAttr key,
-                        const std::string& value,
-                        bool customOrigValue = false,
-                        const std::string& origValue = "");
+    GNEChange_Attribute(GNEAttributeCarrier* ac, const SumoXMLAttr key, const std::string& value);
 
-    /**@brief Constructor
+    /**@brief Constructor with custom origin value
      * @param[in] ac The attribute-carrier to be modified
-     * @param[in] net Net in which AC is saved
-     * @param[in] forceChange enable or disable force change
      * @param[in] key The attribute key
      * @param[in] value The new value
+     * @param[in] customOrigValue custon original value
      */
-    GNEChange_Attribute(GNEAttributeCarrier* ac,
-                        GNENet* net,
-                        bool forceChange,
-                        const SumoXMLAttr key,
-                        const std::string& value);
+    GNEChange_Attribute(GNEAttributeCarrier* ac, const SumoXMLAttr key, const std::string& value,
+                        const std::string& customOrigValue);
 
     /// @brief Destructor
     ~GNEChange_Attribute();
@@ -96,6 +67,9 @@ public:
     void redo();
     /// @}
 
+    /// @brief force change
+    void forceChange();
+
     /// @brief wether original and new value differ
     bool trueChange();
 
@@ -114,9 +88,6 @@ private:
     /// @brief the original value
     const std::string myOrigValue;
 
-    /// @brief the original value
+    /// @brief the new value
     const std::string myNewValue;
 };
-
-#endif
-/****************************************************************************/

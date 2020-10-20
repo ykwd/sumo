@@ -17,13 +17,7 @@
 ///
 // A class to manage gifs of SUMO
 /****************************************************************************/
-#ifndef GUITextureSubSys_h
-#define GUITextureSubSys_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <fx.h>
@@ -70,9 +64,3 @@ private:
     /// @brief vector with the Gifs
     std::map<GUITexture, GUIGlID> myTextures;
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -33,11 +33,11 @@ Example:
 </additional>
 ```
 
-This file is then loaded in [SUMO](../../SUMO.md) using the option **--additional-files**
+This file is then loaded in [sumo](../../sumo.md) using the option **--additional-files**
 
 ## Generated Output
 
-The output is devided into timestep-sections:
+The output is divided into timestep-sections:
 
 ```
 <timestep time="<COLLECTION_TIME>" id="<DETECTOR_ID>" vtype="<OBSERVED_TYPE>">

@@ -19,13 +19,7 @@
 ///
 // kinds of logic-implementations.
 /****************************************************************************/
-#ifndef MSJunctionLogic_h
-#define MSJunctionLogic_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/StdDefs.h>
@@ -96,9 +90,3 @@ private:
     MSJunctionLogic& operator=(const MSJunctionLogic&);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

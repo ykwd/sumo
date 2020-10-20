@@ -20,14 +20,7 @@
 ///
 // Some static methods for string processing
 /****************************************************************************/
-#ifndef StringUtils_h
-#define StringUtils_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-
+#pragma once
 #include <string>
 #include <xercesc/util/XMLString.hpp>
 #include <utils/common/UtilExceptions.h>
@@ -145,10 +138,14 @@ public:
      * @throw EmptyData if the given pointer is 0
      */
     static std::string transcode(const XMLCh* const data, int length);
+
+    /// @brief remove leading whitespace from string
+    static std::string trim_left(const std::string s, const std::string& t = " \t\n");
+
+    /// @brief remove trailing whitespace from string
+    static std::string trim_right(const std::string s, const std::string& t = " \t\n");
+
+    /// @brief remove leading and trailing whitespace
+    static std::string trim(const std::string s, const std::string& t = " \t\n");
+
 };
-
-
-#endif
-
-/****************************************************************************/
-

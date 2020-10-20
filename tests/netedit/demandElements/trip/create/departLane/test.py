@@ -34,45 +34,45 @@ netedit.supermodeDemand()
 # go to vehicle mode
 netedit.vehicleMode()
 
-# select trip
-netedit.changeElement("trip")
+# disable select trip due this is the first vehicle in the list
+# netedit.changeElement("trip")
 
 # set invalid depart lane
-netedit.changeDefaultValue(8, "dummyLane")
+netedit.changeDefaultValue(7, "dummyLane")
 
 # try to create trip
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create trip
 netedit.typeEnter()
 
 # set invalid depart lane
-netedit.changeDefaultValue(8, "-12")
+netedit.changeDefaultValue(7, "-12")
 
 # try to create trip
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create trip
 netedit.typeEnter()
 
 # set valid depart lane
-netedit.changeDefaultValue(8, "random")
+netedit.changeDefaultValue(7, "random")
 
 # create trip
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create trip
 netedit.typeEnter()
 
 # set valid depart lane
-netedit.changeDefaultValue(8, "20")
+netedit.changeDefaultValue(7, "20")
 
 # create trip
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create trip
 netedit.typeEnter()

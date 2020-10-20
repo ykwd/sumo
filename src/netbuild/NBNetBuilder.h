@@ -21,13 +21,7 @@
 ///
 // Instance responsible for building networks
 /****************************************************************************/
-#ifndef NBNetBuilder_h
-#define NBNetBuilder_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -283,9 +277,3 @@ private:
     /// @brief invalidated assignment operator
     NBNetBuilder& operator=(const NBNetBuilder& s);
 };
-
-
-#endif
-
-/****************************************************************************/
-

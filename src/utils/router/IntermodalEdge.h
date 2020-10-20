@@ -19,13 +19,7 @@
 ///
 // The Edge definition for the Intermodal Router
 /****************************************************************************/
-#ifndef IntermodalEdge_h
-#define IntermodalEdge_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -80,15 +74,21 @@ public:
         myFollowingViaEdges.clear();
     }
 
-    void removeSuccessor(const IntermodalEdge* const edge) {
-        myFollowingEdges.erase(std::find(myFollowingEdges.begin(), myFollowingEdges.end(), edge));
-        for (auto it = myFollowingViaEdges.begin(); it != myFollowingViaEdges.end();) {
-            if (it->first == edge) {
-                it = myFollowingViaEdges.erase(it);
+    bool removeSuccessor(const IntermodalEdge* const edge) {
+        auto it = std::find(myFollowingEdges.begin(), myFollowingEdges.end(), edge);
+        if (it != myFollowingEdges.end()) {
+            myFollowingEdges.erase(it);
+        } else {
+            return false;
+        }
+        for (auto viaIt = myFollowingViaEdges.begin(); viaIt != myFollowingViaEdges.end();) {
+            if (viaIt->first == edge) {
+                viaIt = myFollowingViaEdges.erase(viaIt);
             } else {
-                ++it;
+                ++viaIt;
             }
         }
+        return true;
     }
 
     virtual const std::vector<IntermodalEdge*>& getSuccessors(SUMOVehicleClass vClass = SVC_IGNORING) const {
@@ -115,6 +115,10 @@ public:
         return 0.;
     }
 
+    virtual double getTravelTimeAggregated(const IntermodalTrip<E, N, V>* const trip, double time) const {
+        return getTravelTime(trip, time);
+    }
+
     /// @brief get intended vehicle id and departure time of next public transport ride
     virtual double getIntended(const double /* time */, std::string& /* intended */) const {
         return 0.;
@@ -127,6 +131,11 @@ public:
     static inline double getTravelTimeStaticRandomized(const IntermodalEdge* const edge, const IntermodalTrip<E, N, V>* const trip, double time) {
         return edge == nullptr ? 0. : edge->getTravelTime(trip, time) * RandHelper::rand(1., gWeightsRandomFactor);
     }
+
+    static inline double getTravelTimeAggregated(const IntermodalEdge* const edge, const IntermodalTrip<E, N, V>* const trip, double time) {
+        return edge == nullptr ? 0. : edge->getTravelTimeAggregated(trip, time);
+    }
+
 
     virtual double getEffort(const IntermodalTrip<E, N, V>* const /* trip */, double /* time */) const {
         return 0.;
@@ -180,6 +189,11 @@ public:
         return myLength / trip->getMaxSpeed();
     }
 
+    /// @brief only used by mono-modal routing
+    IntermodalEdge* getBidiEdge() const {
+        return nullptr;
+    }
+
 protected:
     /// @brief List of edges that may be approached from this edge
     std::vector<IntermodalEdge*> myFollowingEdges;
@@ -211,8 +225,3 @@ private:
     IntermodalEdge& operator=(const IntermodalEdge& src);
 
 };
-
-
-#endif
-
-/****************************************************************************/

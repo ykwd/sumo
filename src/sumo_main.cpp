@@ -21,30 +21,16 @@
 ///
 // Main for SUMO
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #ifdef HAVE_VERSION_H
 #include <version.h>
 #endif
 
-#include <ctime>
 #include <csignal>
-#include <string>
-#include <iostream>
 #include <netload/NLBuilder.h>
-#include <utils/options/OptionsCont.h>
 #include <utils/options/OptionsIO.h>
-#include <utils/iodevices/OutputDevice.h>
-#include <utils/common/MsgHandler.h>
 #include <utils/common/SystemFrame.h>
-#include <utils/common/UtilExceptions.h>
-#include <utils/common/ToString.h>
-#include <utils/common/StdDefs.h>
 #include <utils/xml/XMLSubSys.h>
 #include <traci-server/TraCIServer.h>
 
@@ -65,7 +51,7 @@ signalHandler(int signum) {
                 std::cout << "Interrupt signal received, trying to exit gracefully." << std::endl;
                 MSNet::getInstance()->interrupt();
                 break;
-#ifndef _MSC_VER
+#ifndef WIN32
             case SIGUSR1:
                 std::cout << "Step #" << SIMSTEP << std::endl;
                 std::cout << MSNet::getInstance()->generateStatistics(string2time(OptionsCont::getOptions().getString("begin"))) << std::endl;
@@ -88,7 +74,7 @@ int
 main(int argc, char** argv) {
     signal(SIGINT, signalHandler);
     signal(SIGTERM, signalHandler);
-#ifndef _MSC_VER
+#ifndef WIN32
     signal(SIGUSR1, signalHandler);
     signal(SIGUSR2, signalHandler);
 #endif
@@ -96,7 +82,7 @@ main(int argc, char** argv) {
     OptionsCont& oc = OptionsCont::getOptions();
     // give some application descriptions
     oc.setApplicationDescription("A microscopic, multi-modal traffic simulation.");
-    oc.setApplicationName("sumo", "Eclipse SUMO Version " VERSION_STRING);
+    oc.setApplicationName("sumo", "Eclipse SUMO sumo Version " VERSION_STRING);
     gSimulation = true;
     int ret = 0;
     MSNet* net = nullptr;

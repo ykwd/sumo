@@ -21,11 +21,6 @@
 ///
 // Realises dumping the complete network state
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/geom/GeomHelper.h>
@@ -64,6 +59,9 @@ MSXMLRawOut::write(OutputDevice& of, const MSEdgeControl& ec,
 
 void
 MSXMLRawOut::writeEdge(OutputDevice& of, const MSEdge& edge, SUMOTime timestep) {
+    if (!MSGlobals::gUsingInternalLanes && !edge.isNormal()) {
+        return;
+    }
     //en
     bool dump = !MSGlobals::gOmitEmptyEdgesOnDump;
     if (!dump) {
@@ -177,5 +175,6 @@ MSXMLRawOut::writeTransportable(OutputDevice& of, const MSTransportable* p, Sumo
     of.writeAttr("stage", p->getCurrentStageDescription());
     of.closeTag();
 }
+
 
 /****************************************************************************/

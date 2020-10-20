@@ -19,13 +19,7 @@
 ///
 // Importer for edge type information stored in XML
 /****************************************************************************/
-#ifndef NIXMLTypesHandler_h
-#define NIXMLTypesHandler_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/xml/SUMOSAXHandler.h>
@@ -94,9 +88,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

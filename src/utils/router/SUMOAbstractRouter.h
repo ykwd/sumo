@@ -19,13 +19,7 @@
 ///
 // An abstract router base class
 /****************************************************************************/
-#ifndef SUMOAbstractRouter_h
-#define SUMOAbstractRouter_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -115,15 +109,40 @@ public:
         myQueryTimeSum(0) {
     }
 
+    /// Copy Constructor
+    SUMOAbstractRouter(SUMOAbstractRouter* other) :
+        myErrorMsgHandler(other->myErrorMsgHandler),
+        myOperation(other->myOperation), myTTOperation(other->myTTOperation),
+        myBulkMode(false),
+        myAutoBulkMode(false),
+        myHavePermissions(other->myHavePermissions),
+        myHaveRestrictions(other->myHaveRestrictions),
+        myType(other->myType),
+        myQueryVisits(0),
+        myNumQueries(0),
+        myQueryStartTime(0),
+        myQueryTimeSum(0) { }
+
+
+
     /// Destructor
     virtual ~SUMOAbstractRouter() {
         if (myNumQueries > 0) {
             WRITE_MESSAGE(myType + " answered " + toString(myNumQueries) + " queries and explored " + toString(double(myQueryVisits) / myNumQueries) +  " edges on average.");
-            WRITE_MESSAGE(myType + " spent " + toString(myQueryTimeSum) + "ms answering queries (" + toString(double(myQueryTimeSum) / myNumQueries) +  "ms on average).");
+            WRITE_MESSAGE(myType + " spent " + elapsedMs2string(myQueryTimeSum) + " answering queries (" + toString(double(myQueryTimeSum) / myNumQueries) +  "ms on average).");
         }
     }
 
     virtual SUMOAbstractRouter* clone() = 0;
+
+    /// reset internal caches, used by CHRouter
+    virtual void reset(const V* const vehicle) {
+        UNUSED_PARAMETER(vehicle);
+    }
+
+    const std::string& getType() const {
+        return myType;
+    }
 
     /** @brief Builds the route between the given edges using the minimum effort at the given time
         The definition of the effort depends on the wished routing scheme */
@@ -235,6 +254,7 @@ public:
         return effort;
     }
 
+
     inline double recomputeCosts(const std::vector<const E*>& edges, const V* const v, double fromPos, double toPos, SUMOTime msTime, double* lengthp = nullptr) const {
         double effort = recomputeCosts(edges, v, msTime, lengthp);
         if (!edges.empty()) {
@@ -307,8 +327,3 @@ private:
     /// @brief Invalidated assignment operator
     SUMOAbstractRouter& operator=(const SUMOAbstractRouter& s);
 };
-
-
-#endif
-
-/****************************************************************************/

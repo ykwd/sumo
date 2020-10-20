@@ -19,13 +19,7 @@
 ///
 // An O/D (origin/destination) matrix
 /****************************************************************************/
-#ifndef ODMatrix_h
-#define ODMatrix_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <iostream>
@@ -167,7 +161,8 @@ public:
                OutputDevice& dev, const bool uniform,
                const bool differSourceSink, const bool noVtype,
                const std::string& prefix, const bool stepLog,
-               bool pedestrians, bool persontrips);
+               bool pedestrians, bool persontrips,
+               const std::string& modes);
 
 
     /** @brief Writes the flows stored in the matrix
@@ -184,7 +179,8 @@ public:
     void writeFlows(const SUMOTime begin, const SUMOTime end,
                     OutputDevice& dev, const bool noVtype,
                     const std::string& prefix,
-                    bool asProbability = false, bool pedestrians = false, bool persontrips = false);
+                    bool asProbability = false, bool pedestrians = false, bool persontrips = false,
+                    const std::string& modes = "");
 
 
     /** @brief Returns the number of loaded vehicles
@@ -449,8 +445,3 @@ private:
     ODMatrix& operator=(const ODMatrix& s) = delete;
 
 };
-
-
-#endif
-
-/****************************************************************************/

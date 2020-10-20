@@ -19,11 +19,6 @@
 ///
 // The common superclass for modelling transportable objects like persons and containers
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/common/StringTokenizer.h>
@@ -78,11 +73,15 @@ MSTransportable::~MSTransportable() {
     }
 }
 
+std::mt19937*
+MSTransportable::getRNG() const {
+    return getEdge()->getLanes()[0]->getRNG();
+}
 
 bool
-MSTransportable::proceed(MSNet* net, SUMOTime time) {
+MSTransportable::proceed(MSNet* net, SUMOTime time, const bool vehicleArrived) {
     MSStage* prior = *myStep;
-    const std::string& error = prior->setArrived(net, this, time);
+    const std::string& error = prior->setArrived(net, this, time, vehicleArrived);
     // must be done before increasing myStep to avoid invalid state for rendering
     if (myAmPerson) {
         prior->getEdge()->removePerson(this);
@@ -107,6 +106,7 @@ MSTransportable::proceed(MSNet* net, SUMOTime time) {
         if (prior->getDestinationStop() != nullptr) {
             prior->getDestinationStop()->removeTransportable(this);
         }
+        MSNet::getInstance()->getPersonControl().addArrived();
         return false;
     }
 }
@@ -187,8 +187,10 @@ MSTransportable::routeOutput(OutputDevice& os, const bool withRouteLength) const
     if (hasArrived()) {
         os.writeAttr("arrival", time2string(MSNet::getInstance()->getCurrentTimeStep()));
     }
-    for (MSTransportablePlan::const_iterator i = myPlan->begin(); i != myPlan->end(); ++i) {
-        (*i)->routeOutput(myAmPerson, os, withRouteLength);
+    const MSStage* previous = nullptr;
+    for (const MSStage* const stage : *myPlan) {
+        stage->routeOutput(myAmPerson, os, withRouteLength, previous);
+        previous = stage;
     }
     os.closeTag();
     os.lf();
@@ -303,7 +305,7 @@ MSTransportable::rerouteParkingArea(MSStoppingPlace* orig, MSStoppingPlace* repl
     // @note: parkingArea can currently not be set as myDestinationStop so we
     // check for stops on the edge instead
     assert(getCurrentStageType() == MSStageType::DRIVING);
-    if (dynamic_cast<MSPerson*>(this) == nullptr) {
+    if (!myAmPerson) {
         WRITE_WARNING("parkingAreaReroute not support for containers");
         return;
     }
@@ -322,7 +324,7 @@ MSTransportable::rerouteParkingArea(MSStoppingPlace* orig, MSStoppingPlace* repl
             dynamic_cast<MSStageTrip*>(nextStage)->setOrigin(stage->getDestination());
         } else if (nextStage->getStageType() == MSStageType::WALKING) {
             MSStageTrip* newStage = new MSStageTrip(stage->getDestination(), nullptr, nextStage->getDestination(),
-                                                    nextStage->getDestinationStop(), -1, 0, "", -1, 1, 0, true, nextStage->getArrivalPos());
+                                                    nextStage->getDestinationStop(), -1, 0, "", -1, 1, getID(), 0, true, nextStage->getArrivalPos());
             removeStage(1);
             appendStage(newStage, 1);
         }
@@ -333,14 +335,14 @@ MSTransportable::rerouteParkingArea(MSStoppingPlace* orig, MSStoppingPlace* repl
             const MSStage* const futureStage = *it;
             MSStage* const prevStage = *(it - 1);
             if (futureStage->getStageType() == MSStageType::DRIVING) {
-                const MSStageDriving* const ds = static_cast<const MSStageDriving* const>(futureStage);
+                const MSStageDriving* const ds = static_cast<const MSStageDriving*>(futureStage);
                 if (ds->getLines() == stage->getLines()
                         && prevStage->getDestination() == &orig->getLane().getEdge()) {
                     if (prevStage->getStageType() == MSStageType::TRIP) {
                         dynamic_cast<MSStageTrip*>(prevStage)->setDestination(stage->getDestination(), replacement);
                     } else if (prevStage->getStageType() == MSStageType::WALKING) {
                         MSStageTrip* newStage = new MSStageTrip(prevStage->getFromEdge(), nullptr, stage->getDestination(),
-                                                                replacement, -1, 0, "", -1, 1, 0, true, stage->getArrivalPos());
+                                                                replacement, -1, 0, "", -1, 1, getID(), 0, true, stage->getArrivalPos());
                         int prevStageRelIndex = (int)(it - 1 - myStep);
                         removeStage(prevStageRelIndex);
                         appendStage(newStage, prevStageRelIndex);
@@ -383,6 +385,40 @@ MSTransportable::getMaxSpeed() const {
 SUMOVehicleClass
 MSTransportable::getVClass() const {
     return getVehicleType().getVehicleClass();
+}
+
+
+void
+MSTransportable::saveState(OutputDevice& out) {
+    // this saves lots of departParameters which are only needed for transportables that did not yet depart
+    // the parameters may hold the name of a vTypeDistribution but we are interested in the actual type
+    myParameter->write(out, OptionsCont::getOptions(), myAmPerson ? SUMO_TAG_PERSON : SUMO_TAG_CONTAINER, getVehicleType().getID());
+    std::ostringstream state;
+    int stepIdx = (int)(myStep - myPlan->begin());
+    for (auto it = myPlan->begin(); it != myStep; ++it) {
+        if ((*it)->getStageType() == MSStageType::TRIP) {
+            stepIdx--;
+        }
+    }
+    state << myParameter->parametersSet << " " << stepIdx;
+    (*myStep)->saveState(state);
+    out.writeAttr(SUMO_ATTR_STATE, state.str());
+    const MSStage* previous = nullptr;
+    for (const MSStage* const stage : *myPlan) {
+        stage->routeOutput(myAmPerson, out, false, previous);
+        previous = stage;
+    }
+    out.closeTag();
+}
+
+
+void
+MSTransportable::loadState(const std::string& state) {
+    std::istringstream iss(state);
+    int step;
+    iss >> myParameter->parametersSet >> step;
+    myStep = myPlan->begin() + step;
+    (*myStep)->loadState(this, iss);
 }
 
 

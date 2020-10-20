@@ -5,7 +5,7 @@ permalink: /Simulation/Output/
 
 # Introduction
 
-[SUMO](../SUMO.md) allows to generate a large number of different
+[sumo](../sumo.md) allows to generate a large number of different
 measures. All write the values they collect into files or a socket
 connection following the common rules for [writing files](../Basics/Using_the_Command_Line_Applications.md#writing_files).
 Per default, all are disabled, and have to be triggered individually.
@@ -28,12 +28,12 @@ files can use a [custom binary
 format](../Simulation/Output/Binary.md) which is triggered by the
 file extension .sbx.
 
-## Seperating outputs of repeated runs
+## Separating outputs of repeated runs
 
-To keep the outputs of multiple simulation runs seperate, the option **--output-prefix** {{DT_STR}}
+To keep the outputs of multiple simulation runs separate, the option **--output-prefix** {{DT_STR}}
 can be used to prefix **all** output file names. When setting **--output-prefix TIME** all
-outputs will be prefixd using the time at which the simulation was
-started which keeps them seperated automatically.
+outputs will be prefixed using the time at which the simulation was
+started which keeps them separated automatically.
 
 # Available Output Files
 
@@ -102,19 +102,22 @@ found by following its link.
   calculation of the actual tailback in front of a junction
 
 ## values for junctions
+There is no dedicated output format for traffic at junctions. Instead junction related traffic can be measured by placing detectors that measure traffic at the intersection.
 
 - [Tools/Output\#generateTLSE1Detectors.py](../Tools/Output.md#generatetlse1detectorspy)
   script for generating induction loop detectors around all
-  TLS-controlled intersections
+  TLS-controlled intersections (point-based detected on individual lanes)
 - [Tools/Output\#generateTLSE2Detectors.py](../Tools/Output.md#generatetlse2detectorspy)
   script for generating lane-area detectors around all TLS-controlled
-  intersections
+  intersections (area-based detection on individual lanes)
 - [Tools/Output\#generateTLSE3Detectors.py](../Tools/Output.md#generatetlse3detectorspy)
   script for generating multi-entry-exit detectors around all
   TLS-controlled intersections or for an arbitrary list of
   intersections. The detectors can be configured to either aggregate
   or separate the approaching edges and to include or exclude the
-  junction interior.
+  junction interior. (area-based detection on edges)
+
+Alternatively, the [values for edges or lanes](Output.md#values_for_edges_or_lanes) can be manually aggregated to obtain the flow at at a junction.
 
 ## vehicle-based information
 
@@ -134,7 +137,9 @@ found by following its link.
 ## simulation(network)-based information
 
 - [simulation state statistics](../Simulation/Output/Summary.md):
-  information about the current state of the simulation
+  information about the current state of the simulation (vehicle count etc.)
+- [simulation state person statistics](../Simulation/Output/PersonSummary.md):
+  information about the current state of persons the simulation (person count etc.)
 
 ## [traffic lights-based information](../Simulation/Output/Traffic_Lights.md)
 
@@ -156,7 +161,7 @@ data reveals how long each vehicle intends to occupy an upcoming
 intersection.
 - The option **--movereminder-output** {{DT_FILE}} saves debugging data for the interaction between vehicle
 devices, lanes and output facilities. It is only available when
-compiling [SUMO](../SUMO.md) with debug flags.
+compiling [sumo](../sumo.md) with debug flags.
 - The option **--railsignal-block-output** {{DT_FILE}} saves information about rail signal blocks. For each
 controlled railSignal link the following information is generated:
   - **forwardBlock**: all lanes that are reached from the signalized
@@ -180,7 +185,7 @@ will be printed (unless explicitly disabled with option **--duration-log false**
 
 - Inserted: number vehicles that entered the simulation network
 - Loaded: number of vehicles that were loaded from route files. This
-may differ from emitted forw two reason:
+may differ from emitted for two reason:
   - Running with option **--scale** with a value less than 1.0
   - Having a congested network where not all vehicles could be
     inserted before the simulation time ended
@@ -218,8 +223,9 @@ If the simulation contained persons the following output will be added:
 - "Real time factor": The quotient of *simulated time* / *computation
   time*. If one hour is simulated in 360 seconds the real time factor
   is 10.
-- UPS: (updates per second). The number of vehicles that were
-  simulated on average per second of computation time.
+- UPS: (updates per second). The number of vehicle updates that were
+  performed on average per second of computation time. If a single 
+  vehicle update takes on average one millisecond, this will be 1000.
 
 If routing took place in the simulation, Each routing algorithm instance
 will report
@@ -273,7 +279,7 @@ following output will be added:
 - Aborted rides: rides that could not be completed because no suitable
   vehicle was available
 
-When setting this option and using [SUMO-GUI](../SUMO-GUI.md), the
+When setting this option and using [sumo-gui](../sumo-gui.md), the
 network parameter dialog will also show a running average for these
 traffic measures (The dialog is accessible by right-clicking on the
 network background).

@@ -19,13 +19,7 @@
 ///
 // The window that holds the table of an object's parameter
 /****************************************************************************/
-#ifndef GUIParameterTableWindow_h
-#define GUIParameterTableWindow_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -203,7 +197,9 @@ public:
      */
     static void updateAll() {
         FXMutexLock locker(myGlobalContainerLock);
-        std::for_each(myContainer.begin(), myContainer.end(), std::mem_fun(&GUIParameterTableWindow::updateTable));
+        for (GUIParameterTableWindow* const window : myContainer) {
+            window->updateTable();
+        }
     }
 
 protected:
@@ -250,9 +246,3 @@ protected:
     FOX_CONSTRUCTOR(GUIParameterTableWindow)
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

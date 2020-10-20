@@ -23,13 +23,7 @@
 ///
 // An areal detector covering to a sequence of consecutive lanes
 /****************************************************************************/
-#ifndef MSE2Collector_h
-#define MSE2Collector_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -518,6 +512,10 @@ public:
     /// @}
 
 
+    virtual void setVisible(bool /*show*/) {};
+
+    /** @brief Remove all vehicles before quick-loading state */
+    virtual void clearState();
 
 private:
 
@@ -781,9 +779,3 @@ private:
     /// @brief Invalidated assignment operator.
     MSE2Collector& operator=(const MSE2Collector&);
 };
-
-
-#endif
-
-/****************************************************************************/
-

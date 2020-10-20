@@ -18,19 +18,14 @@
 ///
 // C++ TraCI client API implementation
 /****************************************************************************/
-#ifndef Helper_h
-#define Helper_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
 #include <memory>
 #include <libsumo/Subscription.h>
 #include <microsim/MSNet.h>
+
 
 // ===========================================================================
 // class declarations
@@ -39,8 +34,10 @@ class Position;
 class PositionVector;
 class RGBColor;
 class MSEdge;
+class SUMOTrafficObject;
 class MSPerson;
 class MSVehicle;
+class MSBaseVehicle;
 class MSVehicleType;
 
 
@@ -113,6 +110,8 @@ public:
 
     static void addSubscriptionParam(double param);
 
+    static void addSubscriptionParam(const std::string& param);
+
     static void handleSubscriptions(const SUMOTime t);
 
     static bool needNewSubscription(libsumo::Subscription& s, std::vector<Subscription>& subscriptions, libsumo::Subscription*& modifiedSubscription);
@@ -135,7 +134,9 @@ public:
     static std::pair<MSLane*, double> convertCartesianToRoadMap(const Position& pos, const SUMOVehicleClass vClass);
     static double getDrivingDistance(std::pair<const MSLane*, double>& roadPos1, std::pair<const MSLane*, double>& roadPos2);
 
-    static MSVehicle* getVehicle(const std::string& id);
+    static MSBaseVehicle* getVehicle(const std::string& id);
+    static MSPerson* getPerson(const std::string& id);
+    static SUMOTrafficObject* getTrafficObject(int domain, const std::string& id);
     static const MSVehicleType& getVehicleType(const std::string& vehicleID);
 
     static void findObjectShape(int domain, const std::string& id, PositionVector& shape);
@@ -155,9 +156,11 @@ public:
 
     static void applySubscriptionFilterFieldOfVision(const Subscription& s, std::set<std::string>& objIDs);
 
-    static void applySubscriptionFilterLateralDistanceSinglePass(std::set<std::string>& objIDs, std::set<const MSVehicle*>& vehs,
-            const std::vector<const MSLane*>& lanes, double lateralDist, double streamDist,
-            double posOnLane, bool isDownstream);
+    static void applySubscriptionFilterLateralDistanceSinglePass(const Subscription& s,
+            std::set<std::string>& objIDs,
+            std::set<const SUMOTrafficObject*>& vehs,
+            const std::vector<const MSLane*>& lanes,
+            double posOnLane, double posLat, bool isDownstream);
 
     static void setRemoteControlled(MSVehicle* v, Position xyPos, MSLane* l, double pos, double posLat, double angle,
                                     int edgeOffset, ConstMSEdgeVector route, SUMOTime t);
@@ -179,12 +182,12 @@ public:
     /// @{
     static bool moveToXYMap(const Position& pos, double maxRouteDistance, bool mayLeaveNetwork, const std::string& origID,
                             const double angle, double speed, const ConstMSEdgeVector& currentRoute, const int routePosition,
-                            MSLane* currentLane, double currentLanePos, bool onRoad, SUMOVehicleClass vClass, double& bestDistance,
-                            MSLane** lane, double& lanePos, int& routeOffset, ConstMSEdgeVector& edges);
+                            MSLane* currentLane, double currentLanePos, bool onRoad, SUMOVehicleClass vClass, bool setLateralPos,
+                            double& bestDistance, MSLane** lane, double& lanePos, int& routeOffset, ConstMSEdgeVector& edges);
 
     static bool moveToXYMap_matchingRoutePosition(const Position& pos, const std::string& origID,
             const ConstMSEdgeVector& currentRoute, int routeIndex,
-            SUMOVehicleClass vClass,
+            SUMOVehicleClass vClass, bool setLateralPos,
             double& bestDistance, MSLane** lane, double& lanePos, int& routeOffset);
 
     static bool findCloserLane(const MSEdge* edge, const Position& pos, SUMOVehicleClass vClass, double& bestDistance, MSLane** lane);
@@ -245,6 +248,8 @@ private:
     ///       the intermediate range is simply assimilated.
     static void fuseLaneCoverage(std::shared_ptr<LaneCoverageInfo> aggregatedLaneCoverage, const std::shared_ptr<LaneCoverageInfo> newLaneCoverage);
 
+    static void debugPrint(const SUMOTrafficObject* veh);
+
 private:
     class VehicleStateListener : public MSNet::VehicleStateListener {
     public:
@@ -265,9 +270,6 @@ private:
     /// @brief Changes in the states of simulated vehicles
     static VehicleStateListener myVehicleStateListener;
 
-    /// @brief A storage of objects
-    static std::map<int, NamedRTree*> myObjects;
-
     /// @brief A storage of lanes
     static LANE_RTREE_QUAL* myLaneTree;
 
@@ -279,8 +281,3 @@ private:
 };
 
 }
-
-
-#endif
-
-/****************************************************************************/

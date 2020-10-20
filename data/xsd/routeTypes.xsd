@@ -102,6 +102,7 @@
                 </xsd:restriction>
             </xsd:simpleType>
         </xsd:attribute>
+        <xsd:attribute name="jmStoplineGap" type="nonNegativeFloatType"/>
         <xsd:attribute name="jmTimegapMinor" type="nonNegativeFloatType"/>
         <xsd:attribute name="sigma">
             <xsd:simpleType>
@@ -429,6 +430,7 @@
         <xsd:attribute name="departLane" type="departLaneType"/>
         <xsd:attribute name="departPos" type="departPosType"/>
         <xsd:attribute name="departSpeed" type="departSpeedType"/>
+        <xsd:attribute name="departEdge" type="departEdgeType"/>
         <xsd:attribute name="arrivalLane" type="arrivalLaneType"/>
         <xsd:attribute name="arrivalPos" type="arrivalPosType"/>
         <xsd:attribute name="arrivalSpeed" type="arrivalSpeedType"/>
@@ -443,20 +445,21 @@
     </xsd:complexType>
 
     <xsd:complexType name="flowWithoutIDType">
-        <xsd:sequence>
-            <xsd:choice minOccurs="0">
-                <xsd:element name="route" type="vehicleRouteType"/>
-                <xsd:element name="routeDistribution" type="vehicleRouteDistributionType"/>
-            </xsd:choice>
+        <xsd:choice minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="route" type="vehicleRouteType" maxOccurs="1"/>
+            <xsd:element name="routeDistribution" type="vehicleRouteDistributionType" maxOccurs="1"/>
             <xsd:element name="stop" type="stopType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="param" type="paramType" minOccurs="0" maxOccurs="unbounded"/>
-        </xsd:sequence>
+        </xsd:choice>
         <xsd:attribute name="route" type="xsd:string"/>
         <xsd:attribute name="fromTaz" type="xsd:string"/>
         <xsd:attribute name="toTaz" type="xsd:string"/>
         <xsd:attribute name="from" type="xsd:string"/>
         <xsd:attribute name="to" type="xsd:string"/>
         <xsd:attribute name="via" type="xsd:string"/>
+        <xsd:attribute name="fromJunction" type="xsd:string"/>
+        <xsd:attribute name="toJunction" type="xsd:string"/>
+        <xsd:attribute name="viaJunctions" type="xsd:string"/>
         <xsd:attribute name="type" type="xsd:string"/>
         <xsd:attribute name="begin" type="timeType"/>
         <xsd:attribute name="end" type="timeType"/>
@@ -478,6 +481,14 @@
         <xsd:attribute name="containerNumber" type="xsd:nonNegativeInteger"/>
     </xsd:complexType>
 
+    <xsd:complexType name="flowIntervalType">
+        <xsd:choice maxOccurs="unbounded">
+            <xsd:element name="flow" type="flowType" minOccurs="0"/>
+        </xsd:choice>
+        <xsd:attribute name="begin" type="timeType"/>
+        <xsd:attribute name="end" type="timeType"/>
+    </xsd:complexType>
+
     <xsd:complexType name="flowCalibratorType">
         <xsd:complexContent>
             <xsd:extension base="flowWithoutIDType">
@@ -491,6 +502,7 @@
             <xsd:extension base="flowWithoutIDType">
                 <xsd:attribute name="id" type="idType" use="required"/>
                 <xsd:attribute name="reroute" type="boolType" use="optional"/>
+                <xsd:attribute name="departEdge" type="departEdgeType"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -606,6 +618,18 @@
         </xsd:union>
     </xsd:simpleType>
 
+    <xsd:simpleType name="departEdgeType">
+        <xsd:union memberTypes="xsd:nonNegativeInteger">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="random"/>
+                    <xsd:enumeration value="free"/>
+                </xsd:restriction>
+            </xsd:simpleType> 
+        </xsd:union>
+    </xsd:simpleType>
+
+
     <xsd:simpleType name="arrivalLaneType">
         <xsd:union memberTypes="xsd:nonNegativeInteger">
             <xsd:simpleType>
@@ -669,11 +693,15 @@
             <xsd:element name="stop" type="stopType"/>
             <xsd:element name="param" type="paramType"/>
         </xsd:choice>
-        <xsd:attribute name="edges" type="xsd:string" use="required"/>
+        <!-- route can also be defined with stops alone -->
+        <xsd:attribute name="edges" type="xsd:string" use="optional"/>
         <xsd:attribute name="color" type="colorType"/>
         <xsd:attribute name="exitTimes" type="xsd:string"/>
         <xsd:attribute name="cost" type="xsd:float"/>
         <xsd:attribute name="savings" type="xsd:float"/>
+        <xsd:attribute name="repeat" type="xsd:nonNegativeInteger"/>
+        <xsd:attribute name="cycleTime" type="timeType"/>
+        <xsd:attribute name="probability" type="xsd:float" use="optional"/>
     </xsd:complexType>
 
     <xsd:complexType name="routeDistRouteType">
@@ -702,6 +730,7 @@
         <xsd:attribute name="startPos" type="xsd:float"/>
         <xsd:attribute name="endPos" type="xsd:float"/>
         <xsd:attribute name="friendlyPos" type="boolType"/>
+        <xsd:attribute name="arrival" type="timeType"/>
         <xsd:attribute name="duration" type="timeType"/>
         <xsd:attribute name="until" type="timeType"/>
         <xsd:attribute name="extension" type="timeType"/>
@@ -717,6 +746,9 @@
         <xsd:attribute name="join" type="xsd:string"/>
         <xsd:attribute name="line" type="xsd:string"/>
         <xsd:attribute name="speed" type="nonNegativeFloatType"/>
+        <xsd:attribute name="priorEdges" type="xsd:string"/>
+        <xsd:attribute name="actualArrival" type="timeType"/>
+        <xsd:attribute name="depart" type="timeType"/>
     </xsd:complexType>
 
     <xsd:complexType name="vTypeDistributionType">
@@ -772,6 +804,8 @@
                 <xsd:complexType>
                     <xsd:attribute name="from" type="xsd:string"/>
                     <xsd:attribute name="to" type="xsd:string"/>
+					<xsd:attribute name="fromTaz" type="xsd:string"/>
+					<xsd:attribute name="toTaz" type="xsd:string"/>
                     <xsd:attribute name="fromXY" type="positionType"/>
                     <xsd:attribute name="toXY" type="positionType"/>
                     <xsd:attribute name="fromLonLat" type="positionType"/>
@@ -809,6 +843,8 @@
                     <xsd:attribute name="edges" type="xsd:string"/>
                     <xsd:attribute name="from" type="xsd:string"/>
                     <xsd:attribute name="to" type="xsd:string"/>
+                    <xsd:attribute name="fromTaz" type="xsd:string"/>
+                    <xsd:attribute name="toTaz" type="xsd:string"/>
                     <xsd:attribute name="fromJunction" type="xsd:string"/>
                     <xsd:attribute name="toJunction" type="xsd:string"/>
                     <xsd:attribute name="viaJunctions" type="xsd:string"/>

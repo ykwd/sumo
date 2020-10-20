@@ -17,11 +17,6 @@
 ///
 // Ouput information about planned vehicle stop
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/vehicle/SUMOVehicle.h>
@@ -72,7 +67,7 @@ MSStopOut::stopStarted(const SUMOVehicle* veh, int numPersons, int numContainers
                       + "', time " + time2string(time)
                       + " without ending the previous stop entered at time " + time2string(myStopped[veh].started));
     }
-    StopInfo stopInfo(MSNet::getInstance()->getCurrentTimeStep(), numPersons, numContainers);
+    StopInfo stopInfo(time, numPersons, numContainers);
     myStopped[veh] = stopInfo;
 }
 
@@ -107,11 +102,15 @@ MSStopOut::stopEnded(const SUMOVehicle* veh, const SUMOVehicleParameter::Stop& s
                       + "', time " + time2string(MSNet::getInstance()->getCurrentTimeStep()) + " without entering the stop");
         return;
     }
+    StopInfo& si = myStopped[veh];
     double delay = -1;
+    double arrivalDelay = -1;
     if (stop.until >= 0) {
         delay = STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep() - stop.until);
     }
-    StopInfo& si = myStopped[veh];
+    if (stop.arrival >= 0) {
+        arrivalDelay = STEPS2TIME(si.started - stop.arrival);
+    }
     myDevice.openTag("stopinfo");
     myDevice.writeAttr(SUMO_ATTR_ID, veh->getID());
     myDevice.writeAttr(SUMO_ATTR_TYPE, veh->getVehicleType().getID());
@@ -125,6 +124,9 @@ MSStopOut::stopEnded(const SUMOVehicle* veh, const SUMOVehicleParameter::Stop& s
     myDevice.writeAttr("started", time2string(si.started));
     myDevice.writeAttr("ended", time2string(MSNet::getInstance()->getCurrentTimeStep()));
     myDevice.writeAttr("delay", delay);
+    if (stop.arrival >= 0) {
+        myDevice.writeAttr("arrivalDelay", arrivalDelay);
+    }
     myDevice.writeAttr("initialPersons", si.initialNumPersons);
     myDevice.writeAttr("loadedPersons", si.loadedPersons);
     myDevice.writeAttr("unloadedPersons", si.unloadedPersons);
@@ -158,5 +160,6 @@ MSStopOut::stopEnded(const SUMOVehicle* veh, const SUMOVehicleParameter::Stop& s
     myDevice.closeTag();
     myStopped.erase(veh);
 }
+
 
 /****************************************************************************/

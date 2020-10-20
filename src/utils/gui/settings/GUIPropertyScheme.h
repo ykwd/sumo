@@ -19,13 +19,7 @@
 ///
 //
 /****************************************************************************/
-#ifndef GUIPropertyScheme_h
-#define GUIPropertyScheme_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <cassert>
@@ -52,7 +46,7 @@ public:
     GUIPropertyScheme(const std::string& name, const T& baseColor,
                       const std::string& colName = "", const bool isFixed = false, double baseValue = 0,
                       RGBColor bgColor = RGBColor::INVISIBLE,
-                      GUIIcon icon = ICON_EMPTY) :
+                      GUIIcon icon = GUIIcon::EMPTY) :
         myName(name), myIsInterpolated(!isFixed),
         myIsFixed(isFixed),
         myAllowNegativeValues(false),
@@ -192,7 +186,7 @@ public:
         while (threshIt != myThresholds.end()) {
             dev.openTag(SUMO_TAG_ENTRY);
             dev.writeAttr(SUMO_ATTR_COLOR, *colIt);
-            if (!myIsFixed) {
+            if (!myIsFixed && (*threshIt) != std::numeric_limits<double>::max()) {
                 dev.writeAttr(SUMO_ATTR_THRESHOLD, *threshIt);
             }
             if ((*nameIt) != "") {
@@ -246,7 +240,3 @@ private:
 
 typedef GUIPropertyScheme<RGBColor> GUIColorScheme;
 typedef GUIPropertyScheme<double> GUIScaleScheme;
-
-#endif
-
-/****************************************************************************/

@@ -19,11 +19,6 @@
 ///
 // Class describing the thread that performs the loading of a simulation
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <iostream>
@@ -95,29 +90,24 @@ GUILoadThread::run() {
     // try to load the given configuration
     OptionsCont& oc = OptionsCont::getOptions();
     try {
-        oc.clear();
-        MSFrame::fillOptions();
         if (myFile != "") {
             // triggered by menu option or reload
-            if (myLoadNet) {
-                oc.set("net-file", myFile);
-            } else {
-                oc.set("configuration-file", myFile);
-            }
+            oc.clear();
+            MSFrame::fillOptions();
+            oc.setByRootElement(OptionsIO::getRoot(myFile), myFile);
             oc.resetWritable(); // there may be command line options
             OptionsIO::getOptions();
         } else {
             // triggered at application start
-            OptionsIO::getOptions();
+            OptionsIO::loadConfiguration();
             if (oc.isSet("configuration-file")) {
                 myFile = oc.getString("configuration-file");
             } else if (oc.isSet("net-file")) {
                 myFile = oc.getString("net-file");
-                myLoadNet = true;
             }
             myEventQue.push_back(new GUIEvent_Message("Loading '" + myFile + "'."));
             myEventThrow.signal();
-            myParent->addRecentFile(FXPath::absolute(myFile.c_str()), myLoadNet);
+            myParent->addRecentFile(FXPath::absolute(myFile.c_str()));
         }
         myTitle = myFile;
         // within gui-based applications, nothing is reported to the console
@@ -134,7 +124,7 @@ GUILoadThread::run() {
         if (!MSFrame::checkOptions()) {
             throw ProcessError();
         }
-        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"));
+        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"), oc.getString("xml-validation.routes"));
         GUIGlobals::gRunAfterLoad = oc.getBool("start");
         GUIGlobals::gQuitOnEnd = oc.getBool("quit-on-end");
         GUIGlobals::gDemoAutoReload = oc.getBool("demo");
@@ -254,9 +244,8 @@ GUILoadThread::submitEndAndCleanup(GUINet* net,
 
 
 void
-GUILoadThread::loadConfigOrNet(const std::string& file, bool isNet) {
+GUILoadThread::loadConfigOrNet(const std::string& file) {
     myFile = file;
-    myLoadNet = isNet;
     if (myFile != "") {
         OptionsIO::setArgs(0, nullptr);
     }

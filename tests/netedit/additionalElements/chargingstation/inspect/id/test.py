@@ -38,7 +38,7 @@ netedit.changeElement("chargingStation")
 netedit.changeDefaultValue(10, "reference center")
 
 # create chargingStation 1 in mode "reference center"
-netedit.leftClick(referencePosition, 250, 170)
+netedit.leftClick(referencePosition, 250, 172)
 
 # create chargingStation 2 in mode "reference center"
 netedit.leftClick(referencePosition, 450, 170)
@@ -47,7 +47,7 @@ netedit.leftClick(referencePosition, 450, 170)
 netedit.inspectMode()
 
 # inspect first chargingStation
-netedit.leftClick(referencePosition, 250, 168)
+netedit.leftClick(referencePosition, 250, 173)
 
 # Change parameter id with a non valid value (Duplicated ID)
 netedit.modifyAttribute(0, "chargingStation_gneE2_1_1", True)

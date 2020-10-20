@@ -18,13 +18,7 @@
 ///
 // -------------------
 /****************************************************************************/
-#ifndef NIVissimVehTypeClass_h
-#define NIVissimVehTypeClass_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -58,9 +52,3 @@ private:
     typedef std::map<int, NIVissimVehTypeClass*> DictType;
     static DictType myDict;
 };
-
-
-#endif
-
-/****************************************************************************/
-

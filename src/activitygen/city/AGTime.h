@@ -22,13 +22,7 @@
 ///
 // Time manager: able to manipulate the time using Sumo's format (seconds)
 /****************************************************************************/
-#ifndef AGTIME_H
-#define AGTIME_H
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <iostream>
@@ -131,7 +125,3 @@ private:
     // @brief: used for in/out
     int mySeconds;
 };
-
-#endif
-
-/****************************************************************************/

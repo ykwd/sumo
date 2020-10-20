@@ -17,11 +17,6 @@
 ///
 // The "About" - dialog for NETEDIT, (adapted from GUIDialog_AboutSUMO)
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/foxtools/FXLinkLabel.h>
@@ -96,7 +91,7 @@ GUIDialog_Options::GUIDialog_Options(FXWindow* parent,  const char* titleName, i
     }
 
     // ok-button
-    new FXButton(contentFrame, "OK\t\tAccept settings", GUIIconSubSys::getIcon(ICON_ACCEPT), this, ID_ACCEPT, GUIDesignButtonOK);
+    new FXButton(contentFrame, "OK\t\tAccept settings", GUIIconSubSys::getIcon(GUIIcon::ACCEPT), this, ID_ACCEPT, GUIDesignButtonOK);
 }
 
 

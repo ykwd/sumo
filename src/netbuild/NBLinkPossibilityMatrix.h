@@ -19,13 +19,7 @@
 ///
 // A matric to describe whether two links are foes to each other
 /****************************************************************************/
-#ifndef NBLinkPossibilityMatrix_h
-#define NBLinkPossibilityMatrix_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <bitset>
@@ -41,8 +35,3 @@
  * is simply made by a vector of bitsets
  */
 typedef std::vector<std::bitset<SUMO_MAX_CONNECTIONS> > NBLinkPossibilityMatrix;
-
-
-#endif
-
-/****************************************************************************/

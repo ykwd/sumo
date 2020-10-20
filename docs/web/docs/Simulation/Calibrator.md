@@ -14,10 +14,12 @@ A calibrator will remove vehicles in excess of the specified flow and it will in
 if the normal traffic demand of the simulation does not meet the
 specified number of `vehsPerHour`. Furthermore, the speed on the edge will be
 adjusted to the specified `speed` similar to the workings of a [variable speed
-sign](../Simulation/Variable_Speed_Signs.md). Calibrators will also
-remove vehicles if the traffic on their lane is jammend beyond what
+sign](../Simulation/Variable_Speed_Signs.md). 
+
+Calibrators will also remove vehicles if the traffic on their lane is jammed beyond what
 would be expected given the specified flow and speed. This ensures that
-invalid jams do not grow upstream past a calibrator.
+invalid jams do not grow upstream past a calibrator. This behavior can be controlled with attribute 'jamThreshold' (see below).
+
 If no target flow is given, the provided type information will instead be used to modify the type of vehicles that are passing the calibrator.
 
 ```
@@ -48,7 +50,8 @@ element:
 | lane           | id (string)   | The id of a lane for measuring and calibrating flow (Either *edge* or *lane* must be specified)                 |
 | **pos**        | float         | The position of the calibrator on the specified lane (currently ignored, see [\[1\]](https://github.com/eclipse/sumo/issues/1331)   |
 | freq           | float         | The aggregation interval in which to calibrate the flows. default is step-length                                |
-| routeProbe     | float         | The id of the [routeProbe](../Simulation/Output/RouteProbe.md) element from which to determine the route distribution for generated vehicles.|
+| routeProbe     | id (string)   | The id of the [routeProbe](../Simulation/Output/RouteProbe.md) element from which to determine the route distribution for generated vehicles.|
+| jamTheshold    | float | A threshold value to detect and clear unexpected jamming if the mean edge speed drops below FLOAT * speedLimit. Range [0, 1]. Default: 0.5 (0.8 in meso)|
 | output         | file (string) | The output file for writing calibrator information or *NULL*                                                    |
 | vTypes         | string        | space separated list of vehicle type ids to consider (for counting/removal/type-modification), "" means all; default "".          |
 
@@ -105,6 +108,9 @@ When a calibrator flow is defined without attribute `vehsPerHour` but with attri
 This type of calibrator will modify the types of all passing vehicles (or all vehicles that match the `vTypes` attribute of the calibrator).
 The normal behavior is to replace the type of the passing vehicles with the type set in the flow element.
 
+!!! note
+    When calibrating types, the 'route' attribute can be omitted from the flow definition    
+
 ### Mapping between vTypeDistributions
 A special behavior is activated if the following conditions are met:
 - the `type` in the flow element references a `vTypeDistribution`
@@ -144,7 +150,7 @@ a scenario from measurements is therefore, to [generated random
 traffic](../Tools/Trip.md#randomtripspy) and use Calibrators in
 conjunction with [route probe
 detectors](../Simulation/Output/RouteProbe.md). While this can in
-principle be done with [DFROUTER](../DFROUTER.md) as well, the
+principle be done with [dfrouter](../dfrouter.md) as well, the
 method described here is more robust for highly meshed networks as found
 in cities.
 

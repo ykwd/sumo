@@ -20,11 +20,7 @@
 ///
 // A storage for options (typed value containers)
 /****************************************************************************/
-#ifndef OptionsCont_h
-#define OptionsCont_h
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <map>
@@ -766,9 +762,3 @@ private:
     OptionsCont& operator=(const OptionsCont& s);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

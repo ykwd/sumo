@@ -18,11 +18,6 @@
 ///
 // A parser to retrieve information from a table with known column
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <map>
@@ -75,7 +70,7 @@ NamedColumnsParser::get(const std::string& name, bool prune) const {
             i = myDefinitionsMap.find(StringUtils::to_lower_case(name));
         }
         if (i == myDefinitionsMap.end()) {
-            throw UnknownElement(name);
+            throw UnknownElement("Element '" + name + "' is missing");
         }
     }
     int pos = (*i).second;
@@ -144,6 +139,4 @@ NamedColumnsParser::checkPrune(std::string& str, bool prune) const {
 }
 
 
-
 /****************************************************************************/
-

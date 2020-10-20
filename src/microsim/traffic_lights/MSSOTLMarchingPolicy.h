@@ -20,12 +20,7 @@
 // The class for SOTL Marching logics
 /****************************************************************************/
 
-#ifndef MSTLMARCHINGPOLICY_H_
-#define MSTLMARCHINGPOLICY_H_
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSSOTLPolicy.h"
@@ -51,6 +46,3 @@ protected:
     void init();
 
 };
-
-#endif /* MSSOTLMARCHINGTRAFFICLIGHTLOGIC_H_ */
-/****************************************************************************/

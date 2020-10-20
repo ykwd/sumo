@@ -20,13 +20,7 @@
 ///
 // Container for junctions; performs operations on all stored junctions
 /****************************************************************************/
-#ifndef MSJunctionControl_h
-#define MSJunctionControl_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -72,9 +66,3 @@ private:
     MSJunctionControl& operator=(const MSJunctionControl&);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -18,13 +18,7 @@
 ///
 // Stores time-dependant events and executes them at the proper time (guisim)
 /****************************************************************************/
-#ifndef GUIEventControl_h
-#define GUIEventControl_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <fx.h>
@@ -89,9 +83,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -20,13 +20,7 @@
 ///
 // Builds detectors for microsim
 /****************************************************************************/
-#ifndef NLDetectorBuilder_h
-#define NLDetectorBuilder_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -345,6 +339,7 @@ public:
                                 const bool withInternal, const bool trackVehicles, const int detectPersons,
                                 const double maxTravelTime, const double minSamples,
                                 const double haltSpeed, const std::string& vTypes,
+                                const std::string& writeAttributes,
                                 const std::string& device);
     /// @}
 
@@ -494,9 +489,3 @@ private:
     NLDetectorBuilder& operator=(const NLDetectorBuilder&);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

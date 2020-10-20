@@ -18,13 +18,7 @@
 ///
 // The application's "About" - dialog
 /****************************************************************************/
-#ifndef GUIDialog_AboutSUMO_h
-#define GUIDialog_AboutSUMO_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <fx.h>
@@ -54,9 +48,3 @@ private:
     /// @brief Font for the widget
     FXFont* myHeadlineFont;
 };
-
-
-#endif
-
-/****************************************************************************/
-

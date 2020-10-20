@@ -23,11 +23,6 @@
 ///
 // APIs for getting/setting edge values via TraCI
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/common/StdDefs.h>
@@ -83,6 +78,21 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                                                           "Retrieval of a parameter requires its name.",
                                                           outputStorage);
                     }
+                    server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_STRING);
+                    server.getWrapperStorage().writeString(libsumo::Edge::getParameter(id, paramName));
+                    break;
+                }
+                case libsumo::VAR_PARAMETER_WITH_KEY: {
+                    std::string paramName;
+                    if (!server.readTypeCheckingString(inputStorage, paramName)) {
+                        return server.writeErrorStatusCmd(libsumo::CMD_GET_EDGE_VARIABLE,
+                                                          "Retrieval of a parameter requires its name.",
+                                                          outputStorage);
+                    }
+                    server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_COMPOUND);
+                    server.getWrapperStorage().writeInt(2);  /// length
+                    server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_STRING);
+                    server.getWrapperStorage().writeString(paramName);
                     server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_STRING);
                     server.getWrapperStorage().writeString(libsumo::Edge::getParameter(id, paramName));
                     break;

@@ -20,8 +20,7 @@
 // XXX: Not tested with MSMultiLaneE2Collector (Generalization of MSE2Collector). If this is to be used in the future and you run into problems,
 //      start taking a look at the getEstimateQueueLength() method of the collector.
 /****************************************************************************/
-#ifndef MSSOTLE2Sensors_h
-#define MSSOTLE2Sensors_h
+#pragma once
 
 
 #define SWARM_DEBUG
@@ -152,6 +151,3 @@ protected:
     std::map<const std::string, int> m_typeWeightMap;
 
 };
-
-#endif
-/****************************************************************************/

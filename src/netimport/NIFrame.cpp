@@ -20,11 +20,6 @@
 ///
 // Sets and checks options for netimport
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <string>
@@ -54,6 +49,7 @@ NIFrame::fillOptions(bool forNetedit) {
     // register input formats
     oc.doRegister("sumo-net-file", 's', new Option_FileName());
     oc.addSynonyme("sumo-net-file", "sumo-net", true);
+    oc.addSynonyme("sumo-net-file", "net-file");
     oc.addDescription("sumo-net-file", "Input", "Read SUMO-net from FILE");
     oc.addXMLDefault("sumo-net-file", "net");
 
@@ -140,6 +136,9 @@ NIFrame::fillOptions(bool forNetedit) {
     oc.doRegister("heightmap.geotiff", new Option_FileName());
     oc.addDescription("heightmap.geotiff", "Input", "Read heightmap from GeoTIFF");
 
+    // need to do this here to be able to check for network and route input options
+    SystemFrame::addReportOptions(oc);
+
     // register basic processing options
     oc.doRegister("ignore-errors", new Option_Bool(false));
     oc.addSynonyme("ignore-errors", "dismiss-loading-errors", true);
@@ -162,6 +161,9 @@ NIFrame::fillOptions(bool forNetedit) {
 
     oc.doRegister("flatten", new Option_Bool(false));
     oc.addDescription("flatten", "Processing", "Remove all z-data");
+
+    oc.doRegister("discard-params", new Option_StringVector());
+    oc.addDescription("discard-params", "Formats", "Remove the list of keys from all params");
 
     // register xml options
     oc.doRegister("plain.extend-edge-shape", new Option_Bool(false));
@@ -250,6 +252,17 @@ NIFrame::fillOptions(bool forNetedit) {
     oc.addSynonyme("shapefile.guess-projection", "arcview.guess-projection", true);
     oc.addDescription("shapefile.guess-projection", "Formats", "Guess the proper projection");
 
+    oc.doRegister("shapefile.traditional-axis-mapping", new Option_Bool(false));
+    oc.addDescription("shapefile.traditional-axis-mapping", "Formats", "Use traditional axis order (lon, lat)");
+
+
+    // register dlr-navteq options
+    oc.doRegister("dlr-navteq.tolerant-permissions", new Option_Bool(false));
+    oc.addDescription("dlr-navteq.tolerant-permissions", "Formats", "Allow more vehicle classes by default");
+
+    oc.doRegister("dlr-navteq.keep-length", new Option_Bool(false));
+    oc.addDescription("dlr-navteq.keep-length", "Formats", "The edge lengths given in the DLR Navteq-file will be kept");
+
 
     // register vissim options
     oc.doRegister("vissim.join-distance", new Option_Float(5.0f));
@@ -296,7 +309,7 @@ NIFrame::fillOptions(bool forNetedit) {
     oc.doRegister("visum.verbose-warnings", new Option_Bool(false));
     oc.addDescription("visum.verbose-warnings", "Formats", "Prints all warnings, some of which are due to VISUM misbehaviour");
 
-    oc.doRegister("visum.lanes-from-capacity.norm", new Option_Float((double) 1800));
+    oc.doRegister("visum.lanes-from-capacity.norm", new Option_Float(1800.));
     oc.addSynonyme("visum.lanes-from-capacity.norm", "capacity-norm", true);
     oc.addSynonyme("visum.lanes-from-capacity.norm", "lanes-from-capacity.norm");
     oc.addDescription("visum.lanes-from-capacity.norm", "Formats", "The factor for flow to no. lanes conversion");
@@ -401,6 +414,4 @@ NIFrame::checkOptions() {
 }
 
 
-
 /****************************************************************************/
-

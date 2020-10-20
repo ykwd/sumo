@@ -17,13 +17,7 @@
 ///
 // A vehicle from the mesoscopic point of view
 /****************************************************************************/
-#ifndef MEVehicle_h
-#define MEVehicle_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <iostream>
@@ -76,7 +70,7 @@ public:
     double getAngle() const;
 
 
-    /** @brief Returns the slope of the road at vehicle's position
+    /** @brief Returns the slope of the road at vehicle's position in degrees
      * @return The slope
      */
     double getSlope() const;
@@ -85,7 +79,7 @@ public:
     * @return The vehicle's current lane
     */
     MSLane* getLane() const {
-        return 0;
+        return nullptr;
     }
 
     /** @brief Return current position (x/y, cartesian)
@@ -121,6 +115,19 @@ public:
      */
     double getConservativeSpeed(SUMOTime& earliestArrival) const;
 
+    /// @name insertion/removal
+    //@{
+
+    /** @brief Called when the vehicle is removed from the network.
+     *
+     * Moves along work reminders and
+     *  informs all devices about quitting. Calls "leaveLane" then.
+     *
+     * @param[in] reason why the vehicle leaves (reached its destination, parking, teleport)
+     */
+    void onRemovalFromNet(const MSMoveReminder::Notification reason);
+    //@}
+
 
     /** @brief Update when the vehicle enters a new edge in the move step.
      * @return Whether the vehicle's route has ended (due to vaporization, or because the destination was reached)
@@ -137,25 +144,16 @@ public:
      */
     bool isOnRoad() const;
 
+    /** @brief Returns whether the vehicle is trying to re-enter the net
+     * @return true if the vehicle is trying to enter the net (eg after parking)
+     */
+    virtual bool isIdling() const;
+
+
     /** @brief Returns whether the vehicle is parking
      * @return whether the vehicle is parking
      */
     bool isParking() const;
-
-    /** @brief Adds a stop
-     *
-     * The stop is put into the sorted list.
-     * @param[in] stop The stop to add
-     * @return Whether the stop could be added
-     */
-    bool addStop(const SUMOVehicleParameter::Stop& stopPar, std::string& errorMsg, SUMOTime untilOffset = 0, bool collision = false,
-                 MSRouteIterator* searchStart = 0);
-
-
-    /** @brief Returns whether the vehicle is at a stop
-     * @return Whether it has stopped
-     */
-    bool isStopped() const;
 
     /// @brief Returns the remaining stop duration for a stopped vehicle or 0
     SUMOTime remainingStopDuration() const {
@@ -177,26 +175,18 @@ public:
     /** @brief Returns whether the vehicle stops at the given stopping place */
     bool stopsAt(MSStoppingPlace* /*stop*/) const {
         return false;
-    };
+    }
 
     bool stopsAtEdge(const MSEdge* /*edge*/) const {
         return false;
-    };
+    }
 
-    /** @brief Returns until when to stop at the given segment
-     * @param[in] seg The segment in question
+    /** @brief Returns until when to stop at the current segment and sets the information that the stop has been reached
      * @param[in] time the current time
      * @return stop time for the segment
      */
-    SUMOTime getStoptime(const MESegment* const seg, SUMOTime time) const;
+    SUMOTime checkStop(SUMOTime time);
 
-
-    /** @brief Returns the list of still pending stop edges
-     */
-    const ConstMSEdgeVector getStopEdges(double& firstPos, double& lastPos) const;
-
-    /// @brief return list of route indices for the remaining stops
-    std::vector<std::pair<int, double> > getStopIndices() const;
 
     /// @brief get distance for coming to a stop (used for rerouting checks)
     double getBrakeGap() const {
@@ -213,6 +203,10 @@ public:
      */
     MSParkingArea* getNextParkingArea() {
         throw ProcessError("parkingZoneReroute not implemented for meso");
+    }
+
+    const SUMOVehicleParameter::Stop* getNextStopParameter() const {
+        throw ProcessError("stop retrieval not yet implemented for meso");
     }
 
     /** @brief Sets the (planned) time at which the vehicle leaves his current cell
@@ -299,6 +293,11 @@ public:
         return MAX2(SUMOTime(0), myEventTime - myBlockTime);
     }
 
+    inline SUMOTime getTimeLoss() const {
+        // slow-downs while driving are not modelled
+        return getWaitingTime();
+    }
+
     /// @brief Returns the duration for which the vehicle was blocked
     inline SUMOTime getAccumulatedWaitingTime() const {
         return getWaitingTime();
@@ -338,7 +337,7 @@ public:
     double getCurrentStoppingTimeSeconds() const;
 
     /// Replaces the current route by the given one
-    bool replaceRoute(const MSRoute* route,  const std::string& info, bool onInit = false, int offset = 0, bool addStops = true, bool removeStops = true);
+    bool replaceRoute(const MSRoute* route,  const std::string& info, bool onInit = false, int offset = 0, bool addRouteStops = true, bool removeStops = true);
 
     /** @brief Returns whether the vehicle is allowed to pass the next junction
      * @return true iff the vehicle may drive over the next junction
@@ -353,6 +352,19 @@ public:
      */
     void updateDetectors(SUMOTime currentTime, const bool isLeave,
                          const MSMoveReminder::Notification reason = MSMoveReminder::NOTIFICATION_JUNCTION);
+
+    /** @brief Returns the velocity/lane influencer
+     *
+     * If no influencer was existing before, one is built, first
+     * @return Reference to this vehicle's speed influencer
+     */
+    BaseInfluencer& getBaseInfluencer();
+
+    const BaseInfluencer* getBaseInfluencer() const;
+
+    bool hasInfluencer() const {
+        return myInfluencer != nullptr;
+    }
 
     /// @name state io
     //@{
@@ -382,14 +394,7 @@ protected:
     /// @brief The time at which the vehicle was blocked on its current segment
     SUMOTime myBlockTime;
 
-    /// @brief where to stop
-    std::map<const MESegment* const, std::vector<SUMOVehicleParameter::Stop> > myStops;
-
-    /// @brief edges to stop
-    ConstMSEdgeVector myStopEdges;
+    /// @brief An instance of a velocity/lane influencing instance; built in "getInfluencer"
+    BaseInfluencer* myInfluencer;
 
 };
-
-#endif
-
-/****************************************************************************/

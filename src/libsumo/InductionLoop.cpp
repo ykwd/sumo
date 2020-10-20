@@ -20,11 +20,6 @@
 ///
 // C++ TraCI client API implementation
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <microsim/output/MSDetectorControl.h>
@@ -41,6 +36,7 @@ namespace libsumo {
 // ===========================================================================
 SubscriptionResults InductionLoop::mySubscriptionResults;
 ContextSubscriptionResults InductionLoop::myContextSubscriptionResults;
+NamedRTree* InductionLoop::myTree(nullptr);
 
 
 // ===========================================================================
@@ -75,7 +71,7 @@ InductionLoop::getLaneID(const std::string& detID) {
 
 int
 InductionLoop::getLastStepVehicleNumber(const std::string& detID) {
-    return (int)getDetector(detID)->getPassedNumber((int)DELTA_T);
+    return (int)getDetector(detID)->getEnteredNumber((int)DELTA_T);
 }
 
 
@@ -111,18 +107,17 @@ InductionLoop::getTimeSinceDetection(const std::string& detID) {
 
 std::vector<libsumo::TraCIVehicleData>
 InductionLoop::getVehicleData(const std::string& detID) {
-    std::vector<MSInductLoop::VehicleData> vd = getDetector(detID)->collectVehiclesOnDet(SIMSTEP - DELTA_T, true);
+    const std::vector<MSInductLoop::VehicleData> vd = getDetector(detID)->collectVehiclesOnDet(SIMSTEP - DELTA_T, true, true);
     std::vector<libsumo::TraCIVehicleData> tvd;
-    for (std::vector<MSInductLoop::VehicleData>::const_iterator vdi = vd.begin(); vdi != vd.end(); ++vdi) {
+    for (const MSInductLoop::VehicleData& vdi : vd) {
         tvd.push_back(libsumo::TraCIVehicleData());
-        tvd.back().id = vdi->idM;
-        tvd.back().length = vdi->lengthM;
-        tvd.back().entryTime = vdi->entryTimeM;
-        tvd.back().leaveTime = vdi->leaveTimeM;
-        tvd.back().typeID = vdi->typeIDM;
+        tvd.back().id = vdi.idM;
+        tvd.back().length = vdi.lengthM;
+        tvd.back().entryTime = vdi.entryTimeM;
+        tvd.back().leaveTime = vdi.leaveTimeM;
+        tvd.back().typeID = vdi.typeIDM;
     }
     return tvd;
-
 }
 
 
@@ -141,17 +136,24 @@ LIBSUMO_SUBSCRIPTION_IMPLEMENTATION(InductionLoop, INDUCTIONLOOP)
 
 NamedRTree*
 InductionLoop::getTree() {
-    NamedRTree* t = new NamedRTree();
-    for (const auto& i : MSNet::getInstance()->getDetectorControl().getTypedDetectors(SUMO_TAG_INDUCTION_LOOP)) {
-        MSInductLoop* il = static_cast<MSInductLoop*>(i.second);
-        Position p = il->getLane()->getShape().positionAtOffset(il->getPosition());
-        const float cmin[2] = {(float) p.x(), (float) p.y()};
-        const float cmax[2] = {(float) p.x(), (float) p.y()};
-        t->Insert(cmin, cmax, il);
+    if (myTree == nullptr) {
+        myTree = new NamedRTree();
+        for (const auto& i : MSNet::getInstance()->getDetectorControl().getTypedDetectors(SUMO_TAG_INDUCTION_LOOP)) {
+            MSInductLoop* il = static_cast<MSInductLoop*>(i.second);
+            Position p = il->getLane()->getShape().positionAtOffset(il->getPosition());
+            const float cmin[2] = {(float) p.x(), (float) p.y()};
+            const float cmax[2] = {(float) p.x(), (float) p.y()};
+            myTree->Insert(cmin, cmax, il);
+        }
     }
-    return t;
+    return myTree;
 }
 
+void
+InductionLoop::cleanup() {
+    delete myTree;
+    myTree = nullptr;
+}
 
 void
 InductionLoop::storeShape(const std::string& id, PositionVector& shape) {
@@ -196,5 +198,6 @@ InductionLoop::handleVariable(const std::string& objID, const int variable, Vari
 
 
 }
+
 
 /****************************************************************************/

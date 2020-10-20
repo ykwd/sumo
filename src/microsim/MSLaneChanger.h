@@ -20,13 +20,7 @@
 ///
 // Performs lane changing of vehicles
 /****************************************************************************/
-#ifndef MSLaneChanger_h
-#define MSLaneChanger_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSLane.h"
@@ -249,9 +243,3 @@ private:
     /// Assignment operator.
     MSLaneChanger& operator=(const MSLaneChanger&);
 };
-
-
-#endif
-
-/****************************************************************************/
-

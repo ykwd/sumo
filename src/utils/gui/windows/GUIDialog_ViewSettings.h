@@ -19,13 +19,7 @@
 ///
 // The dialog to change the view (gui) settings.
 /****************************************************************************/
-#ifndef GUIDialog_ViewSettings_h
-#define GUIDialog_ViewSettings_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <fx.h>
@@ -239,6 +233,9 @@ private:
     /// @brief reload known vehicle parameters
     void updateVehicleParams();
 
+    /// @brief reload known POI parameters
+    void updatePOIParams();
+
 private:
     /// @brief The parent view (which settings are changed)
     GUISUMOAbstractView* myParent;
@@ -277,6 +274,7 @@ private:
     FXColorWell* mySelectedVehicleColor;
     FXColorWell* mySelectedPersonColor;
     FXColorWell* mySelectedPersonPlanColor;
+    FXColorWell* mySelectedEdgeDataColor;
 
     /// ... lane colorer
     MFXIconComboBox* myLaneEdgeColorMode;
@@ -332,6 +330,7 @@ private:
     FXCheckButton* myContainerColorInterpolation;
     FXRealSpinner* myContainerMinSizeDialer, *myContainerUpscaleDialer;
 
+    // junctions
     MFXIconComboBox* myJunctionColorMode;
     FXVerticalFrame* myJunctionColorSettingFrame;
     std::vector<FXColorWell*> myJunctionColors;
@@ -339,13 +338,16 @@ private:
     std::vector<FXButton*> myJunctionButtons;
     FXCheckButton* myJunctionColorInterpolation;
 
+    // POIs
     MFXIconComboBox* myPOIColorMode, *myPOIShapeDetail;
     FXVerticalFrame* myPOIColorSettingFrame;
     std::vector<FXColorWell*> myPOIColors;
     std::vector<FXRealSpinner*> myPOIThresholds;
     std::vector<FXButton*> myPOIButtons;
     FXCheckButton* myPOIColorInterpolation;
+    FXComboBox* myPOITextParamKey;
 
+    // Polygons
     MFXIconComboBox* myPolyColorMode, *myPolyShapeDetail;
     FXVerticalFrame* myPolyColorSettingFrame;
     std::vector<FXColorWell*> myPolyColors;
@@ -363,15 +365,18 @@ private:
     FXCheckButton* myForceDrawForRectangleSelection;
     FXCheckButton* myShowSizeLegend;
     FXCheckButton* myShowColorLegend;
+    FXCheckButton* myShowVehicleColorLegend;
 
     NamePanel* myEdgeNamePanel, *myInternalEdgeNamePanel, *myCwaEdgeNamePanel, *myStreetNamePanel, *myEdgeValuePanel,
                *myJunctionIndexPanel, *myTLIndexPanel,
-               *myJunctionNamePanel, *myInternalJunctionNamePanel,
+               *myJunctionIDPanel, *myJunctionNamePanel, *myInternalJunctionNamePanel,
                *myTLSPhaseIndexPanel, *myTLSPhaseNamePanel,
                *myVehicleNamePanel, *myVehicleValuePanel, *myVehicleTextPanel,
                *myPersonNamePanel, *myPersonValuePanel,
                *myContainerNamePanel,
-               *myAddNamePanel, *myAddFullNamePanel, *myPOINamePanel, *myPolyNamePanel, *myPOITypePanel, *myPolyTypePanel;
+               *myAddNamePanel, *myAddFullNamePanel,
+               *myPOINamePanel, *myPOITypePanel, *myPOITextPanel,
+               *myPolyNamePanel, *myPolyTypePanel;
 
     SizePanel* myVehicleSizePanel, *myPersonSizePanel, *myContainerSizePanel, *myPOISizePanel, *myPolySizePanel, *myAddSizePanel, *myJunctionSizePanel;
 
@@ -394,9 +399,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

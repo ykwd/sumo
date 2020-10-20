@@ -20,13 +20,7 @@
 ///
 // Interface for building instances of duarouter-edges
 /****************************************************************************/
-#ifndef RODUAEdgeBuilder_h
-#define RODUAEdgeBuilder_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <router/ROAbstractEdgeBuilder.h>
@@ -81,9 +75,3 @@ public:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

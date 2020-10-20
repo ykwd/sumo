@@ -20,13 +20,7 @@
 ///
 // Derivation of NLEdgeControlBuilder which builds gui-edges
 /****************************************************************************/
-#ifndef GUIEdgeControlBuilder_h
-#define GUIEdgeControlBuilder_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -106,9 +100,3 @@ private:
     GUIEdgeControlBuilder& operator=(const GUIEdgeControlBuilder& s);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

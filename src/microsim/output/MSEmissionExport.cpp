@@ -20,11 +20,6 @@
 ///
 // Realises dumping Emission Data
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/iodevices/OutputDevice.h>
@@ -33,6 +28,7 @@
 #include <utils/geom/GeomHelper.h>
 #include <microsim/MSNet.h>
 #include <microsim/MSVehicle.h>
+#include <microsim/devices/MSDevice_Emissions.h>
 #include <mesosim/MEVehicle.h>
 #include <microsim/MSVehicleControl.h>
 #include "MSEmissionExport.h"
@@ -43,12 +39,18 @@
 // ===========================================================================
 void
 MSEmissionExport::write(OutputDevice& of, SUMOTime timestep, int precision) {
+    const SUMOTime period = string2time(OptionsCont::getOptions().getString("device.emissions.period"));
+    const SUMOTime begin = string2time(OptionsCont::getOptions().getString("begin"));
+    if (period > 0 && (timestep - begin) % period != 0) {
+        return;
+    }
     of.openTag("timestep").writeAttr("time", time2string(timestep));
     of.setPrecision(precision);
     MSVehicleControl& vc = MSNet::getInstance()->getVehicleControl();
     for (MSVehicleControl::constVehIt it = vc.loadedVehBegin(); it != vc.loadedVehEnd(); ++it) {
         const SUMOVehicle* veh = it->second;
-        if (veh->isOnRoad()) {
+        MSDevice_Emissions* emissionsDevice = (MSDevice_Emissions*)veh->getDevice(typeid(MSDevice_Emissions));
+        if (emissionsDevice != nullptr && (veh->isOnRoad() || veh->isIdling())) {
             std::string fclass = veh->getVehicleType().getID();
             fclass = fclass.substr(0, fclass.find_first_of("@"));
             PollutantsInterface::Emissions emiss = PollutantsInterface::computeAll(

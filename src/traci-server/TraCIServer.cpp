@@ -27,10 +27,6 @@
 ///
 // TraCI server used to control sumo by a remote TraCI client (e.g., ns2)
 /****************************************************************************/
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #ifdef HAVE_VERSION_H
@@ -81,6 +77,15 @@
 #include "TraCIServerAPI_Edge.h"
 #include "TraCIServerAPI_Simulation.h"
 #include "TraCIServerAPI_Person.h"
+#include "TraCIServerAPI_Calibrator.h"
+#include "TraCIServerAPI_BusStop.h"
+#include "TraCIServerAPI_ParkingArea.h"
+#include "TraCIServerAPI_ChargingStation.h"
+#include "TraCIServerAPI_RouteProbe.h"
+#include "TraCIServerAPI_Rerouter.h"
+#include "TraCIServerAPI_VariableSpeedSign.h"
+#include "TraCIServerAPI_MeanData.h"
+#include "TraCIServerAPI_OverheadWire.h"
 
 
 // ===========================================================================
@@ -225,13 +230,31 @@ TraCIServer::TraCIServer(const SUMOTime begin, const int port, const int numClie
     myExecutors[libsumo::CMD_SET_SIM_VARIABLE] = &TraCIServerAPI_Simulation::processSet;
     myExecutors[libsumo::CMD_GET_PERSON_VARIABLE] = &TraCIServerAPI_Person::processGet;
     myExecutors[libsumo::CMD_SET_PERSON_VARIABLE] = &TraCIServerAPI_Person::processSet;
+    myExecutors[libsumo::CMD_GET_CALIBRATOR_VARIABLE] = &TraCIServerAPI_Calibrator::processGet;
+    myExecutors[libsumo::CMD_SET_CALIBRATOR_VARIABLE] = &TraCIServerAPI_Calibrator::processSet;
+    myExecutors[libsumo::CMD_GET_BUSSTOP_VARIABLE] = &TraCIServerAPI_BusStop::processGet;
+    myExecutors[libsumo::CMD_SET_BUSSTOP_VARIABLE] = &TraCIServerAPI_BusStop::processSet;
+    myExecutors[libsumo::CMD_GET_PARKINGAREA_VARIABLE] = &TraCIServerAPI_ParkingArea::processGet;
+    myExecutors[libsumo::CMD_SET_PARKINGAREA_VARIABLE] = &TraCIServerAPI_ParkingArea::processSet;
+    myExecutors[libsumo::CMD_GET_CHARGINGSTATION_VARIABLE] = &TraCIServerAPI_ChargingStation::processGet;
+    myExecutors[libsumo::CMD_SET_CHARGINGSTATION_VARIABLE] = &TraCIServerAPI_ChargingStation::processSet;
+    myExecutors[libsumo::CMD_GET_ROUTEPROBE_VARIABLE] = &TraCIServerAPI_RouteProbe::processGet;
+    myExecutors[libsumo::CMD_SET_ROUTEPROBE_VARIABLE] = &TraCIServerAPI_RouteProbe::processSet;
+    myExecutors[libsumo::CMD_GET_REROUTER_VARIABLE] = &TraCIServerAPI_Rerouter::processGet;
+    myExecutors[libsumo::CMD_SET_REROUTER_VARIABLE] = &TraCIServerAPI_Rerouter::processSet;
+    myExecutors[libsumo::CMD_GET_VARIABLESPEEDSIGN_VARIABLE] = &TraCIServerAPI_VariableSpeedSign::processGet;
+    myExecutors[libsumo::CMD_SET_VARIABLESPEEDSIGN_VARIABLE] = &TraCIServerAPI_VariableSpeedSign::processSet;
+    myExecutors[libsumo::CMD_GET_MEANDATA_VARIABLE] = &TraCIServerAPI_MeanData::processGet;
+    //myExecutors[libsumo::CMD_SET_MEANDATA_VARIABLE] = &TraCIServerAPI_MeanData::processSet;
+    myExecutors[libsumo::CMD_GET_OVERHEADWIRE_VARIABLE] = &TraCIServerAPI_OverheadWire::processGet;
+    myExecutors[libsumo::CMD_SET_OVERHEADWIRE_VARIABLE] = &TraCIServerAPI_OverheadWire::processSet;
 
     myParameterSizes[libsumo::VAR_LEADER] = 9;
 
     myDoCloseConnection = false;
 
     // display warning if internal lanes are not used
-    if (!MSGlobals::gUsingInternalLanes) {
+    if (!MSGlobals::gUsingInternalLanes && !MSGlobals::gUseMesoSim) {
         WRITE_WARNING("Starting TraCI without using internal lanes!");
         MsgHandler::getWarningInstance()->inform("Vehicles will jump over junctions.", false);
         MsgHandler::getWarningInstance()->inform("Use without option --no-internal-links to avoid unexpected behavior", false);
@@ -865,11 +888,10 @@ TraCIServer::dispatchCommand() {
 // ---------- Server-internal command handling
 bool
 TraCIServer::commandGetVersion() {
-    std::string sumoVersion = VERSION_STRING;
     // Prepare response
     tcpip::Storage answerTmp;
     answerTmp.writeInt(libsumo::TRACI_VERSION);
-    answerTmp.writeString(std::string("SUMO ") + sumoVersion);
+    answerTmp.writeString("SUMO " VERSION_STRING);
     // When we get here, the response is stored in answerTmp -> put into myOutputStorage
     writeStatusCmd(libsumo::CMD_GETVERSION, libsumo::RTYPE_OK, "");
     // command length
@@ -1015,7 +1037,9 @@ TraCIServer::initialiseSubscription(libsumo::Subscription& s) {
             }
             writeStatusCmd(s.commandId, libsumo::RTYPE_OK, "");
         }
-        if (modifiedSubscription != nullptr && modifiedSubscription->isVehicleToVehicleContextSubscription()) {
+        if (modifiedSubscription != nullptr && (
+                    modifiedSubscription->isVehicleToVehicleContextSubscription()
+                    || modifiedSubscription->isVehicleToPersonContextSubscription())) {
             // Set last modified vehicle context subscription active for filter modifications
             myLastContextSubscription = modifiedSubscription;
         } else {
@@ -1174,6 +1198,19 @@ TraCIServer::addObjectVariableSubscription(const int commandId, const bool hasCo
         parameters.push_back(std::vector<unsigned char>());
         for (int j = 0; j < myParameterSizes[varID]; j++) {
             parameters.back().push_back(myInputStorage.readChar());
+        }
+        if (varID == libsumo::VAR_PARAMETER_WITH_KEY) {
+            parameters.back().push_back(myInputStorage.readChar());
+            // the byte order of the int is unknown here, so we create a temp. storage
+            int length = myInputStorage.readInt();
+            tcpip::Storage tmp;
+            tmp.writeInt(length);
+            for (int j = 0; j < 4; j++) {  // write int (length of string) char by char
+                parameters.back().push_back(tmp.readChar());
+            }
+            for (int j = 0; j < length; j++) {  // write string char by char
+                parameters.back().push_back(myInputStorage.readChar());
+            }
         }
     }
     // check subscribe/unsubscribe
@@ -1521,10 +1558,13 @@ TraCIServer::readTypeCheckingPolygon(tcpip::Storage& inputStorage, PositionVecto
 
 
 void
-TraCIServer::setTargetTime(SUMOTime targetTime) {
+TraCIServer::stateLoaded(SUMOTime targetTime) {
     myTargetTime = targetTime;
     for (auto& s : mySockets) {
         s.second->targetTime = targetTime;
+        for (auto& stateChange : s.second->vehicleStateChanges) {
+            stateChange.second.clear();
+        }
     }
 }
 

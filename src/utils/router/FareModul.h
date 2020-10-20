@@ -17,12 +17,7 @@
 ///
 // Fare Modul for calculating prices during intermodal routing
 /****************************************************************************/
-#ifndef SUMO_FAREMODUL_H
-#define SUMO_FAREMODUL_H
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <cassert>
@@ -561,4 +556,3 @@ private:
 };
 
 
-#endif //SUMO_FAREMODUL_H

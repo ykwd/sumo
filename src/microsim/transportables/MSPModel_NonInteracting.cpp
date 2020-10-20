@@ -17,10 +17,6 @@
 ///
 // The pedestrian following model (prototype)
 /****************************************************************************/
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <cmath>
@@ -55,7 +51,8 @@ const double MSPModel_NonInteracting::CState::LATERAL_OFFSET(0);
 // MSPModel_NonInteracting method definitions
 // ===========================================================================
 MSPModel_NonInteracting::MSPModel_NonInteracting(const OptionsCont& oc, MSNet* net) :
-    myNet(net) {
+    myNet(net),
+    myNumActivePedestrians(0) {
     assert(myNet != 0);
     UNUSED_PARAMETER(oc);
 }
@@ -67,25 +64,36 @@ MSPModel_NonInteracting::~MSPModel_NonInteracting() {
 
 MSTransportableStateAdapter*
 MSPModel_NonInteracting::add(MSTransportable* transportable, MSStageMoving* stage, SUMOTime now) {
-    MoveToNextEdge* cmd = new MoveToNextEdge(transportable, *stage);
-    if (transportable->isPerson()) {
-        PState* state = new PState(cmd);
-        const SUMOTime firstEdgeDuration = state->computeWalkingTime(nullptr, *stage, now);
-        myNet->getBeginOfTimestepEvents()->addEvent(cmd, now + firstEdgeDuration);
+    myNumActivePedestrians++;
+    MoveToNextEdge* const cmd = new MoveToNextEdge(transportable, *stage, this);
+    PState* const state = transportable->isPerson() ? new PState(cmd) : new CState(cmd);
+    myNet->getBeginOfTimestepEvents()->addEvent(cmd, now + state->computeDuration(nullptr, *stage, now));
+    return state;
+}
 
-        //if DEBUGCOND(person->getID()) std::cout << SIMTIME << " " << person->getID() << " inserted on " << stage->getEdge()->getID() << "\n";
-        return state;
-    }
-    CState* state = new CState(cmd);
-    const SUMOTime firstEdgeDuration = state->computeTranshipTime(nullptr, *stage, now);
-    myNet->getBeginOfTimestepEvents()->addEvent(cmd, now + firstEdgeDuration);
+
+MSTransportableStateAdapter*
+MSPModel_NonInteracting::loadState(MSTransportable* transportable, MSStageMoving* stage, std::istringstream& in) {
+    myNumActivePedestrians++;
+    MoveToNextEdge* const cmd = new MoveToNextEdge(transportable, *stage, this);
+    PState* const state = transportable->isPerson() ? new PState(cmd, &in) : new CState(cmd, &in);
+    myNet->getBeginOfTimestepEvents()->addEvent(cmd, state->getEventTime());
     return state;
 }
 
 
 void
 MSPModel_NonInteracting::remove(MSTransportableStateAdapter* state) {
+    myNumActivePedestrians--;
     dynamic_cast<PState*>(state)->getCommand()->abortWalk();
+}
+
+
+// ---------------------------------------------------------------------------
+// MSPModel_NonInteracting::MoveToNextEdge method definitions
+// ---------------------------------------------------------------------------
+MSPModel_NonInteracting::MoveToNextEdge::~MoveToNextEdge() {
+    myModel->registerArrived();
 }
 
 
@@ -97,21 +105,24 @@ MSPModel_NonInteracting::MoveToNextEdge::execute(SUMOTime currentTime) {
     const MSEdge* old = myParent.getEdge();
     const bool arrived = myParent.moveToNextEdge(myTransportable, currentTime);
     if (arrived) {
-        // movement finished
         return 0;
     }
-    if (myTransportable->isPerson()) {
-        PState* state = dynamic_cast<PState*>(myParent.getState());
-        return state->computeWalkingTime(old, myParent, currentTime);
-    } else {
-        CState* state = dynamic_cast<CState*>(myParent.getState());
-        return state->computeTranshipTime(old, myParent, currentTime);
+    return static_cast<PState*>(myParent.getState())->computeDuration(old, myParent, currentTime);
+}
+
+
+// ---------------------------------------------------------------------------
+// MSPModel_NonInteracting::PState method definitions
+// ---------------------------------------------------------------------------
+MSPModel_NonInteracting::PState::PState(MoveToNextEdge* cmd, std::istringstream* in) : myCommand(cmd) {
+    if (in != nullptr) {
+        (*in) >> myLastEntryTime >> myCurrentDuration;
     }
 }
 
 
 SUMOTime
-MSPModel_NonInteracting::PState::computeWalkingTime(const MSEdge* prev, const MSStageMoving& stage, SUMOTime currentTime) {
+MSPModel_NonInteracting::PState::computeDuration(const MSEdge* prev, const MSStageMoving& stage, SUMOTime currentTime) {
     myLastEntryTime = currentTime;
     const MSEdge* edge = stage.getEdge();
     const MSEdge* next = stage.getNextRouteEdge();
@@ -197,6 +208,18 @@ MSPModel_NonInteracting::PState::getNextEdge(const MSStageMoving& stage) const {
 }
 
 
+void
+MSPModel_NonInteracting::PState::saveState(std::ostringstream& out) {
+    out << " " << myLastEntryTime << " " << myCurrentDuration;
+}
+
+
+// ---------------------------------------------------------------------------
+// MSPModel_NonInteracting::CState method definitions
+// ---------------------------------------------------------------------------
+MSPModel_NonInteracting::CState::CState(MoveToNextEdge* cmd, std::istringstream* in) : PState(cmd, in) {
+}
+
 
 Position
 MSPModel_NonInteracting::CState::getPosition(const MSStageMoving& stage, SUMOTime now) const {
@@ -217,7 +240,7 @@ MSPModel_NonInteracting::CState::getAngle(const MSStageMoving& stage, SUMOTime n
 
 
 SUMOTime
-MSPModel_NonInteracting::CState::computeTranshipTime(const MSEdge* /* prev */, const MSStageMoving& stage, SUMOTime currentTime) {
+MSPModel_NonInteracting::CState::computeDuration(const MSEdge* /* prev */, const MSStageMoving& stage, SUMOTime currentTime) {
     myLastEntryTime = currentTime;
 
     myCurrentBeginPos = stage.getDepartPos();

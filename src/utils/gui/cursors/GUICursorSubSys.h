@@ -17,13 +17,7 @@
 ///
 // A class to manage icons of SUMO
 /****************************************************************************/
-#ifndef GUICursorSubSys_h
-#define GUICursorSubSys_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <fx.h>
@@ -61,9 +55,3 @@ private:
     /// @brief vector with the icons
     FXCursor* myCursors[CURSOR_MAX];
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -19,11 +19,6 @@
 ///
 // A lane area vehicles can halt at (gui-version)
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <string>
@@ -57,8 +52,8 @@
 // method definitions
 // ===========================================================================
 GUIBusStop::GUIBusStop(const std::string& id, const std::vector<std::string>& lines, MSLane& lane,
-                       double frompos, double topos, const std::string name, int personCapacity) :
-    MSStoppingPlace(id, lines, lane, frompos, topos, name, personCapacity),
+                       double frompos, double topos, const std::string name, int personCapacity, double parkingLength) :
+    MSStoppingPlace(id, lines, lane, frompos, topos, name, personCapacity, parkingLength),
     GUIGlObject_AbstractAdd(GLO_BUS_STOP, id),
     myPersonExaggeration(1) {
     const double offsetSign = MSGlobals::gLefthand ? -1 : 1;
@@ -124,6 +119,8 @@ GUIBusStop::getParameterWindow(GUIMainWindow& app,
     ret->mkItem("name", false, getMyName());
     ret->mkItem("begin position [m]", false, myBegPos);
     ret->mkItem("end position [m]", false, myEndPos);
+    ret->mkItem("lines", false, joinToString(myLines, " "));
+    ret->mkItem("parking length [m]", false, (myEndPos - myBegPos) / myParkingFactor);
     ret->mkItem("person capacity [#]", false, myTransportableCapacity);
     ret->mkItem("person number [#]", true, new FunctionBinding<GUIBusStop, int>(this, &MSStoppingPlace::getTransportableNumber));
     ret->mkItem("stopped vehicles[#]", true, new FunctionBinding<GUIBusStop, int>(this, &MSStoppingPlace::getStoppedVehicleNumber));
@@ -150,17 +147,22 @@ GUIBusStop::drawGL(const GUIVisualizationSettings& s) const {
         // draw the lines
         const double rotSign = MSGlobals::gLefthand ? 1 : -1;
         // Iterate over every line
+        const double lineAngle = s.getTextAngle(rotSign * myFGSignRot);
+        RGBColor lineColor = s.stoppingPlaceSettings.busStopColor.changedBrightness(-51);
+        const double textOffset = s.flippedTextAngle(rotSign * myFGSignRot) ? -1 : 1;
+        const double textOffset2 = s.flippedTextAngle(rotSign * myFGSignRot) ? -1 : 0.3;
         for (int i = 0; i < (int)myLines.size(); ++i) {
             // push a new matrix for every line
             glPushMatrix();
             // traslate and rotate
             glTranslated(myFGSignPos.x(), myFGSignPos.y(), 0);
-            glRotated(rotSign * myFGSignRot, 0, 0, 1);
+            glRotated(lineAngle, 0, 0, 1);
             // draw line
-            GLHelper::drawText(myLines[i].c_str(), Position(1.2, (double)i), .1, 1.f, s.stoppingPlaceSettings.busStopColor, 0, FONS_ALIGN_LEFT);
+            GLHelper::drawText(myLines[i].c_str(), Position(1.2, i * textOffset + textOffset2), .1, 1.f, lineColor, 0, FONS_ALIGN_LEFT);
             // pop matrix for every line
             glPopMatrix();
         }
+        GLHelper::setColor(s.stoppingPlaceSettings.busStopColor);
         for (std::vector<Position>::const_iterator i = myAccessCoords.begin(); i != myAccessCoords.end(); ++i) {
             GLHelper::drawBoxLine(*i, RAD2DEG(myFGSignPos.angleTo2D(*i)) - 90, myFGSignPos.distanceTo2D(*i), .05);
         }
@@ -217,5 +219,6 @@ GUIBusStop::getWaitPosition(MSTransportable* t) const {
     }
     return result;
 }
+
 
 /****************************************************************************/

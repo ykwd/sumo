@@ -19,11 +19,6 @@
 ///
 // Static storage of an output device and its base (abstract) implementation
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <map>
@@ -92,7 +87,7 @@ OutputDevice::getDevice(const std::string& name) {
             }
             name2 = FileHelpers::prependToLastPathComponent(prefix, name);
         }
-        dev = new OutputDevice_File(name2, len > 4 && name.substr(len - 4) == ".sbx", len > 3 && name.substr(len - 3) == ".gz");
+        dev = new OutputDevice_File(name2, len > 3 && name.substr(len - 3) == ".gz");
     }
     dev->setPrecision();
     dev->getOStream() << std::setiosflags(std::ios::fixed);
@@ -180,14 +175,9 @@ OutputDevice::realString(const double v, const int precision) {
 // ===========================================================================
 // member method definitions
 // ===========================================================================
-OutputDevice::OutputDevice(const bool binary, const int defaultIndentation, const std::string& filename) :
-    myAmBinary(binary),
+OutputDevice::OutputDevice(const int defaultIndentation, const std::string& filename) :
     myFilename(filename) {
-    if (binary) {
-        myFormatter = new BinaryFormatter();
-    } else {
-        myFormatter = new PlainXMLFormatter(defaultIndentation);
-    }
+    myFormatter = new PlainXMLFormatter(defaultIndentation);
 }
 
 
@@ -279,4 +269,3 @@ OutputDevice::inform(const std::string& msg, const char progress) {
 
 
 /****************************************************************************/
-

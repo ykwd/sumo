@@ -17,13 +17,7 @@
 ///
 // The "About" - dialog for NETEDIT, (adapted from GUIDialog_AboutSUMO)
 /****************************************************************************/
-#ifndef GNEAbout_h
-#define GNEAbout_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <fx.h>
@@ -53,9 +47,3 @@ private:
     /// @brief Font for the widget
     FXFont* myHeadlineFont;
 };
-
-
-#endif
-
-/****************************************************************************/
-

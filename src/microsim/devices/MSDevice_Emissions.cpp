@@ -19,10 +19,6 @@
 ///
 // A device which collects vehicular emissions
 /****************************************************************************/
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <microsim/MSNet.h>
@@ -41,14 +37,18 @@
 // static initialisation methods
 // ---------------------------------------------------------------------------
 void
-MSDevice_Emissions::insertOptions() {
-    insertDefaultAssignmentOptions("emissions", "Emissions", OptionsCont::getOptions());
+MSDevice_Emissions::insertOptions(OptionsCont& oc) {
+    insertDefaultAssignmentOptions("emissions", "Emissions", oc);
+
+    oc.doRegister("device.emissions.period", new Option_String("0"));
+    oc.addDescription("device.emissions.period", "Emissions", "Recording period for emission-output");
 }
 
 
 void
 MSDevice_Emissions::buildVehicleDevices(SUMOVehicle& v, std::vector<MSVehicleDevice*>& into) {
-    if (equippedByDefaultAssignmentOptions(OptionsCont::getOptions(), "emissions", v, false)) {
+    OptionsCont& oc = OptionsCont::getOptions();
+    if (equippedByDefaultAssignmentOptions(oc, "emissions", v, oc.isSet("emission-output"))) {
         // build the device
         MSDevice_Emissions* device = new MSDevice_Emissions(v, "emissions_" + v.getID());
         into.push_back(device);
@@ -78,6 +78,13 @@ MSDevice_Emissions::notifyMove(SUMOTrafficObject& veh, double /*oldPos*/, double
     return true;
 }
 
+bool
+MSDevice_Emissions::notifyIdle(SUMOTrafficObject& veh) {
+    const SUMOEmissionClass c = veh.getVehicleType().getEmissionClass();
+    myEmissions.addScaled(PollutantsInterface::computeAll(c, 0., 0., 0.,
+                          static_cast<const SUMOVehicle&>(veh).getEmissionParameters()), TS);
+    return true;
+}
 
 void
 MSDevice_Emissions::notifyMoveInternal(const SUMOTrafficObject& veh,
@@ -116,4 +123,3 @@ MSDevice_Emissions::generateOutput(OutputDevice* tripinfoOut) const {
 
 
 /****************************************************************************/
-

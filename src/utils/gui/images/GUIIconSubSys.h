@@ -17,16 +17,12 @@
 ///
 // A class to manage icons of SUMO
 /****************************************************************************/
-#ifndef GUIIconSubSys_h
-#define GUIIconSubSys_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <fx.h>
+#include <map>
+
 #include "GUIIcons.h"
 
 
@@ -43,7 +39,7 @@ public:
     /**@brief returns a icon previously defined in the enum GUIIcon
      * @param[in] which GUIIcon enum
      */
-    static FXIcon* getIcon(GUIIcon which);
+    static FXIcon* getIcon(const GUIIcon which);
 
     /// @brief close GUIIconSubSys
     static void close();
@@ -59,11 +55,5 @@ private:
     static GUIIconSubSys* myInstance;
 
     /// @brief vector with the icons
-    FXIcon* myIcons[ICON_MAX];
+    std::map<GUIIcon, FXIcon*> myIcons;
 };
-
-
-#endif
-
-/****************************************************************************/
-

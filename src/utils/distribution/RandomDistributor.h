@@ -19,13 +19,7 @@
 ///
 // Represents a generic random distribution
 /****************************************************************************/
-#ifndef RandomDistributor_h
-#define RandomDistributor_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <cassert>
@@ -176,8 +170,3 @@ private:
     std::vector<double> myProbs;
 
 };
-
-
-#endif
-
-/****************************************************************************/

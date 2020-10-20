@@ -19,13 +19,7 @@
 ///
 // A vehicle as used by router
 /****************************************************************************/
-#ifndef ROVehicle_h
-#define ROVehicle_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -116,6 +110,18 @@ public:
         return getType()->speedFactor.getMax();
     }
 
+    /** @brief Returns the vehicle's type definition
+     * @return The vehicle's type definition
+     */
+    inline const SUMOVTypeParameter& getVehicleType() const  {
+        return *getType();
+    }
+
+    /// @brief Returns the vehicle's length
+    inline double getLength() const {
+        return getType()->length;
+    }
+
 
     /** @brief Saves the complete vehicle description.
      *
@@ -155,8 +161,3 @@ private:
     ROVehicle& operator=(const ROVehicle& src);
 
 };
-
-
-#endif
-
-/****************************************************************************/

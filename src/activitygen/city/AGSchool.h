@@ -21,13 +21,7 @@
 ///
 // Correspond to given ages and referenced by children. Has a precise location.
 /****************************************************************************/
-#ifndef AGSCHOOL_H
-#define AGSCHOOL_H
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <iostream>
@@ -65,7 +59,3 @@ private:
     AGPosition location;
     int opening, closing;
 };
-
-#endif
-
-/****************************************************************************/

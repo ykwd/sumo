@@ -31,11 +31,6 @@
 //#define DEBUG_OPPOSITE
 //#define DEBUG_MANEUVER
 #define DEBUG_COND (myVehicle.isSelected())
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/options/OptionsCont.h>
@@ -110,8 +105,6 @@ MSAbstractLaneChangeModel::MSAbstractLaneChangeModel(MSVehicle& v, const LaneCha
     myCommittedSpeed(0),
     myLaneChangeCompletion(1.0),
     myLaneChangeDirection(0),
-    myManeuverDist(0.),
-    myPreviousManeuverDist(0.),
     myAlreadyChanged(false),
     myShadowLane(nullptr),
     myTargetLane(nullptr),
@@ -133,7 +126,9 @@ MSAbstractLaneChangeModel::MSAbstractLaneChangeModel(MSVehicle& v, const LaneCha
     myMaxSpeedLatFactor(v.getVehicleType().getParameter().getLCParam(SUMO_ATTR_LCA_MAXSPEEDLATFACTOR, 1)),
     mySigma(v.getVehicleType().getParameter().getLCParam(SUMO_ATTR_LCA_SIGMA, 0.0)),
     myLastLaneChangeOffset(0),
-    myAmOpposite(false) {
+    myAmOpposite(false),
+    myManeuverDist(0.),
+    myPreviousManeuverDist(0.) {
     saveLCState(-1, LCA_UNKNOWN, LCA_UNKNOWN);
     saveLCState(0, LCA_UNKNOWN, LCA_UNKNOWN);
     saveLCState(1, LCA_UNKNOWN, LCA_UNKNOWN);
@@ -381,7 +376,7 @@ MSAbstractLaneChangeModel::laneChangeOutput(const std::string& tag, MSLane* sour
 
 
 double
-MSAbstractLaneChangeModel::computeSpeedLat(double /*latDist*/, double& maneuverDist) {
+MSAbstractLaneChangeModel::computeSpeedLat(double /*latDist*/, double& maneuverDist) const {
     if (myVehicle.getVehicleType().wasSet(VTYPEPARS_MAXSPEED_LAT_SET)) {
         int stepsToChange = (int)ceil(fabs(maneuverDist) / SPEED2DIST(myVehicle.getVehicleType().getMaxSpeedLat()));
         return DIST2SPEED(maneuverDist / stepsToChange);
@@ -556,7 +551,7 @@ MSAbstractLaneChangeModel::updateShadowLane() {
                 std::cout << SIMTIME << "   further=" << further[i]->getID() << " (posLat=" << furtherPosLat[i] << ") shadowFurther=" << Named::getIDSecure(shadowFurther) << "\n";
             }
 #endif
-            if (shadowFurther != nullptr && MSLinkContHelper::getConnectingLink(*shadowFurther, *passed.back()) != nullptr) {
+            if (shadowFurther != nullptr && shadowFurther->getLinkTo(passed.back()) != nullptr) {
                 passed.push_back(shadowFurther);
             }
         }
@@ -686,7 +681,11 @@ MSAbstractLaneChangeModel::determineTargetLane(int& targetDir) const {
 
 double
 MSAbstractLaneChangeModel::getAngleOffset() const {
-    const double angleOffset = 60 / STEPS2TIME(MSGlobals::gLaneChangeDuration) * (pastMidpoint() ? 1 - myLaneChangeCompletion : myLaneChangeCompletion);
+    const double totalDuration = (myVehicle.getVehicleType().wasSet(VTYPEPARS_MAXSPEED_LAT_SET)
+                                  ? SUMO_const_laneWidth / myVehicle.getVehicleType().getMaxSpeedLat()
+                                  : STEPS2TIME(MSGlobals::gLaneChangeDuration));
+
+    const double angleOffset = 60 / totalDuration * (pastMidpoint() ? 1 - myLaneChangeCompletion : myLaneChangeCompletion);
     return myLaneChangeDirection * angleOffset;
 }
 
@@ -782,7 +781,14 @@ MSAbstractLaneChangeModel::estimateLCDuration(const double speed, const double r
     // If we didn't return yet this means the LC was not completed until the vehicle stops (if braking with rate b)
     if (wmin == 0) {
         // LC won't be completed if vehicle stands
-        return -1;
+        double maneuverDist = remainingManeuverDist;
+        const double vModel = computeSpeedLat(maneuverDist, maneuverDist);
+        if (vModel > 0) {
+            // unless the model tells us something different
+            return D / vModel;
+        } else {
+            return -1;
+        }
     } else {
         // complete LC with lateral speed wmin
         return timeSoFar + (D - distSoFar) / wmin;

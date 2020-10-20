@@ -17,13 +17,7 @@
 ///
 // An enumeration of icons used by the gui applications
 /****************************************************************************/
-#ifndef GUICursors_h
-#define GUICursors_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 
@@ -44,9 +38,3 @@ enum GUICursor {
     /// @brief max number of cursors
     CURSOR_MAX
 };
-
-
-#endif
-
-/****************************************************************************/
-

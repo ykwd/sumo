@@ -20,11 +20,6 @@
 ///
 // Exporter writing networks using XML (native input) format
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 #include <algorithm>
 #include <utils/common/MsgHandler.h>
@@ -153,11 +148,14 @@ NWWriter_XML::writeNodes(const OptionsCont& oc, NBNodeCont& nc) {
         if (n->getKeepClear() == false) {
             device.writeAttr<bool>(SUMO_ATTR_KEEP_CLEAR, n->getKeepClear());
         }
-        if (n->getRightOfWay() != RIGHT_OF_WAY_DEFAULT) {
+        if (n->getRightOfWay() != RightOfWay::DEFAULT) {
             device.writeAttr<std::string>(SUMO_ATTR_RIGHT_OF_WAY, toString(n->getRightOfWay()));
         }
-        if (n->getFringeType() != FRINGE_TYPE_DEFAULT) {
+        if (n->getFringeType() != FringeType::DEFAULT) {
             device.writeAttr<std::string>(SUMO_ATTR_FRINGE, toString(n->getFringeType()));
+        }
+        if (n->getName() != "") {
+            device.writeAttr<std::string>(SUMO_ATTR_NAME, n->getName());
         }
         n->writeParams(device);
         device.closeTag();
@@ -190,6 +188,7 @@ NWWriter_XML::writeEdgesAndConnections(const OptionsCont& oc, NBNodeCont& nc, NB
     OutputDevice& cdevice = OutputDevice::getDevice(oc.getString("plain-output-prefix") + ".con.xml");
     cdevice.writeXMLHeader("connections", "connections_file.xsd", attrs);
     const bool writeNames = oc.getBool("output.street-names");
+    LaneSpreadFunction defaultSpread = SUMOXMLDefinitions::LaneSpreadFunctions.get(oc.getString("default.spreadtype"));
     for (std::map<std::string, NBEdge*>::const_iterator i = ec.begin(); i != ec.end(); ++i) {
         // write the edge itself to the edges-files
         NBEdge* e = (*i).second;
@@ -214,7 +213,7 @@ NWWriter_XML::writeEdgesAndConnections(const OptionsCont& oc, NBNodeCont& nc, NB
             writeShape(edevice, gch, e->getGeometry(), SUMO_ATTR_SHAPE, useGeo, geoAccuracy);
         }
         // write the spread type if not default ("right")
-        if (e->getLaneSpreadFunction() != LANESPREAD_RIGHT) {
+        if (e->getLaneSpreadFunction() != defaultSpread) {
             edevice.writeAttr(SUMO_ATTR_SPREADTYPE, toString(e->getLaneSpreadFunction()));
         }
         // write the length if it was specified
@@ -238,10 +237,10 @@ NWWriter_XML::writeEdgesAndConnections(const OptionsCont& oc, NBNodeCont& nc, NB
             edevice.writeAttr(SUMO_ATTR_DISTANCE, e->getDistance());
         }
         if (e->needsLaneSpecificOutput()) {
-            for (int i = 0; i < (int)e->getLanes().size(); ++i) {
-                const NBEdge::Lane& lane = e->getLanes()[i];
+            int idx = 0;
+            for (const NBEdge::Lane& lane : e->getLanes()) {
                 edevice.openTag(SUMO_TAG_LANE);
-                edevice.writeAttr(SUMO_ATTR_INDEX, i);
+                edevice.writeAttr(SUMO_ATTR_INDEX, idx++);
                 // write allowed lanes
                 if (e->hasLaneSpecificPermissions()) {
                     writePermissions(edevice, lane.permissions);
@@ -299,8 +298,8 @@ NWWriter_XML::writeEdgesAndConnections(const OptionsCont& oc, NBNodeCont& nc, NB
         } else {
             for (NBEdge::Connection c : connections) {
                 if (useGeo) {
-                    for (int i = 0; i < (int) c.customShape.size(); i++) {
-                        gch.cartesian2geo(c.customShape[i]);
+                    for (Position& p : c.customShape) {
+                        gch.cartesian2geo(p);
                     }
                 }
                 NWWriter_SUMO::writeConnection(cdevice, *e, c, false, NWWriter_SUMO::PLAIN, geoAccuracy);
@@ -428,7 +427,7 @@ NWWriter_XML::writePTStops(const OptionsCont& oc, NBPTStopCont& sc) {
 }
 void NWWriter_XML::writePTLines(const OptionsCont& oc, NBPTLineCont& lc, NBEdgeCont& ec) {
     OutputDevice& device = OutputDevice::getDevice(oc.getString("ptline-output"));
-    device.writeXMLHeader("additional", "additional_file.xsd");
+    device.writeXMLHeader("ptLines", "ptlines_file.xsd");
     for (const auto& item : lc.getLines()) {
         item.second->write(device, ec);
     }

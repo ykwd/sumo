@@ -21,11 +21,6 @@
 ///
 // C++ TraCI client API implementation
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <microsim/MSNet.h>
@@ -76,6 +71,10 @@ Route::getParameter(const std::string& routeID, const std::string& param) {
     const MSRoute* r = getRoute(routeID);
     return r->getParameter(param, "");
 }
+
+
+LIBSUMO_GET_PARAMETER_WITH_KEY_IMPLEMENTATION(Route)
+
 
 void
 Route::setParameter(const std::string& routeID, const std::string& key, const std::string& value) {
@@ -136,8 +135,6 @@ Route::handleVariable(const std::string& objID, const int variable, VariableWrap
             return false;
     }
 }
-
-
 }
 
 

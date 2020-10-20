@@ -19,9 +19,6 @@
 ///
 // Variables, methods, and tools for internal time representation
 /****************************************************************************/
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <sstream>
@@ -76,7 +73,7 @@ time2string(SUMOTime t) {
     // needed for signed zero errors, see #5926
     t = abs(t);
     const SUMOTime scale = (SUMOTime)pow(10, MAX2(0, 3 - gPrecision));
-    if (scale > 1) {
+    if (scale > 1 && t != SUMOTime_MAX) {
         t = (t + scale / 2) / scale;
     }
     const SUMOTime second = TIME2STEPS(1) / scale;
@@ -96,7 +93,7 @@ time2string(SUMOTime t) {
         t %= minute;
         oss << std::setw(2) << t / second;
         t %= second;
-        if (t != 0 || TS != 1.) {
+        if (t != 0 || TS < 1.) {
             oss << std::setw(MIN2(3, gPrecision));
             oss << "." << t;
         }
@@ -108,10 +105,23 @@ time2string(SUMOTime t) {
     return oss.str();
 }
 
+std::string
+elapsedMs2string(long long int t) {
+    if (gHumanReadableTime) {
+        if (STEPS2TIME(t) > 60) {
+            // round to seconds
+            return time2string((t / 1000) * 1000);
+        } else {
+            return toString(t / 1000.0) + "s";
+        }
+    } else {
+        return time2string(t) + "s";
+    }
+}
 
-bool checkStepLengthMultiple(const SUMOTime t, const std::string& error) {
-    if (t % DELTA_T != 0) {
-        WRITE_WARNING("The given time value " + time2string(t) + " is not a multiple of the step length " + time2string(DELTA_T) + error + ".")
+bool checkStepLengthMultiple(const SUMOTime t, const std::string& error, SUMOTime deltaT) {
+    if (t % deltaT != 0) {
+        WRITE_WARNING("The given time value " + time2string(t) + " is not a multiple of the step length " + time2string(deltaT) + error + ".")
     }
     // next line used to fix build
     return false;

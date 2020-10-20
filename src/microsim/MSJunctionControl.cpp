@@ -19,11 +19,6 @@
 ///
 // Container for junctions; performs operations on all stored junctions
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <algorithm>
@@ -47,12 +42,12 @@ MSJunctionControl::postloadInitContainer() {
     // initialize normal junctions before internal junctions
     // (to allow calling getIndex() during initialization of internal junction links)
     for (const auto& i : *this) {
-        if (i.second->getType() != NODETYPE_INTERNAL) {
+        if (i.second->getType() != SumoXMLNodeType::INTERNAL) {
             i.second->postloadInit();
         }
     }
     for (const auto& i : *this) {
-        if (i.second->getType() == NODETYPE_INTERNAL) {
+        if (i.second->getType() == SumoXMLNodeType::INTERNAL) {
             i.second->postloadInit();
         }
     }
@@ -60,4 +55,3 @@ MSJunctionControl::postloadInitContainer() {
 
 
 /****************************************************************************/
-

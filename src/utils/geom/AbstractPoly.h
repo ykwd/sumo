@@ -18,13 +18,7 @@
 ///
 // The base class for polygons
 /****************************************************************************/
-#ifndef AbstractPoly_h
-#define AbstractPoly_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "Position.h"
@@ -38,12 +32,6 @@
  */
 class AbstractPoly {
 public:
-    /// @brief constructor
-    AbstractPoly() { }
-
-    /// @brief copy constructor
-    AbstractPoly(const AbstractPoly&) { }
-
     /// @brief destructor
     virtual ~AbstractPoly() { }
 
@@ -59,9 +47,3 @@ public:
     /// @brief Returns whether the AbstractPoly crosses the given line
     virtual bool crosses(const Position& p1, const Position& p2) const = 0;
 };
-
-
-#endif
-
-/****************************************************************************/
-

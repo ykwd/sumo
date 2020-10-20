@@ -18,12 +18,7 @@
 // The class the low-level policy stimulus
 /****************************************************************************/
 
-#ifndef MSSOTLPOLICY3DSTIMULUS_H_
-#define MSSOTLPOLICY3DSTIMULUS_H_
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 //#define SWARM_DEBUG
@@ -48,4 +43,3 @@ public:
 
 };
 
-#endif /* MSSOTLPOLICYSTIMULUS_H_ */

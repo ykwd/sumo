@@ -20,12 +20,7 @@
 ///
 // Helper singleton class for PHEM Light, holds CEP data for emission computation
 /****************************************************************************/
-#ifndef PHEMCEPHandler_h
-#define PHEMCEPHandler_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -143,4 +138,3 @@ private:
 
 };
 
-#endif

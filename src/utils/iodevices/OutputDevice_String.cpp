@@ -17,11 +17,6 @@
 ///
 // An output device that encapsulates a stringstream
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <sstream>
@@ -32,8 +27,8 @@
 // ===========================================================================
 // method definitions
 // ===========================================================================
-OutputDevice_String::OutputDevice_String(const bool binary, const int defaultIndentation)
-    : OutputDevice(binary, defaultIndentation) {
+OutputDevice_String::OutputDevice_String(const int defaultIndentation)
+    : OutputDevice(defaultIndentation) {
     setPrecision();
     myStream << std::setiosflags(std::ios::fixed);
 }

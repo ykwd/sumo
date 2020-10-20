@@ -18,13 +18,7 @@
 ///
 // Exporter writing networks using DlrNavteq (Elmar) format
 /****************************************************************************/
-#ifndef NWWriter_DlrNavteq_h
-#define NWWriter_DlrNavteq_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -135,9 +129,3 @@ private:
         return (int)std::floor(metersPerSecond * 3.6 + 0.5);
     }
 };
-
-
-#endif
-
-/****************************************************************************/
-

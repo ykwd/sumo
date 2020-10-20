@@ -18,10 +18,6 @@
 ///
 // Abstract in-vehicle device
 /****************************************************************************/
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/options/OptionsCont.h>
@@ -71,7 +67,7 @@ std::mt19937 MSDevice::myEquipmentRNG;
 void
 MSDevice::insertOptions(OptionsCont& oc) {
     MSDevice_Routing::insertOptions(oc);
-    MSDevice_Emissions::insertOptions();
+    MSDevice_Emissions::insertOptions(oc);
     MSDevice_BTreceiver::insertOptions(oc);
     MSDevice_BTsender::insertOptions(oc);
     MSDevice_Example::insertOptions(oc);
@@ -159,6 +155,7 @@ void
 MSDevice::loadState(const SUMOSAXAttributes& /* attrs */) {
 }
 
+
 std::string
 MSDevice::getStringParam(const SUMOVehicle& v, const OptionsCont& oc, std::string paramName, std::string deflt, bool required) {
     const std::string key = "device." + paramName;
@@ -207,5 +204,6 @@ MSDevice::getBoolParam(const SUMOVehicle& v, const OptionsCont& oc, std::string 
         return deflt;
     }
 }
+
 
 /****************************************************************************/

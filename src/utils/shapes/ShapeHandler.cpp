@@ -17,9 +17,6 @@
 ///
 // The XML-Handler for network loading
 /****************************************************************************/
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <string>
@@ -87,8 +84,6 @@ ShapeHandler::myStartElement(int element, const SUMOSAXAttributes& attrs) {
                             WRITE_WARNING("Error parsing key from shape generic parameter. Key cannot be empty");
                         } else if (!SUMOXMLDefinitions::isValidParameterKey(key)) {
                             WRITE_WARNING("Error parsing key from shape generic parameter. Key contains invalid characters");
-                        } else if (!SUMOXMLDefinitions::isValidParameterValue(val)) {
-                            WRITE_WARNING("Error parsing value from shape generic parameter. Value contains invalid characters");
                         } else {
                             WRITE_DEBUG("Inserting generic parameter '" + key + "|" + val + "' into shape.");
                             myLastParameterised->setParameter(key, val);
@@ -298,5 +293,6 @@ bool
 ShapeHandler::addLanePosParams() {
     return false;
 }
+
 
 /****************************************************************************/

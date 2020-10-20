@@ -19,13 +19,7 @@
 ///
 // Stores the information about how to visualize structures
 /****************************************************************************/
-#ifndef GUIVisualizationSettings_h
-#define GUIVisualizationSettings_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -162,11 +156,17 @@ struct GUIVisualizationColorSettings {
     /// @brief person plan selection color (Rides, Walks, personStops...)
     RGBColor selectedPersonPlanColor;
 
+    /// @brief edge data selection color
+    RGBColor selectedEdgeDataColor;
+
     /// @brief color for highlighthing deadends
     static const RGBColor SUMO_color_DEADEND_SHOW;
 
     /// @brief color for child connections between parents and child elements
     static const RGBColor childConnections;
+
+    /// @brief color for edited shapes (Junctions, crossings and connections)
+    static const RGBColor editShape;
 
     /// @brief color for crossings
     static const RGBColor crossing;
@@ -194,6 +194,61 @@ struct GUIVisualizationColorSettings {
 
     /// @brief color for rides
     static const RGBColor ride;
+};
+
+
+/// @brief struct for candidate color settings
+struct GUIVisualizationCandidateColorSettings {
+
+    /// @brief color for possible candidate element
+    static const RGBColor possible;
+
+    /// @brief color for selected candidate source
+    static const RGBColor source;
+
+    /// @brief color for selected candidate target
+    static const RGBColor target;
+
+    /// @brief color for selected special candidate element (Usually selected using shift+click)
+    static const RGBColor special;
+
+    /// @brief color for selected conflict candidate element (Usually selected using ctrl+click)
+    static const RGBColor conflict;
+};
+
+/// @brief struct for connection settings
+struct GUIVisualizationNeteditSizeSettings {
+
+    /// @brief junction buuble radius
+    static const double junctionBubbleRadius;
+
+    /// @brief moving junction geometry point radius
+    static const double junctionGeometryPointRadius;
+
+    /// @brief moving edge geometry point radius
+    static const double edgeGeometryPointRadius;
+
+    /// @brief moving connection geometry point radius
+    static const double connectionGeometryPointRadius;
+
+    /// @brief moving crossing geometry point radius
+    static const double crossingGeometryPointRadius;
+
+    /// @brief moving geometry point radius
+    static const double polygonGeometryPointRadius;
+
+    /// @brief polygon contour width
+    static const double polygonContourWidth;
+
+    /// @brief poly line width
+    static const double polylineWidth;
+};
+
+/// @brief struct for connection settings
+struct GUIVisualizationConnectionSettings {
+
+    /// @brief connection width
+    static const double connectionWidth;
 };
 
 
@@ -338,11 +393,17 @@ struct GUIVisualizationDottedContourSettings {
     /// @brief length of dotted contour segments
     static const double segmentLength;
 
-    /// @brief first color of dotted contour
-    static const RGBColor firstColor;
+    /// @brief first color of dotted inspected contour
+    static const RGBColor firstInspectedColor;
 
-    /// @brief second color of dotted contour
-    static const RGBColor secondColor;
+    /// @brief second color of dotted inspectedcontour
+    static const RGBColor secondInspectedColor;
+
+    /// @brief first color of dotted front contour
+    static const RGBColor firstFrontColor;
+
+    /// @brief second color of dotted front contour
+    static const RGBColor secondFrontColor;
 };
 
 
@@ -479,6 +540,9 @@ public:
     /// @brief return an angle that is suitable for reading text aligned with the given angle (degrees)
     double getTextAngle(double objectAngle) const;
 
+    /// @brief return wether the text was flipped for reading at the given angle
+    bool flippedTextAngle(double objectAngle) const;
+
     /// @brief check if additionals must be drawn
     bool drawAdditionals(const double exaggeration) const;
 
@@ -487,6 +551,12 @@ public:
 
     /// @brief function to calculate circle resolution for all circles drawn in drawGL(...) functions
     int getCircleResolution() const;
+
+    /// @brief check if dotted contour can be drawn
+    bool drawDottedContour() const;
+
+    /// @brief check if moving geometry point can be draw
+    bool drawMovingGeometryPoint(const double exaggeration, const double radius) const;
 
     /// @brief The name of this setting
     std::string name;
@@ -575,11 +645,15 @@ public:
     std::string edgeParam, laneParam;
     /// @brief key for coloring by vehicle parameter
     std::string vehicleParam;
-    /// @brief key for rendering textual parameter
+    /// @brief key for rendering vehicle textual parameter
     std::string vehicleTextParam;
 
     /// @brief key for coloring by edgeData
     std::string edgeData;
+
+    /// @brief value below which edge data value should not be rendered
+    bool edgeValueHideCheck;
+    double edgeValueHideThreshold;
     /// @}
 
     /// @name vehicle visualization settings
@@ -659,7 +733,7 @@ public:
     GUIColorer junctionColorer;
 
     // Setting bundles for optional drawing junction names and indices
-    GUIVisualizationTextSettings drawLinkTLIndex, drawLinkJunctionIndex, junctionName, internalJunctionName, tlsPhaseIndex, tlsPhaseName;
+    GUIVisualizationTextSettings drawLinkTLIndex, drawLinkJunctionIndex, junctionID, junctionName, internalJunctionName, tlsPhaseIndex, tlsPhaseName;
 
     /// @brief Information whether lane-to-lane arrows shall be drawn
     bool showLane2Lane;
@@ -702,6 +776,12 @@ public:
     // Setting bundles for optional drawing poi types
     GUIVisualizationTextSettings poiType;
 
+    // Setting bundles for optional drawing poi text
+    GUIVisualizationTextSettings poiText;
+
+    /// @brief key for rendering poi textual parameter
+    std::string poiTextParam;
+
     /// @brief The polygon colorer
     GUIColorer polyColorer;
 
@@ -718,8 +798,11 @@ public:
     /// @brief Information whether the size legend shall be drawn
     bool showSizeLegend;
 
-    /// @brief Information whether the colo legend shall be drawn
+    /// @brief Information whether the edge color legend shall be drawn
     bool showColorLegend;
+
+    /// @brief Information whether the vehicle color legend shall be drawn
+    bool showVehicleColorLegend;
 
     /// @brief information about a lane's width (temporary, used for a single view)
     double scale;
@@ -730,8 +813,8 @@ public:
     /// @brief enable or disable draw boundaries
     bool drawBoundaries;
 
-    /// @brief the current selection scaling in NETEDIT (temporary)
-    double selectionScale;
+    /// @brief the current selection scaling in NETEDIT (set in SelectorFrame)
+    double selectorFrameScale;
 
     /// @brief whether drawing is performed for the purpose of selecting objects with a single click
     bool drawForPositionSelection;
@@ -744,6 +827,9 @@ public:
 
     /// @brief flag to force draw for rectangle selection (see drawForRectangleSelection)
     bool forceDrawForRectangleSelection;
+
+    /// @brief flag to force draw dotted contour
+    bool forceDrawDottedContour;
 
     /**@brief whether drawing is performed in left-hand networks
      * @note used to avoid calls to OptionsCont::getOptions() in every drawgl(...) function, and
@@ -766,8 +852,19 @@ public:
     static const std::string SCHEME_NAME_TYPE;
     static const std::string SCHEME_NAME_PERMISSION_CODE;
 
+    static const double MISSING_DATA;
+
     /// @brief color settings
     GUIVisualizationColorSettings colorSettings;
+
+    /// @brief candidate color settings
+    GUIVisualizationCandidateColorSettings candidateColorSettings;
+
+    /// @brief netedit size settings
+    GUIVisualizationNeteditSizeSettings neteditSizeSettings;
+
+    /// @brief connection settings
+    GUIVisualizationConnectionSettings connectionSettings;
 
     /// @brief Additional settings
     GUIVisualizationAdditionalSettings additionalSettings;
@@ -787,9 +884,3 @@ public:
     /// @brief detail settings
     GUIVisualizationDetailSettings detailSettings;
 };
-
-
-#endif
-
-/****************************************************************************/
-

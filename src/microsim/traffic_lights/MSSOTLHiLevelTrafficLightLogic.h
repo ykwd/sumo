@@ -19,12 +19,7 @@
 /// @date    Jun 2013
 ///
 /****************************************************************************/
-#ifndef MSSOTLTrafficLightLogic_H
-#define MSSOTLTrafficLightLogic_H
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 //#define SWARM_DEBUG
@@ -123,4 +118,3 @@ private:
 
 };
 
-#endif

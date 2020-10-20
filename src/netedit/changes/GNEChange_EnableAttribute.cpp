@@ -17,14 +17,9 @@
 ///
 // A network change in which something is changed (for undo/redo)
 /****************************************************************************/
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <netedit/GNENet.h>
-#include <netedit/netelements/GNENetElement.h>
 
 #include "GNEChange_EnableAttribute.h"
 
@@ -37,8 +32,8 @@ FXIMPLEMENT_ABSTRACT(GNEChange_EnableAttribute, GNEChange, nullptr, 0)
 // member method definitions
 // ===========================================================================
 
-GNEChange_EnableAttribute::GNEChange_EnableAttribute(GNEAttributeCarrier* ac, GNENet* net, const int originalAttributes, const int newAttributes) :
-    GNEChange(net, true),
+GNEChange_EnableAttribute::GNEChange_EnableAttribute(GNEAttributeCarrier* ac, const int originalAttributes, const int newAttributes) :
+    GNEChange(true, false),
     myAC(ac),
     myOriginalAttributes(originalAttributes),
     myNewAttributes(newAttributes) {
@@ -53,17 +48,8 @@ GNEChange_EnableAttribute::~GNEChange_EnableAttribute() {
     if (myAC->unreferenced()) {
         // show extra information for tests
         WRITE_DEBUG("Deleting unreferenced " + myAC->getTagStr() + " '" + myAC->getID() + "' in GNEChange_EnableAttribute");
-        // Check if attribute carrier is a shape
-        if (myAC->getTagProperty().isShape()) {
-            // remove shape using specific functions
-            if (myAC->getTagProperty().getTag() == SUMO_TAG_POLY) {
-                myNet->removePolygon(myAC->getID());
-            } else if ((myAC->getTagProperty().getTag() == SUMO_TAG_POI) || (myAC->getTagProperty().getTag() == SUMO_TAG_POILANE)) {
-                myNet->removePOI(myAC->getID());
-            }
-        } else {
-            delete myAC;
-        }
+        // delete AC
+        delete myAC;
     }
 }
 
@@ -74,13 +60,13 @@ GNEChange_EnableAttribute::undo() {
     WRITE_DEBUG("Setting previous attribute into " + myAC->getTagStr() + " '" + myAC->getID() + "'");
     // set original attributes
     myAC->setEnabledAttribute(myOriginalAttributes);
-    // check if netElements, additional or shapes has to be saved
-    if (myAC->getTagProperty().isNetElement()) {
-        myNet->requireSaveNet(true);
-    } else if (myAC->getTagProperty().isAdditional() || myAC->getTagProperty().isShape()) {
-        myNet->requireSaveAdditionals(true);
+    // check if networkElements, additional or shapes has to be saved
+    if (myAC->getTagProperty().isNetworkElement()) {
+        myAC->getNet()->requireSaveNet(true);
+    } else if (myAC->getTagProperty().isAdditionalElement() || myAC->getTagProperty().isShape()) {
+        myAC->getNet()->requireSaveAdditionals(true);
     } else if (myAC->getTagProperty().isDemandElement()) {
-        myNet->requireSaveDemandElements(true);
+        myAC->getNet()->requireSaveDemandElements(true);
     }
 }
 
@@ -91,13 +77,13 @@ GNEChange_EnableAttribute::redo() {
     WRITE_DEBUG("Setting new attribute into " + myAC->getTagStr() + " '" + myAC->getID() + "'");
     // set new attributes
     myAC->setEnabledAttribute(myNewAttributes);
-    // check if netElements, additional or shapes has to be saved
-    if (myAC->getTagProperty().isNetElement()) {
-        myNet->requireSaveNet(true);
-    } else if (myAC->getTagProperty().isAdditional() || myAC->getTagProperty().isShape()) {
-        myNet->requireSaveAdditionals(true);
+    // check if networkElements, additional or shapes has to be saved
+    if (myAC->getTagProperty().isNetworkElement()) {
+        myAC->getNet()->requireSaveNet(true);
+    } else if (myAC->getTagProperty().isAdditionalElement() || myAC->getTagProperty().isShape()) {
+        myAC->getNet()->requireSaveAdditionals(true);
     } else if (myAC->getTagProperty().isDemandElement()) {
-        myNet->requireSaveDemandElements(true);
+        myAC->getNet()->requireSaveDemandElements(true);
     }
 }
 

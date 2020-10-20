@@ -18,11 +18,6 @@
 ///
 // Exporter writing networks using DlrNavteq (Elmar) format
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 #include <algorithm>
 #include <ctime>
@@ -152,14 +147,14 @@ NWWriter_DlrNavteq::writeNodesUnsplitted(const OptionsCont& oc, NBNodeCont& nc, 
             // negated edge id to determine spread type. We may need to do some
             // shifting to make this consistent
             const bool hasOppositeID = ec.getOppositeByID(e->getID()) != nullptr;
-            if (e->getLaneSpreadFunction() == LANESPREAD_RIGHT && !hasOppositeID) {
+            if (e->getLaneSpreadFunction() == LaneSpreadFunction::RIGHT && !hasOppositeID) {
                 // need to write center-line geometry instead
                 try {
                     geom.move2side(e->getTotalWidth() / 2);
                 } catch (InvalidArgument& exception) {
                     WRITE_WARNING("Could not reconstruct shape for edge:'" + e->getID() + "' (" + exception.what() + ").");
                 }
-            } else if (e->getLaneSpreadFunction() == LANESPREAD_CENTER && hasOppositeID) {
+            } else if (e->getLaneSpreadFunction() == LaneSpreadFunction::CENTER && hasOppositeID) {
                 // need to write left-border geometry instead
                 try {
                     geom.move2side(-e->getTotalWidth() / 2);
@@ -415,7 +410,7 @@ int
 NWWriter_DlrNavteq::getFormOfWay(NBEdge* edge) {
     if (edge->getPermissions() == SVC_PEDESTRIAN) {
         return 15;
-    } else if (edge->getJunctionPriority(edge->getToNode()) == NBEdge::ROUNDABOUT) {
+    } else if (edge->getJunctionPriority(edge->getToNode()) == NBEdge::JunctionPriority::ROUNDABOUT) {
         return 4;
     } else if (edge->getTypeID() == "highway.service") {
         return 14;
@@ -558,5 +553,5 @@ NWWriter_DlrNavteq::writeConnectedLanes(const OptionsCont& oc, NBNodeCont& nc) {
     device.close();
 }
 
-/****************************************************************************/
 
+/****************************************************************************/

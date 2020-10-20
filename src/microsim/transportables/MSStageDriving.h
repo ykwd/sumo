@@ -18,10 +18,6 @@
 // The common superclass for modelling transportable objects like persons and containers
 /****************************************************************************/
 #pragma once
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <set>
@@ -72,6 +68,11 @@ public:
 
     MSStage* clone() const;
 
+    /// @brief return default value for undefined arrivalPos
+    double getArrivalPos() const;
+
+    bool unspecifiedArrivalPos() const;
+
     /// abort this stage (TraCI)
     void abort(MSTransportable* t);
 
@@ -86,9 +87,7 @@ public:
     double getAngle(SUMOTime now) const;
 
     /// @brief get travel distance in this stage
-    double getDistance() const {
-        return myVehicleDistance;
-    }
+    double getDistance() const;
 
     /// @brief return (brief) string representation of the current stage
     std::string getStageDescription(const bool isPerson) const;
@@ -106,11 +105,13 @@ public:
     void tripInfoOutput(OutputDevice& os, const MSTransportable* const transportable) const;
 
     /** @brief Called on writing vehroute output
+     * @param[in] isPerson Whether we are writing person or container info
      * @param[in] os The stream to write the information into
      * @param[in] withRouteLength whether route length shall be written
+     * @param[in] previous The previous stage for additional info such as from edge
      * @exception IOError not yet implemented
      */
-    void routeOutput(const bool isPerson, OutputDevice& os, const bool withRouteLength) const;
+    void routeOutput(const bool isPerson, OutputDevice& os, const bool withRouteLength, const MSStage* const previous) const;
 
     /// Whether the person waits for the given vehicle
     bool isWaitingFor(const SUMOVehicle* vehicle) const;
@@ -135,7 +136,7 @@ public:
     void setVehicle(SUMOVehicle* v);
 
     /// @brief marks arrival time and records driven distance
-    const std::string setArrived(MSNet* net, MSTransportable* transportable, SUMOTime now);
+    const std::string setArrived(MSNet* net, MSTransportable* transportable, SUMOTime now, const bool vehicleArrived);
 
     const std::set<std::string>& getLines() const {
         return myLines;
@@ -149,6 +150,18 @@ public:
         return myIntendedDepart;
     }
 
+    std::string getVehicleType() const {
+        return myVehicleType;
+    }
+
+    /** @brief Saves the current state into the given stream
+     */
+    void saveState(std::ostringstream& out);
+
+    /** @brief Reconstructs the current state
+     */
+    void loadState(MSTransportable* transportable, std::istringstream& state);
+
 protected:
     /// the lines  to choose from
     const std::set<std::string> myLines;
@@ -158,9 +171,12 @@ protected:
     /// @brief cached vehicle data for output after the vehicle has been removed
     std::string myVehicleID;
     std::string myVehicleLine;
+    std::string myVehicleType;
 
     SUMOVehicleClass myVehicleVClass;
     double myVehicleDistance;
+    /// @brief While driving, this is the timeLoss of the vehicle when the ride started, after arrival this is the timeLoss which the vehicle accumulated during the ride
+    SUMOTime myTimeLoss;
 
     double myWaitingPos;
     /// @brief The time since which this person is waiting for a ride
@@ -179,6 +195,3 @@ private:
     MSStageDriving& operator=(const MSStageDriving&) = delete;
 
 };
-
-
-/****************************************************************************/

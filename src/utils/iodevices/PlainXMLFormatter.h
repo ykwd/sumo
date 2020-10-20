@@ -18,13 +18,7 @@
 ///
 // Output formatter for plain XML output
 /****************************************************************************/
-#ifndef PlainXMLFormatter_h
-#define PlainXMLFormatter_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "OutputFormatter.h"
@@ -152,9 +146,3 @@ private:
     /// @brief whether a closing ">" might be missing
     bool myHavePendingOpener;
 };
-
-
-#endif
-
-/****************************************************************************/
-

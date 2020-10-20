@@ -17,24 +17,10 @@
 ///
 // A network change in which a single junction is created or deleted
 /****************************************************************************/
-#ifndef GNEChange_Junction_h
-#define GNEChange_Junction_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
-#include <fx.h>
-#include <utils/foxtools/fxexdefs.h>
 #include "GNEChange.h"
-
-// ===========================================================================
-// class declarations
-// ===========================================================================
-class GNENet;
-class GNEJunction;
 
 // ===========================================================================
 // class definitions
@@ -78,6 +64,3 @@ private:
      */
     GNEJunction* myJunction;
 };
-
-#endif
-/****************************************************************************/

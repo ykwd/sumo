@@ -20,11 +20,6 @@
 ///
 // A list of positions
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <queue>
@@ -296,7 +291,7 @@ PositionVector::positionAtOffset2D(double pos, double lateralOffset) const {
 
 double
 PositionVector::rotationAtOffset(double pos) const {
-    if (size() == 0) {
+    if ((size() == 0) || (size() == 1)) {
         return INVALID_DOUBLE;
     }
     if (pos < 0) {
@@ -418,11 +413,19 @@ Position
 PositionVector::getCentroid() const {
     if (size() == 0) {
         return Position::INVALID;
+    } else if (size() == 1) {
+        return (*this)[0];
+    } else if (size() == 2) {
+        return ((*this)[0] + (*this)[1]) * 0.5;
     }
     PositionVector tmp = *this;
     if (!isClosed()) { // make sure its closed
         tmp.push_back(tmp[0]);
     }
+    // shift to origin to increase numerical stability
+    Position offset = tmp[0];
+    Position result;
+    tmp.sub(offset);
     const int endIndex = (int)tmp.size() - 1;
     double div = 0; // 6 * area including sign
     double x = 0;
@@ -436,7 +439,7 @@ PositionVector::getCentroid() const {
             y += (tmp[i].y() + tmp[i + 1].y()) * z;
         }
         div *= 3; //  6 / 2, the 2 comes from the area formula
-        return Position(x / div, y / div);
+        result = Position(x / div, y / div);
     } else {
         // compute by decomposing into line segments
         // http://en.wikipedia.org/wiki/Centroid#By_geometric_decomposition
@@ -449,10 +452,11 @@ PositionVector::getCentroid() const {
         }
         if (lengthSum == 0) {
             // it is probably only one point
-            return tmp[0];
+            result = tmp[0];
         }
-        return Position(x / lengthSum, y / lengthSum);
+        result = Position(x / lengthSum, y / lengthSum) + offset;
     }
+    return result + offset;
 }
 
 
@@ -537,7 +541,7 @@ PositionVector::partialWithin(const AbstractPoly& poly, double offset) const {
     if (size() < 2) {
         return false;
     }
-    for (const_iterator i = begin(); i != end() - 1; i++) {
+    for (const_iterator i = begin(); i != end(); i++) {
         if (poly.around(*i, offset)) {
             return true;
         }
@@ -1544,7 +1548,7 @@ PositionVector::simplified() const {
 
 
 PositionVector
-PositionVector::getOrthogonal(const Position& p, double extend, bool before, double length) const {
+PositionVector::getOrthogonal(const Position& p, double extend, bool before, double length, double deg) const {
     PositionVector result;
     PositionVector tmp = *this;
     tmp.extrapolate2D(extend);
@@ -1555,15 +1559,20 @@ PositionVector::getOrthogonal(const Position& p, double extend, bool before, dou
     }
     Position base = tmp.positionAtOffset2D(baseOffset);
     const int closestIndex = tmp.indexOfClosest(base);
+    const double closestOffset = tmp.offsetAtIndex2D(closestIndex);
     result.push_back(base);
-    if (fabs(baseOffset - tmp.offsetAtIndex2D(closestIndex)) > NUMERICAL_EPS) {
+    if (fabs(baseOffset - closestOffset) > NUMERICAL_EPS) {
         result.push_back(tmp[closestIndex]);
+        if ((closestOffset < baseOffset) != before) {
+            deg *= -1;
+        }
     } else if (before) {
         // take the segment before closestIndex if possible
         if (closestIndex > 0) {
             result.push_back(tmp[closestIndex - 1]);
         } else {
             result.push_back(tmp[1]);
+            deg *= -1;
         }
     } else {
         // take the segment after closestIndex if possible
@@ -1571,12 +1580,13 @@ PositionVector::getOrthogonal(const Position& p, double extend, bool before, dou
             result.push_back(tmp[closestIndex + 1]);
         } else {
             result.push_back(tmp[-1]);
+            deg *= -1;
         }
     }
     result = result.getSubpart2D(0, length);
     // rotate around base
     result.add(base * -1);
-    result.rotate2D(DEG2RAD(90));
+    result.rotate2D(DEG2RAD(deg));
     result.add(base);
     return result;
 }
@@ -1634,7 +1644,7 @@ PositionVector::interpolateZ(double zStart, double zEnd) const {
 
 
 PositionVector
-PositionVector::resample(double maxLength) const {
+PositionVector::resample(double maxLength, const bool adjustEnd) const {
     PositionVector result;
     if (maxLength == 0) {
         return result;
@@ -1646,6 +1656,11 @@ PositionVector::resample(double maxLength) const {
     maxLength = length / ceil(length / maxLength);
     for (double pos = 0; pos <= length; pos += maxLength) {
         result.push_back(positionAtOffset2D(pos));
+    }
+    // check if we have to adjust last element
+    if (adjustEnd && !result.empty() && (result.back() != back())) {
+        // add last element
+        result.push_back(back());
     }
     return result;
 }

@@ -17,10 +17,6 @@
 ///
 // C++ Vehicle API
 /****************************************************************************/
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/geom/GeomHelper.h>
@@ -34,6 +30,7 @@
 #include <microsim/lcmodels/MSAbstractLaneChangeModel.h>
 #include <microsim/devices/MSDevice.h>
 #include <microsim/MSEdgeWeightsStorage.h>
+#include <microsim/MSStop.h>
 #include <microsim/MSVehicle.h>
 #include <microsim/MSVehicleControl.h>
 #include <microsim/MSVehicleType.h>
@@ -42,12 +39,17 @@
 #include <microsim/MSEdge.h>
 #include <microsim/MSLane.h>
 #include <microsim/MSParkingArea.h>
+#include <microsim/devices/MSDevice_Taxi.h>
+#include <microsim/devices/MSDispatch_TraCI.h>
+#include <mesosim/MEVehicle.h>
 #include <libsumo/TraCIDefs.h>
 #include <libsumo/TraCIConstants.h>
 #include "Helper.h"
 #include "Route.h"
 #include "Polygon.h"
 #include "Vehicle.h"
+
+#define CALL_MICRO_FUN(veh, fun, mesoResult) ((dynamic_cast<MSVehicle*>(veh) == nullptr ? (mesoResult) : dynamic_cast<MSVehicle*>(veh)->fun))
 
 
 // ===========================================================================
@@ -104,34 +106,34 @@ Vehicle::getIDCount() {
 
 double
 Vehicle::getSpeed(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     return isVisible(veh) ? veh->getSpeed() : INVALID_DOUBLE_VALUE;
 }
 
 double
 Vehicle::getLateralSpeed(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
-    return isVisible(veh) ? veh->getLaneChangeModel().getSpeedLat() : INVALID_DOUBLE_VALUE;
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
+    return isVisible(veh) ? CALL_MICRO_FUN(veh, getLaneChangeModel().getSpeedLat(), 0) : INVALID_DOUBLE_VALUE;
 }
 
 
 double
 Vehicle::getAcceleration(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
-    return isVisible(veh) ? veh->getAcceleration() : INVALID_DOUBLE_VALUE;
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
+    return isVisible(veh) ? CALL_MICRO_FUN(veh, getAcceleration(), 0) : INVALID_DOUBLE_VALUE;
 }
 
 
 double
 Vehicle::getSpeedWithoutTraCI(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
-    return isVisible(veh) ? veh->getSpeedWithoutTraciInfluence() : INVALID_DOUBLE_VALUE;
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
+    return isVisible(veh) ? CALL_MICRO_FUN(veh, getSpeedWithoutTraciInfluence(), veh->getSpeed()) : INVALID_DOUBLE_VALUE;
 }
 
 
 TraCIPosition
 Vehicle::getPosition(const std::string& vehicleID, const bool includeZ) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     if (isVisible(veh)) {
         return Helper::makeTraCIPosition(veh->getPosition(), includeZ);
     }
@@ -147,36 +149,36 @@ Vehicle::getPosition3D(const std::string& vehicleID) {
 
 double
 Vehicle::getAngle(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     return isVisible(veh) ? GeomHelper::naviDegree(veh->getAngle()) : INVALID_DOUBLE_VALUE;
 }
 
 
 double
 Vehicle::getSlope(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     return veh->isOnRoad() ? veh->getSlope() : INVALID_DOUBLE_VALUE;
 }
 
 
 std::string
 Vehicle::getRoadID(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
-    return isVisible(veh) ? veh->getLane()->getEdge().getID() : "";
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
+    return isVisible(veh) ? CALL_MICRO_FUN(veh, getLane()->getEdge().getID(), veh->getEdge()->getID()) : "";
 }
 
 
 std::string
 Vehicle::getLaneID(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
-    return veh->isOnRoad() ? veh->getLane()->getID() : "";
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
+    return veh->isOnRoad() ? CALL_MICRO_FUN(veh, getLane()->getID(), "") : "";
 }
 
 
 int
 Vehicle::getLaneIndex(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
-    return veh->isOnRoad() ? veh->getLane()->getIndex() : INVALID_INT_VALUE;
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
+    return veh->isOnRoad() ? CALL_MICRO_FUN(veh, getLane()->getIndex(), INVALID_INT_VALUE) : INVALID_INT_VALUE;
 }
 
 
@@ -194,7 +196,7 @@ Vehicle::getRouteID(const std::string& vehicleID) {
 
 int
 Vehicle::getRouteIndex(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     return veh->hasDeparted() ? veh->getRoutePosition() : INVALID_INT_VALUE;
 }
 
@@ -206,61 +208,61 @@ Vehicle::getColor(const std::string& vehicleID) {
 
 double
 Vehicle::getLanePosition(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     return veh->isOnRoad() ? veh->getPositionOnLane() : INVALID_DOUBLE_VALUE;
 }
 
 double
 Vehicle::getLateralLanePosition(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
-    return veh->isOnRoad() ? veh->getLateralPositionOnLane() : INVALID_DOUBLE_VALUE;
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
+    return veh->isOnRoad() ? CALL_MICRO_FUN(veh, getLateralPositionOnLane(), 0) : INVALID_DOUBLE_VALUE;
 }
 
 double
 Vehicle::getCO2Emission(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     return isVisible(veh) ? veh->getCO2Emissions() : INVALID_DOUBLE_VALUE;
 }
 
 double
 Vehicle::getCOEmission(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     return isVisible(veh) ? veh->getCOEmissions() : INVALID_DOUBLE_VALUE;
 }
 
 double
 Vehicle::getHCEmission(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     return isVisible(veh) ? veh->getHCEmissions() : INVALID_DOUBLE_VALUE;
 }
 
 double
 Vehicle::getPMxEmission(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     return isVisible(veh) ? veh->getPMxEmissions() : INVALID_DOUBLE_VALUE;
 }
 
 double
 Vehicle::getNOxEmission(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     return isVisible(veh) ? veh->getNOxEmissions() : INVALID_DOUBLE_VALUE;
 }
 
 double
 Vehicle::getFuelConsumption(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     return isVisible(veh) ? veh->getFuelConsumption() : INVALID_DOUBLE_VALUE;
 }
 
 double
 Vehicle::getNoiseEmission(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     return isVisible(veh) ? veh->getHarmonoise_NoiseEmissions() : INVALID_DOUBLE_VALUE;
 }
 
 double
 Vehicle::getElectricityConsumption(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     return isVisible(veh) ? veh->getElectricityConsumption() : INVALID_DOUBLE_VALUE;
 }
 
@@ -281,7 +283,7 @@ Vehicle::getPersonIDList(const std::string& vehicleID) {
 
 std::pair<std::string, double>
 Vehicle::getLeader(const std::string& vehicleID, double dist) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     if (veh->isOnRoad()) {
         std::pair<const MSVehicle* const, double> leaderInfo = veh->getLeader(dist);
         return std::make_pair(
@@ -293,15 +295,30 @@ Vehicle::getLeader(const std::string& vehicleID, double dist) {
 }
 
 
+std::pair<std::string, double>
+Vehicle::getFollower(const std::string& vehicleID, double dist) {
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
+    if (veh->isOnRoad()) {
+        std::pair<const MSVehicle* const, double> leaderInfo = veh->getFollower(dist);
+        return std::make_pair(
+                   leaderInfo.first != nullptr ? leaderInfo.first->getID() : "",
+                   leaderInfo.second);
+    } else {
+        return std::make_pair("", -1);
+    }
+}
+
+
 double
 Vehicle::getWaitingTime(const std::string& vehicleID) {
-    return Helper::getVehicle(vehicleID)->getWaitingSeconds();
+    return STEPS2TIME(Helper::getVehicle(vehicleID)->getWaitingTime());
 }
 
 
 double
 Vehicle::getAccumulatedWaitingTime(const std::string& vehicleID) {
-    return Helper::getVehicle(vehicleID)->getAccumulatedWaitingSeconds();
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
+    return CALL_MICRO_FUN(veh, getAccumulatedWaitingSeconds(), INVALID_DOUBLE_VALUE);
 }
 
 
@@ -333,7 +350,7 @@ Vehicle::isRouteValid(const std::string& vehicleID) {
 std::vector<std::string>
 Vehicle::getRoute(const std::string& vehicleID) {
     std::vector<std::string> result;
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     const MSRoute& r = veh->getRoute();
     for (MSRouteIterator i = r.begin(); i != r.end(); ++i) {
         result.push_back((*i)->getID());
@@ -344,30 +361,29 @@ Vehicle::getRoute(const std::string& vehicleID) {
 
 int
 Vehicle::getSignals(const std::string& vehicleID) {
-    return Helper::getVehicle(vehicleID)->getSignals();
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
+    return CALL_MICRO_FUN(veh, getSignals(), MSVehicle::VEH_SIGNAL_NONE);
 }
 
 
 std::vector<TraCIBestLanesData>
 Vehicle::getBestLanes(const std::string& vehicleID) {
     std::vector<TraCIBestLanesData> result;
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
-    if (veh->isOnRoad()) {
-        const std::vector<MSVehicle::LaneQ>& bestLanes = veh->getBestLanes();
-        for (std::vector<MSVehicle::LaneQ>::const_iterator i = bestLanes.begin(); i != bestLanes.end(); ++i) {
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(Helper::getVehicle(vehicleID));
+    if (veh != nullptr && veh->isOnRoad()) {
+        for (const MSVehicle::LaneQ& lq : veh->getBestLanes()) {
             TraCIBestLanesData bld;
-            const MSVehicle::LaneQ& lq = *i;
             bld.laneID = lq.lane->getID();
             bld.length = lq.length;
             bld.occupation = lq.nextOccupation;
             bld.bestLaneOffset = lq.bestLaneOffset;
             bld.allowsContinuation = lq.allowsContinuation;
-            for (std::vector<MSLane*>::const_iterator j = lq.bestContinuations.begin(); j != lq.bestContinuations.end(); ++j) {
-                if ((*j) != nullptr) {
-                    bld.continuationLanes.push_back((*j)->getID());
+            for (const MSLane* const lane : lq.bestContinuations) {
+                if (lane != nullptr) {
+                    bld.continuationLanes.push_back(lane->getID());
                 }
             }
-            result.push_back(bld);
+            result.emplace_back(bld);
         }
     }
     return result;
@@ -377,13 +393,17 @@ Vehicle::getBestLanes(const std::string& vehicleID) {
 std::vector<TraCINextTLSData>
 Vehicle::getNextTLS(const std::string& vehicleID) {
     std::vector<TraCINextTLSData> result;
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
-    if (veh->isOnRoad()) {
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (!vehicle->isOnRoad()) {
+        return result;
+    }
+    if (veh != nullptr) {
         const MSLane* lane = veh->getLane();
         const std::vector<MSLane*>& bestLaneConts = veh->getBestLanesContinuation(lane);
         double seen = lane->getLength() - veh->getPositionOnLane();
         int view = 1;
-        MSLinkCont::const_iterator linkIt = MSLane::succLinkSec(*veh, view, *lane, bestLaneConts);
+        std::vector<MSLink*>::const_iterator linkIt = MSLane::succLinkSec(*veh, view, *lane, bestLaneConts);
         while (!lane->isLinkEnd(linkIt)) {
             if (!lane->getEdge().isInternal()) {
                 if ((*linkIt)->isTLSControlled()) {
@@ -428,45 +448,40 @@ Vehicle::getNextTLS(const std::string& vehicleID) {
                 break;
             }
         }
+    } else {
+        WRITE_WARNING("getNextTLS not yet implemented for meso");
     }
     return result;
 }
 
-
 std::vector<TraCINextStopData>
 Vehicle::getNextStops(const std::string& vehicleID) {
+    return getStops(vehicleID, 0);
+}
+
+std::vector<TraCINextStopData>
+Vehicle::getStops(const std::string& vehicleID, int limit) {
     std::vector<TraCINextStopData> result;
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
-    std::list<MSVehicle::Stop> stops = veh->getMyStops();
-    for (std::list<MSVehicle::Stop>::iterator it = stops.begin(); it != stops.end(); ++it) {
-        if (!it->collision) {
-            TraCINextStopData nsd;
-            nsd.lane = it->lane->getID();
-            nsd.endPos = it->getEndPos(*veh);
-            // all optionals, only one can be set
-            if (it->busstop != nullptr) {
-                nsd.stoppingPlaceID = it->busstop->getID();
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    if (limit < 0) {
+        // return past stops up to the given limit
+        const std::vector<SUMOVehicleParameter::Stop>& pastStops = vehicle->getPastStops();
+        const int n = (int)pastStops.size();
+        for (int i = MAX2(0, n + limit); i < n; i++) {
+            result.push_back(buildStopData(pastStops[i]));
+        }
+    } else {
+        for (const MSStop& stop : vehicle->getStops()) {
+            if (!stop.collision) {
+                TraCINextStopData nsd = buildStopData(stop.pars);
+                if (stop.reached) {
+                    nsd.duration = STEPS2TIME(stop.duration);
+                }
+                result.push_back(nsd);
+                if (limit > 0 && (int)result.size() >= limit) {
+                    break;
+                }
             }
-            if (it->containerstop != nullptr) {
-                nsd.stoppingPlaceID = it->containerstop->getID();
-            }
-            if (it->parkingarea != nullptr) {
-                nsd.stoppingPlaceID = it->parkingarea->getID();
-            }
-            if (it->chargingStation != nullptr) {
-                nsd.stoppingPlaceID = it->chargingStation->getID();
-            }
-            nsd.stopFlags = ((it->reached ? 1 : 0) +
-                             (it->pars.parking ? 2 : 0) +
-                             (it->pars.triggered ? 4 : 0) +
-                             (it->pars.containerTriggered ? 8 : 0) +
-                             (it->busstop != nullptr ? 16 : 0) +
-                             (it->containerstop != nullptr ? 32 : 0) +
-                             (it->chargingStation != nullptr ? 64 : 0) +
-                             (it->parkingarea != nullptr ? 128 : 0));
-            nsd.duration = STEPS2TIME(it->reached ? it->duration : it->pars.duration);
-            nsd.until = STEPS2TIME(it->pars.until);
-            result.push_back(nsd);
         }
     }
     return result;
@@ -475,10 +490,15 @@ Vehicle::getNextStops(const std::string& vehicleID) {
 
 int
 Vehicle::getStopState(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_WARNING("getStopState not yet implemented for meso");
+        return 0;
+    }
     int result = 0;
     if (veh->isStopped()) {
-        const MSVehicle::Stop& stop = veh->getNextStop();
+        const MSStop& stop = veh->getNextStop();
         result = ((stop.reached ? 1 : 0) +
                   (stop.pars.parking ? 2 : 0) +
                   (stop.pars.triggered ? 4 : 0) +
@@ -494,7 +514,7 @@ Vehicle::getStopState(const std::string& vehicleID) {
 
 double
 Vehicle::getDistance(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     if (veh->isOnRoad()) {
         return veh->getOdometer();
     } else {
@@ -505,10 +525,12 @@ Vehicle::getDistance(const std::string& vehicleID) {
 
 double
 Vehicle::getDrivingDistance(const std::string& vehicleID, const std::string& edgeID, double position, int /* laneIndex */) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
+    MSVehicle* microVeh = dynamic_cast<MSVehicle*>(veh);
     if (veh->isOnRoad()) {
+        const MSEdge* edge = microVeh != nullptr ? &veh->getLane()->getEdge() : veh->getEdge();
         double distance = veh->getRoute().getDistanceBetween(veh->getPositionOnLane(), position,
-                          &veh->getLane()->getEdge(), Helper::getEdge(edgeID), true, veh->getRoutePosition());
+                          edge, Helper::getEdge(edgeID), true, veh->getRoutePosition());
         if (distance == std::numeric_limits<double>::max()) {
             return INVALID_DOUBLE_VALUE;
         }
@@ -521,7 +543,10 @@ Vehicle::getDrivingDistance(const std::string& vehicleID, const std::string& edg
 
 double
 Vehicle::getDrivingDistance2D(const std::string& vehicleID, double x, double y) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
+    if (veh == nullptr) {
+        return INVALID_DOUBLE_VALUE;
+    }
     if (veh->isOnRoad()) {
         std::pair<MSLane*, double> roadPos = Helper::convertCartesianToRoadMap(Position(x, y), veh->getVehicleType().getVehicleClass());
         double distance = veh->getRoute().getDistanceBetween(veh->getPositionOnLane(), roadPos.second,
@@ -538,12 +563,8 @@ Vehicle::getDrivingDistance2D(const std::string& vehicleID, double x, double y) 
 
 double
 Vehicle::getAllowedSpeed(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
-    if (veh->isOnRoad()) {
-        return veh->getLane()->getVehicleMaxSpeed(veh);
-    } else {
-        return INVALID_DOUBLE_VALUE;
-    }
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
+    return veh->isOnRoad() ? CALL_MICRO_FUN(veh, getLane()->getVehicleMaxSpeed(veh), veh->getEdge()->getVehicleMaxSpeed(veh)) : INVALID_DOUBLE_VALUE;
 }
 
 
@@ -555,19 +576,21 @@ Vehicle::getSpeedFactor(const std::string& vehicleID) {
 
 int
 Vehicle::getSpeedMode(const std::string& vehicleID) {
-    return Helper::getVehicle(vehicleID)->getInfluencer().getSpeedMode();
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
+    return CALL_MICRO_FUN(veh, getInfluencer().getSpeedMode(), INVALID_INT_VALUE);
 }
 
 
 int
 Vehicle::getLaneChangeMode(const std::string& vehicleID) {
-    return Helper::getVehicle(vehicleID)->getInfluencer().getLaneChangeMode();
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
+    return CALL_MICRO_FUN(veh, getInfluencer().getLaneChangeMode(), INVALID_INT_VALUE);
 }
 
 
 int
 Vehicle::getRoutingMode(const std::string& vehicleID) {
-    return Helper::getVehicle(vehicleID)->getInfluencer().getRoutingMode();
+    return Helper::getVehicle(vehicleID)->getBaseInfluencer().getRoutingMode();
 }
 
 
@@ -585,52 +608,25 @@ Vehicle::getVia(const std::string& vehicleID) {
 
 std::pair<int, int>
 Vehicle::getLaneChangeState(const std::string& vehicleID, int direction) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
-    if (veh->isOnRoad()) {
-        return veh->getLaneChangeModel().getSavedState(direction);
-    } else {
-        return std::make_pair((int)LCA_UNKNOWN, (int)LCA_UNKNOWN);
-    }
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
+    auto undefined = std::make_pair((int)LCA_UNKNOWN, (int)LCA_UNKNOWN);
+    return veh->isOnRoad() ? CALL_MICRO_FUN(veh, getLaneChangeModel().getSavedState(direction), undefined) : undefined;
 }
 
 
 std::string
 Vehicle::getParameter(const std::string& vehicleID, const std::string& key) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
-    if (StringUtils::startsWith(key, "device.")) {
-        StringTokenizer tok(key, ".");
-        if (tok.size() < 3) {
-            throw TraCIException("Invalid device parameter '" + key + "' for vehicle '" + vehicleID + "'.");
-        }
-        try {
-            return veh->getDeviceParameter(tok.get(1), key.substr(tok.get(0).size() + tok.get(1).size() + 2));
-        } catch (InvalidArgument& e) {
-            throw TraCIException("Vehicle '" + vehicleID + "' does not support device parameter '" + key + "' (" + e.what() + ").");
-        }
-    } else if (StringUtils::startsWith(key, "laneChangeModel.")) {
-        const std::string attrName = key.substr(16);
-        try {
-            return veh->getLaneChangeModel().getParameter(attrName);
-        } catch (InvalidArgument& e) {
-            throw TraCIException("Vehicle '" + vehicleID + "' does not support laneChangeModel parameter '" + key + "' (" + e.what() + ").");
-        }
-    } else if (StringUtils::startsWith(key, "carFollowModel.")) {
-        const std::string attrName = key.substr(15);
-        try {
-            return veh->getCarFollowModel().getParameter(veh, attrName);
-        } catch (InvalidArgument& e) {
-            throw TraCIException("Vehicle '" + vehicleID + "' does not support carFollowModel parameter '" + key + "' (" + e.what() + ").");
-        }
-    } else if (StringUtils::startsWith(key, "has.") && StringUtils::endsWith(key, ".device")) {
-        StringTokenizer tok(key, ".");
-        if (tok.size() != 3) {
-            throw TraCIException("Invalid check for device. Expected format is 'has.DEVICENAME.device'.");
-        }
-        return veh->hasDevice(tok.get(1)) ? "true" : "false";
-    } else {
-        return veh->getParameter().getParameter(key, "");
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
+    std::string error;
+    std::string result = veh->getPrefixedParameter(key, error);
+    if (error != "") {
+        throw TraCIException(error);
     }
+    return result;
 }
+
+
+LIBSUMO_GET_PARAMETER_WITH_KEY_IMPLEMENTATION(Vehicle)
 
 
 std::vector<std::pair<std::string, double> >
@@ -639,8 +635,12 @@ Vehicle::getNeighbors(const std::string& vehicleID, const int mode) {
     bool queryLeaders = (2 & mode) != 0;
     bool blockersOnly = (4 & mode) != 0;
 
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
     std::vector<std::pair<std::string, double> > neighs;
+    if (veh == nullptr) {
+        return neighs;
+    }
     auto& lcm = veh->getLaneChangeModel();
 
 #ifdef DEBUG_NEIGHBORS
@@ -700,6 +700,63 @@ Vehicle::getNeighbors(const std::string& vehicleID, const int mode) {
 }
 
 
+double
+Vehicle::getFollowSpeed(const std::string& vehicleID, double speed, double gap, double leaderSpeed, double leaderMaxDecel, const std::string& leaderID) {
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_ERROR("getFollowSpeed not applicable for meso");
+        return INVALID_DOUBLE_VALUE;
+    }
+    MSVehicle* leader = dynamic_cast<MSVehicle*>(MSNet::getInstance()->getVehicleControl().getVehicle(leaderID));
+    return veh->getCarFollowModel().followSpeed(veh, speed, gap, leaderSpeed, leaderMaxDecel, leader);
+}
+
+
+double
+Vehicle::getSecureGap(const std::string& vehicleID, double speed, double leaderSpeed, double leaderMaxDecel, const std::string& leaderID) {
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_ERROR("getSecureGap not applicable for meso");
+        return INVALID_DOUBLE_VALUE;
+    }
+    MSVehicle* leader = dynamic_cast<MSVehicle*>(MSNet::getInstance()->getVehicleControl().getVehicle(leaderID));
+    return veh->getCarFollowModel().getSecureGap(veh, leader, speed, leaderSpeed, leaderMaxDecel);
+}
+
+
+double
+Vehicle::getStopSpeed(const std::string& vehicleID, const double speed, double gap) {
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_ERROR("getStopSpeed not applicable for meso");
+        return INVALID_DOUBLE_VALUE;
+    }
+    return veh->getCarFollowModel().stopSpeed(veh, speed, gap);
+}
+
+double
+Vehicle::getStopDelay(const std::string& vehicleID) {
+    return Helper::getVehicle(vehicleID)->getStopDelay();
+}
+
+std::vector<std::string>
+Vehicle::getTaxiFleet(int taxiState) {
+    std::vector<std::string> result;
+    for (MSDevice_Taxi* taxi : MSDevice_Taxi::getFleet()) {
+        if (taxi->getHolder().hasDeparted()) {
+            if (taxiState == -1
+                    || (taxiState == 0 && taxi->getState() == 0)
+                    || (taxiState != 0 && (taxi->getState() & taxiState) == taxiState)) {
+                result.push_back(taxi->getHolder().getID());
+            }
+        }
+    }
+    return result;
+}
+
 std::string
 Vehicle::getEmissionClass(const std::string& vehicleID) {
     return PollutantsInterface::getName(Helper::getVehicleType(vehicleID).getEmissionClass());
@@ -745,7 +802,14 @@ double Vehicle::getActionStepLength(const std::string& vehicleID) {
 
 
 double Vehicle::getLastActionTime(const std::string& vehicleID) {
-    return STEPS2TIME(Helper::getVehicle(vehicleID)->getLastActionTime());
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
+    MSVehicle* microVeh = dynamic_cast<MSVehicle*>(veh);
+    if (microVeh != nullptr) {
+        return STEPS2TIME(microVeh->getLastActionTime());
+    } else {
+        MEVehicle* mesoVeh = dynamic_cast<MEVehicle*>(veh);
+        return STEPS2TIME(mesoVeh->getEventTime());
+    }
 }
 
 
@@ -824,67 +888,55 @@ Vehicle::setStop(const std::string& vehicleID,
                  int flags,
                  double startPos,
                  double until) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
-    // optional stop flags
-    bool parking = false;
-    bool triggered = false;
-    bool containerTriggered = false;
-    SumoXMLTag stoppingPlaceType = SUMO_TAG_NOTHING;
-
-    parking = ((flags & 1) != 0);
-    triggered = ((flags & 2) != 0);
-    containerTriggered = ((flags & 4) != 0);
-    if ((flags & 8) != 0) {
-        stoppingPlaceType = SUMO_TAG_BUS_STOP;
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_WARNING("setStop not yet implemented for meso");
+        return;
     }
-    if ((flags & 16) != 0) {
-        stoppingPlaceType = SUMO_TAG_CONTAINER_STOP;
-    }
-    if ((flags & 32) != 0) {
-        stoppingPlaceType = SUMO_TAG_CHARGING_STATION;
-    }
-    if ((flags & 64) != 0) {
-        stoppingPlaceType = SUMO_TAG_PARKING_AREA;
-    }
-    const SUMOTime durationSteps = duration == INVALID_DOUBLE_VALUE ? SUMOTime_MAX : TIME2STEPS(duration);
-    const SUMOTime untilStep = until == INVALID_DOUBLE_VALUE ? -1 : TIME2STEPS(until);
-
+    SUMOVehicleParameter::Stop stopPars = buildStopParameters(edgeID,
+                                          pos, laneIndex, startPos, flags, duration, until);
     std::string error;
-    if (stoppingPlaceType != SUMO_TAG_NOTHING) {
-        // Forward command to vehicle
-        if (!veh->addTraciStopAtStoppingPlace(edgeID, durationSteps, untilStep, parking, triggered, containerTriggered, stoppingPlaceType, error)) {
-            throw TraCIException(error);
-        }
-    } else {
-        // check
-        if (startPos == INVALID_DOUBLE_VALUE) {
-            startPos = pos - POSITION_EPS;
-        }
-        if (startPos < 0.) {
-            throw TraCIException("Position on lane must not be negative.");
-        }
-        if (pos < startPos) {
-            throw TraCIException("End position on lane must be after start position.");
-        }
-        // get the actual lane that is referenced by laneIndex
-        MSEdge* road = MSEdge::dictionary(edgeID);
-        if (road == nullptr) {
-            throw TraCIException("Edge '" + edgeID + "' is not known.");
-        }
-        const std::vector<MSLane*>& allLanes = road->getLanes();
-        if ((laneIndex < 0) || laneIndex >= (int)(allLanes.size())) {
-            throw TraCIException("No lane with index '" + toString(laneIndex) + "' on edge '" + edgeID + "'.");
-        }
-        // Forward command to vehicle
-        if (!veh->addTraciStop(allLanes[laneIndex], startPos, pos, durationSteps, untilStep, parking, triggered, containerTriggered, error)) {
-            throw TraCIException(error);
-        }
+    if (!veh->addTraciStop(stopPars, error)) {
+        throw TraCIException(error);
     }
 }
 
+
+void
+Vehicle::replaceStop(const std::string& vehicleID,
+                     int nextStopIndex,
+                     const std::string& edgeID,
+                     double pos,
+                     int laneIndex,
+                     double duration,
+                     int flags,
+                     double startPos,
+                     double until) {
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_WARNING("replaceStop not yet implemented for meso");
+        return;
+    }
+    SUMOVehicleParameter::Stop stopPars = buildStopParameters(edgeID,
+                                          pos, laneIndex, startPos, flags, duration, until);
+
+    std::string error;
+    if (!veh->replaceStop(nextStopIndex, stopPars, "traci:replaceStop", error)) {
+        throw TraCIException("Stop replacement failed for vehicle '" + vehicleID + "' (" + error + ").");
+    }
+}
+
+
 void
 Vehicle::rerouteParkingArea(const std::string& vehicleID, const std::string& parkingAreaID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_WARNING("rerouteParkingArea not yet implemented for meso");
+        return;
+    }
     std::string error;
     // Forward command to vehicle
     if (!veh->rerouteParkingArea(parkingAreaID, error)) {
@@ -894,12 +946,17 @@ Vehicle::rerouteParkingArea(const std::string& vehicleID, const std::string& par
 
 void
 Vehicle::resume(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_WARNING("resume not yet implemented for meso");
+        return;
+    }
     if (!veh->hasStops()) {
         throw TraCIException("Failed to resume vehicle '" + veh->getID() + "', it has no stops.");
     }
     if (!veh->resumeFromStopping()) {
-        MSVehicle::Stop& sto = veh->getNextStop();
+        MSStop& sto = veh->getNextStop();
         std::ostringstream strs;
         strs << "reached: " << sto.reached;
         strs << ", duration:" << sto.duration;
@@ -913,7 +970,7 @@ Vehicle::resume(const std::string& vehicleID) {
 
 void
 Vehicle::changeTarget(const std::string& vehicleID, const std::string& edgeID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     const MSEdge* destEdge = MSEdge::dictionary(edgeID);
     const bool onInit = isOnInit(vehicleID);
     if (destEdge == nullptr) {
@@ -922,15 +979,16 @@ Vehicle::changeTarget(const std::string& vehicleID, const std::string& edgeID) {
     // build a new route between the vehicle's current edge and destination edge
     ConstMSEdgeVector newRoute;
     const MSEdge* currentEdge = veh->getRerouteOrigin();
-    veh->getInfluencer().getRouterTT(veh->getRNGIndex()).compute(
-        currentEdge, destEdge, (const MSVehicle * const)veh, MSNet::getInstance()->getCurrentTimeStep(), newRoute);
+    veh->getBaseInfluencer().getRouterTT(veh->getRNGIndex(), veh->getVClass()).compute(
+        currentEdge, destEdge, veh, MSNet::getInstance()->getCurrentTimeStep(), newRoute);
     // replace the vehicle's route by the new one (cost is updated by call to reroute())
     if (!veh->replaceRouteEdges(newRoute, -1, 0, "traci:changeTarget", onInit)) {
         throw TraCIException("Route replacement failed for vehicle '" + veh->getID() + "'.");
     }
     // route again to ensure usage of via/stops
     try {
-        veh->reroute(MSNet::getInstance()->getCurrentTimeStep(), "traci:changeTarget", veh->getInfluencer().getRouterTT(veh->getRNGIndex()), onInit);
+        veh->reroute(MSNet::getInstance()->getCurrentTimeStep(), "traci:changeTarget",
+                     veh->getBaseInfluencer().getRouterTT(veh->getRNGIndex(), veh->getVClass()), onInit);
     } catch (ProcessError& e) {
         throw TraCIException(e.what());
     }
@@ -939,30 +997,50 @@ Vehicle::changeTarget(const std::string& vehicleID, const std::string& edgeID) {
 
 void
 Vehicle::changeLane(const std::string& vehicleID, int laneIndex, double duration) {
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_ERROR("changeLane not applicable for meso");
+        return;
+    }
+
     std::vector<std::pair<SUMOTime, int> > laneTimeLine;
     laneTimeLine.push_back(std::make_pair(MSNet::getInstance()->getCurrentTimeStep(), laneIndex));
     laneTimeLine.push_back(std::make_pair(MSNet::getInstance()->getCurrentTimeStep() + TIME2STEPS(duration), laneIndex));
-    Helper::getVehicle(vehicleID)->getInfluencer().setLaneTimeLine(laneTimeLine);
+    veh->getInfluencer().setLaneTimeLine(laneTimeLine);
 }
 
 void
 Vehicle::changeLaneRelative(const std::string& vehicleID, int indexOffset, double duration) {
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_ERROR("changeLaneRelative not applicable for meso");
+        return;
+    }
+
     std::vector<std::pair<SUMOTime, int> > laneTimeLine;
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
     int laneIndex = veh->getLaneIndex() + indexOffset;
     if (laneIndex < 0 && !veh->getLaneChangeModel().isOpposite()) {
         WRITE_WARNING("Ignoring indexOffset -1 for vehicle '" + vehicleID + "' which is already on laneIndex 0");
     } else {
         laneTimeLine.push_back(std::make_pair(MSNet::getInstance()->getCurrentTimeStep(), laneIndex));
         laneTimeLine.push_back(std::make_pair(MSNet::getInstance()->getCurrentTimeStep() + TIME2STEPS(duration), laneIndex));
-        Helper::getVehicle(vehicleID)->getInfluencer().setLaneTimeLine(laneTimeLine);
+        veh->getInfluencer().setLaneTimeLine(laneTimeLine);
     }
 }
 
 
 void
 Vehicle::changeSublane(const std::string& vehicleID, double latDist) {
-    Helper::getVehicle(vehicleID)->getInfluencer().setSublaneChange(latDist);
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_ERROR("changeSublane not applicable for meso");
+        return;
+    }
+
+    veh->getInfluencer().setSublaneChange(latDist);
 }
 
 
@@ -1003,7 +1081,7 @@ Vehicle::add(const std::string& vehicleID,
             route = MSRoute::dictionary(dummyRouteID);
             if (route == nullptr) {
                 for (MSEdge* e : MSEdge::getAllEdges()) {
-                    if (e->getFunction() == EDGEFUNC_NORMAL && (e->getPermissions() & vclass) == vclass) {
+                    if (e->getFunction() == SumoXMLEdgeFunc::NORMAL && (e->getPermissions() & vclass) == vclass) {
                         std::vector<std::string>  edges;
                         edges.push_back(e->getID());
                         libsumo::Route::add(dummyRouteID, edges);
@@ -1066,8 +1144,19 @@ Vehicle::add(const std::string& vehicleID,
     SUMOVehicleParameter* params = new SUMOVehicleParameter(vehicleParams);
     try {
         SUMOVehicle* vehicle = MSNet::getInstance()->getVehicleControl().buildVehicle(params, route, vehicleType, true, false);
+        if (fromTaz == "" && !route->getEdges().front()->validateDepartSpeed(*vehicle)) {
+            MSNet::getInstance()->getVehicleControl().deleteVehicle(vehicle, true);
+            throw TraCIException("Departure speed for vehicle '" + vehicleID + "' is too high for the departure edge '" + route->getEdges().front()->getID() + "'.");
+        }
+        std::string msg;
+        if (vehicle->getRouteValidity(true, true) != MSBaseVehicle::ROUTE_VALID) {
+            MSNet::getInstance()->getVehicleControl().deleteVehicle(vehicle, true);
+            throw TraCIException("Vehicle '" + vehicleID + "' has no valid route. ");
+        }
         MSNet::getInstance()->getVehicleControl().addVehicle(vehicleParams.id, vehicle);
-        MSNet::getInstance()->getInsertionControl().add(vehicle);
+        if (vehicleParams.departProcedure != DEPART_TRIGGERED && vehicleParams.departProcedure != DEPART_CONTAINER_TRIGGERED) {
+            MSNet::getInstance()->getInsertionControl().add(vehicle);
+        }
     } catch (ProcessError& e) {
         throw TraCIException(e.what());
     }
@@ -1077,10 +1166,16 @@ Vehicle::add(const std::string& vehicleID,
 void
 Vehicle::moveToXY(const std::string& vehicleID, const std::string& edgeID, const int laneIndex,
                   const double x, const double y, double angle, const int keepRoute) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_WARNING("moveToXY not yet implemented for meso");
+        return;
+    }
     const bool doKeepRoute = (keepRoute & 1) != 0 && veh->getID() != "VTD_EGO";
     const bool mayLeaveNetwork = (keepRoute & 2) != 0;
     const bool ignorePermissions = (keepRoute & 4) != 0;
+    const bool setLateralPos = (MSGlobals::gLateralResolution > 0 || mayLeaveNetwork);
     SUMOVehicleClass vClass = ignorePermissions ? SVC_IGNORING : veh->getVClass();
     // process
     const std::string origID = edgeID + "_" + toString(laneIndex);
@@ -1122,20 +1217,20 @@ Vehicle::moveToXY(const std::string& vehicleID, const std::string& edgeID, const
 
         found = Helper::moveToXYMap_matchingRoutePosition(pos, origID,
                 veh->getRoute().getEdges(), (int)(veh->getCurrentRouteEdge() - veh->getRoute().begin()),
-                vClass,
+                vClass, setLateralPos,
                 bestDistance, &lane, lanePos, routeOffset);
         // @note silenty ignoring mapping failure
     } else {
         double speed = pos.distanceTo2D(veh->getPosition()); // !!!veh->getSpeed();
         found = Helper::moveToXYMap(pos, maxRouteDistance, mayLeaveNetwork, origID, angle,
                                     speed, veh->getRoute().getEdges(), veh->getRoutePosition(), veh->getLane(), veh->getPositionOnLane(), veh->isOnRoad(),
-                                    vClass,
+                                    vClass, setLateralPos,
                                     bestDistance, &lane, lanePos, routeOffset, edges);
     }
     if ((found && bestDistance <= maxRouteDistance) || mayLeaveNetwork) {
         // optionally compute lateral offset
         pos.setz(veh->getPosition().z());
-        if (found && (MSGlobals::gLateralResolution > 0 || mayLeaveNetwork)) {
+        if (found && setLateralPos) {
             const double perpDist = lane->getShape().distance2D(pos, false);
             if (perpDist != GeomHelper::INVALID_OFFSET) {
                 lanePosLat = perpDist;
@@ -1161,6 +1256,7 @@ Vehicle::moveToXY(const std::string& vehicleID, const std::string& edgeID, const
             pos = lane->geometryPositionAtOffset(lanePos, -lanePosLat);
         }
         assert((found && lane != 0) || (!found && lane == 0));
+        assert(!ISNAN(lanePos));
         if (angle == INVALID_DOUBLE_VALUE) {
             if (lane != nullptr) {
                 angle = GeomHelper::naviDegree(lane->getShape().rotationAtOffset(lanePos));
@@ -1188,7 +1284,13 @@ Vehicle::moveToXY(const std::string& vehicleID, const std::string& edgeID, const
 
 void
 Vehicle::slowDown(const std::string& vehicleID, double speed, double duration) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_ERROR("slowDown not applicable for meso");
+        return;
+    }
+
     std::vector<std::pair<SUMOTime, double> > speedTimeLine;
     speedTimeLine.push_back(std::make_pair(MSNet::getInstance()->getCurrentTimeStep(), veh->getSpeed()));
     speedTimeLine.push_back(std::make_pair(MSNet::getInstance()->getCurrentTimeStep() + TIME2STEPS(duration), speed));
@@ -1197,10 +1299,16 @@ Vehicle::slowDown(const std::string& vehicleID, double speed, double duration) {
 
 void
 Vehicle::openGap(const std::string& vehicleID, double newTimeHeadway, double newSpaceHeadway, double duration, double changeRate, double maxDecel, const std::string& referenceVehID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_ERROR("openGap not applicable for meso");
+        return;
+    }
+
     MSVehicle* refVeh = nullptr;
     if (referenceVehID != "") {
-        refVeh = Helper::getVehicle(referenceVehID);
+        refVeh = dynamic_cast<MSVehicle*>(Helper::getVehicle(referenceVehID));
     }
     const double originalTau = veh->getVehicleType().getCarFollowModel().getHeadwayTime();
     if (newTimeHeadway == -1) {
@@ -1215,7 +1323,13 @@ Vehicle::openGap(const std::string& vehicleID, double newTimeHeadway, double new
 
 void
 Vehicle::deactivateGapControl(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_ERROR("deactivateGapControl not applicable for meso");
+        return;
+    }
+
     if (veh->hasInfluencer()) {
         veh->getInfluencer().deactivateGapController();
     }
@@ -1228,7 +1342,13 @@ Vehicle::requestToC(const std::string& vehID, double leadTime) {
 
 void
 Vehicle::setSpeed(const std::string& vehicleID, double speed) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_WARNING("setSpeed not yet implemented for meso");
+        return;
+    }
+
     std::vector<std::pair<SUMOTime, double> > speedTimeLine;
     if (speed >= 0) {
         speedTimeLine.push_back(std::make_pair(MSNet::getInstance()->getCurrentTimeStep(), speed));
@@ -1238,18 +1358,44 @@ Vehicle::setSpeed(const std::string& vehicleID, double speed) {
 }
 
 void
+Vehicle::setPreviousSpeed(const std::string& vehicleID, double prevspeed) {
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_WARNING("setPreviousSpeed not yet implemented for meso");
+        return;
+    }
+
+    veh->setPreviousSpeed(prevspeed);
+}
+
+void
 Vehicle::setSpeedMode(const std::string& vehicleID, int speedMode) {
-    Helper::getVehicle(vehicleID)->getInfluencer().setSpeedMode(speedMode);
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_WARNING("setSpeedMode not yet implemented for meso");
+        return;
+    }
+
+    veh->getInfluencer().setSpeedMode(speedMode);
 }
 
 void
 Vehicle::setLaneChangeMode(const std::string& vehicleID, int laneChangeMode) {
-    Helper::getVehicle(vehicleID)->getInfluencer().setLaneChangeMode(laneChangeMode);
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_ERROR("setLaneChangeMode not applicable for meso");
+        return;
+    }
+
+    veh->getInfluencer().setLaneChangeMode(laneChangeMode);
 }
 
 void
 Vehicle::setRoutingMode(const std::string& vehicleID, int routingMode) {
-    Helper::getVehicle(vehicleID)->getInfluencer().setRoutingMode(routingMode);
+    Helper::getVehicle(vehicleID)->getBaseInfluencer().setRoutingMode(routingMode);
 }
 
 void
@@ -1263,7 +1409,7 @@ Vehicle::setType(const std::string& vehicleID, const std::string& typeID) {
 
 void
 Vehicle::setRouteID(const std::string& vehicleID, const std::string& routeID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     const MSRoute* r = MSRoute::dictionary(routeID);
     if (r == nullptr) {
         throw TraCIException("The route '" + routeID + "' is not known.");
@@ -1288,7 +1434,7 @@ Vehicle::setRoute(const std::string& vehicleID, const std::string& edgeID) {
 
 void
 Vehicle::setRoute(const std::string& vehicleID, const std::vector<std::string>& edgeIDs) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     ConstMSEdgeVector edges;
     try {
         MSEdge::parseEdgesList(edgeIDs, edges, "<unknown>");
@@ -1305,7 +1451,13 @@ Vehicle::setRoute(const std::string& vehicleID, const std::vector<std::string>& 
 
 void
 Vehicle::updateBestLanes(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_ERROR("updateBestLanes not applicable for meso");
+        return;
+    }
+
     veh->updateBestLanes(true);
 }
 
@@ -1313,7 +1465,7 @@ Vehicle::updateBestLanes(const std::string& vehicleID) {
 void
 Vehicle::setAdaptedTraveltime(const std::string& vehicleID, const std::string& edgeID,
                               double time, double begSeconds, double endSeconds) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     MSEdge* edge = MSEdge::dictionary(edgeID);
     if (edge == nullptr) {
         throw TraCIException("Edge '" + edgeID + "' is not known.");
@@ -1339,7 +1491,7 @@ Vehicle::setAdaptedTraveltime(const std::string& vehicleID, const std::string& e
 void
 Vehicle::setEffort(const std::string& vehicleID, const std::string& edgeID,
                    double effort, double begSeconds, double endSeconds) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     MSEdge* edge = MSEdge::dictionary(edgeID);
     if (edge == nullptr) {
         throw TraCIException("Edge '" + edgeID + "' is not known.");
@@ -1365,15 +1517,15 @@ Vehicle::setEffort(const std::string& vehicleID, const std::string& edgeID,
 void
 Vehicle::rerouteTraveltime(const std::string& vehicleID, const bool currentTravelTimes) {
     UNUSED_PARAMETER(currentTravelTimes); // !!! see #5943
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     veh->reroute(MSNet::getInstance()->getCurrentTimeStep(), "traci:rerouteTraveltime",
-                 veh->getInfluencer().getRouterTT(veh->getRNGIndex()), isOnInit(vehicleID));
+                 veh->getBaseInfluencer().getRouterTT(veh->getRNGIndex(), veh->getVClass()), isOnInit(vehicleID));
 }
 
 
 void
 Vehicle::rerouteEffort(const std::string& vehicleID) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     veh->reroute(MSNet::getInstance()->getCurrentTimeStep(), "traci:rerouteEffort",
                  MSNet::getInstance()->getRouterEffort(veh->getRNGIndex()), isOnInit(vehicleID));
 }
@@ -1381,7 +1533,13 @@ Vehicle::rerouteEffort(const std::string& vehicleID) {
 
 void
 Vehicle::setSignals(const std::string& vehicleID, int signals) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_ERROR("setSignals not applicable for meso");
+        return;
+    }
+
     // set influencer to make the change persistent
     veh->getInfluencer().setSignals(signals);
     // set them now so that getSignals returns the correct value
@@ -1393,8 +1551,14 @@ Vehicle::setSignals(const std::string& vehicleID, int signals) {
 
 
 void
-Vehicle::moveTo(const std::string& vehicleID, const std::string& laneID, double position) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+Vehicle::moveTo(const std::string& vehicleID, const std::string& laneID, double position, int reason) {
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_WARNING("moveTo not yet implemented for meso");
+        return;
+    }
+
     MSLane* l = MSLane::dictionary(laneID);
     if (l == nullptr) {
         throw TraCIException("Unknown lane '" + laneID + "'.");
@@ -1414,6 +1578,7 @@ Vehicle::moveTo(const std::string& vehicleID, const std::string& laneID, double 
               || l->getNextNormal() != *(it + 1)))) {
         throw TraCIException("Lane '" + laneID + "' is not on the route of vehicle '" + vehicleID + "'.");
     }
+    Position oldPos = vehicle->getPosition();
     veh->onRemovalFromNet(MSMoveReminder::NOTIFICATION_TELEPORT);
     if (veh->getLane() != nullptr) {
         veh->getLane()->removeVehicle(veh, MSMoveReminder::NOTIFICATION_TELEPORT);
@@ -1424,10 +1589,29 @@ Vehicle::moveTo(const std::string& vehicleID, const std::string& laneID, double 
     veh->resetRoutePosition(newRouteIndex, veh->getParameter().departLaneProcedure);
     if (!veh->isOnRoad()) {
         MSNet::getInstance()->getInsertionControl().alreadyDeparted(veh);
-
     }
-    l->forceVehicleInsertion(veh, position,
-                             veh->hasDeparted() ? MSMoveReminder::NOTIFICATION_TELEPORT : MSMoveReminder::NOTIFICATION_DEPARTED);
+    MSMoveReminder::Notification moveReminderReason;
+    if (veh->hasDeparted()) {
+        if (reason == MOVE_TELEPORT) {
+            moveReminderReason = MSMoveReminder::NOTIFICATION_TELEPORT;
+        } else if (reason == MOVE_NORMAL) {
+            moveReminderReason = MSMoveReminder::NOTIFICATION_JUNCTION;
+        } else if (reason == MOVE_AUTOMATIC) {
+            Position newPos = l->geometryPositionAtOffset(position);
+            const double dist = newPos.distanceTo2D(oldPos);
+            if (dist < SPEED2DIST(veh->getMaxSpeed())) {
+                moveReminderReason = MSMoveReminder::NOTIFICATION_JUNCTION;
+            } else {
+                moveReminderReason = MSMoveReminder::NOTIFICATION_TELEPORT;
+            }
+        } else {
+            throw TraCIException("Invalid moveTo reason '" + toString(reason) + "' for vehicle '" + vehicleID + "'.");
+        }
+    } else {
+        moveReminderReason = MSMoveReminder::NOTIFICATION_DEPARTED;
+    }
+
+    l->forceVehicleInsertion(veh, position, moveReminderReason);
 }
 
 
@@ -1437,7 +1621,13 @@ Vehicle::setActionStepLength(const std::string& vehicleID, double actionStepLeng
         WRITE_ERROR("Invalid action step length (<0). Ignoring command setActionStepLength().");
         return;
     }
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* vehicle = Helper::getVehicle(vehicleID);
+    MSVehicle* veh = dynamic_cast<MSVehicle*>(vehicle);
+    if (veh == nullptr) {
+        WRITE_ERROR("setActionStepLength not applicable for meso");
+        return;
+    }
+
     if (actionStepLength == 0.) {
         veh->resetActionOffset();
     } else {
@@ -1448,7 +1638,7 @@ Vehicle::setActionStepLength(const std::string& vehicleID, double actionStepLeng
 
 void
 Vehicle::remove(const std::string& vehicleID, char reason) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     MSMoveReminder::Notification n = MSMoveReminder::NOTIFICATION_ARRIVED;
     switch (reason) {
         case REMOVE_TELEPORT:
@@ -1465,7 +1655,7 @@ Vehicle::remove(const std::string& vehicleID, char reason) {
             n = MSMoveReminder::NOTIFICATION_ARRIVED;
             break;
         case REMOVE_VAPORIZED:
-            n = MSMoveReminder::NOTIFICATION_VAPORIZED;
+            n = MSMoveReminder::NOTIFICATION_VAPORIZED_TRACI;
             break;
         case REMOVE_TELEPORT_ARRIVED:
             n = MSMoveReminder::NOTIFICATION_TELEPORT_ARRIVED;
@@ -1476,9 +1666,12 @@ Vehicle::remove(const std::string& vehicleID, char reason) {
     if (veh->hasDeparted()) {
         veh->onRemovalFromNet(n);
         if (veh->getLane() != nullptr) {
-            veh->getLane()->removeVehicle(veh, n);
+            veh->getLane()->removeVehicle(dynamic_cast<MSVehicle*>(veh), n);
         }
-        MSNet::getInstance()->getVehicleControl().scheduleVehicleRemoval(veh);
+        MSVehicle* microVeh = dynamic_cast<MSVehicle*>(veh);
+        if (microVeh != nullptr) {
+            MSNet::getInstance()->getVehicleControl().scheduleVehicleRemoval(veh);
+        }
     } else {
         MSNet::getInstance()->getInsertionControl().alreadyDeparted(veh);
         MSNet::getInstance()->getVehicleControl().deleteVehicle(veh, true);
@@ -1508,7 +1701,7 @@ Vehicle::setLine(const std::string& vehicleID, const std::string& line) {
 
 void
 Vehicle::setVia(const std::string& vehicleID, const std::vector<std::string>& via) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
     try {
         // ensure edges exist
         ConstMSEdgeVector edges;
@@ -1624,7 +1817,8 @@ Vehicle::setLateralAlignment(const std::string& vehicleID, const std::string& la
 
 void
 Vehicle::setParameter(const std::string& vehicleID, const std::string& key, const std::string& value) {
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
+    MSVehicle* microVeh = dynamic_cast<MSVehicle*>(veh);
     if (StringUtils::startsWith(key, "device.")) {
         StringTokenizer tok(key, ".");
         if (tok.size() < 3) {
@@ -1636,16 +1830,22 @@ Vehicle::setParameter(const std::string& vehicleID, const std::string& key, cons
             throw TraCIException("Vehicle '" + vehicleID + "' does not support device parameter '" + key + "' (" + e.what() + ").");
         }
     } else if (StringUtils::startsWith(key, "laneChangeModel.")) {
+        if (microVeh == nullptr) {
+            throw TraCIException("Meso Vehicle '" + vehicleID + "' does not support laneChangeModel parameters.");
+        }
         const std::string attrName = key.substr(16);
         try {
-            veh->getLaneChangeModel().setParameter(attrName, value);
+            microVeh->getLaneChangeModel().setParameter(attrName, value);
         } catch (InvalidArgument& e) {
             throw TraCIException("Vehicle '" + vehicleID + "' does not support laneChangeModel parameter '" + key + "' (" + e.what() + ").");
         }
     } else if (StringUtils::startsWith(key, "carFollowModel.")) {
+        if (microVeh == nullptr) {
+            throw TraCIException("Meso Vehicle '" + vehicleID + "' does not support carFollowModel parameters.");
+        }
         const std::string attrName = key.substr(15);
         try {
-            veh->getCarFollowModel().setParameter(veh, attrName, value);
+            microVeh->getCarFollowModel().setParameter(microVeh, attrName, value);
         } catch (InvalidArgument& e) {
             throw TraCIException("Vehicle '" + vehicleID + "' does not support carFollowModel parameter '" + key + "' (" + e.what() + ").");
         }
@@ -1678,7 +1878,7 @@ Vehicle::setParameter(const std::string& vehicleID, const std::string& key, cons
 void
 Vehicle::highlight(const std::string& vehicleID, const TraCIColor& col, double size, const int alphaMax, const double duration, const int type) {
     // NOTE: Code is duplicated in large parts in POI.cpp
-    MSVehicle* veh = Helper::getVehicle(vehicleID);
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
 
     // Center of the highlight circle
     Position center = veh->getPosition();
@@ -1730,6 +1930,30 @@ Vehicle::highlight(const std::string& vehicleID, const TraCIColor& col, double s
     Polygon::addDynamics(polyID, vehicleID, timeSpan, alphaSpan, false, true);
 }
 
+void
+Vehicle::dispatchTaxi(const std::string& vehicleID,  const std::vector<std::string>& reservations) {
+    MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
+    MSDevice_Taxi* taxi = static_cast<MSDevice_Taxi*>(veh->getDevice(typeid(MSDevice_Taxi)));
+    if (taxi == nullptr) {
+        throw TraCIException("Vehicle '" + vehicleID + "' is not a taxi");
+    }
+    MSDispatch* dispatcher = MSDevice_Taxi::getDispatchAlgorithm();
+    if (dispatcher == nullptr) {
+        throw TraCIException("Cannot dispatch taxi because no reservations have been made");
+    }
+    MSDispatch_TraCI* traciDispatcher = dynamic_cast<MSDispatch_TraCI*>(dispatcher);
+    if (traciDispatcher == nullptr) {
+        throw TraCIException("device.taxi.dispatch-algorithm 'traci' has not been loaded");
+    }
+    if (reservations.size() == 0) {
+        throw TraCIException("No reservations have been specified for vehicle '" + vehicleID + "'");
+    }
+    try {
+        traciDispatcher->interpretDispatch(taxi, reservations);
+    } catch (InvalidArgument& e) {
+        throw TraCIException("Could not interpret reserations for vehicle '" + vehicleID + "' (" + e.what() + ").");
+    }
+}
 
 LIBSUMO_SUBSCRIPTION_IMPLEMENTATION(Vehicle, VEHICLE)
 
@@ -1987,6 +2211,8 @@ Vehicle::handleVariable(const std::string& objID, const int variable, VariableWr
             return wrapper->wrapDouble(objID, variable, getAcceleration(objID));
         case VAR_LASTACTIONTIME:
             return wrapper->wrapDouble(objID, variable, getLastActionTime(objID));
+        case VAR_STOP_DELAY:
+            return wrapper->wrapDouble(objID, variable, getStopDelay(objID));
         case VAR_LEADER: {
             double dist = 0.;
             // this fallback is needed since the very first call right on subscribing has no parameters set
@@ -2000,12 +2226,174 @@ Vehicle::handleVariable(const std::string& objID, const int variable, VariableWr
             rp.pos = lead.second;
             return wrapper->wrapRoadPosition(objID, variable, rp);
         }
-        default:
+        case VAR_FOLLOWER: {
+            double dist = 0.;
+            // this fallback is needed since the very first call right on subscribing has no parameters set
+            if (wrapper->getParams() != nullptr) {
+                const std::vector<unsigned char>& param = *wrapper->getParams();
+                memcpy(&dist, param.data(), sizeof(dist));
+            }
+            const auto& follower = getFollower(objID, dist);
+            TraCIRoadPosition rp;
+            rp.edgeID = follower.first;
+            rp.pos = follower.second;
+            return wrapper->wrapRoadPosition(objID, variable, rp);
+        }
+        case VAR_TAXI_FLEET:
             return false;
+        default:
+            return VehicleType::handleVariableWithID(objID, getTypeID(objID), variable, wrapper);
     }
 }
 
+SUMOVehicleParameter::Stop
+Vehicle::buildStopParameters(const std::string& edgeOrStoppingPlaceID,
+                             double pos, int laneIndex, double startPos, int flags, double duration, double until) {
+    SUMOVehicleParameter::Stop newStop;
+    newStop.duration = duration == INVALID_DOUBLE_VALUE ? SUMOTime_MAX : TIME2STEPS(duration);
+    newStop.until = until == INVALID_DOUBLE_VALUE ? -1 : TIME2STEPS(until);
+    newStop.index = STOP_INDEX_FIT;
+    if (newStop.duration >= 0) {
+        newStop.parametersSet |= STOP_DURATION_SET;
+    }
+    if (newStop.until >= 0) {
+        newStop.parametersSet |= STOP_UNTIL_SET;
+    }
+    if ((flags & 1) != 0) {
+        newStop.parking = true;
+        newStop.parametersSet |= STOP_PARKING_SET;
+    }
+    if ((flags & 2) != 0) {
+        newStop.triggered = true;
+        newStop.parametersSet |= STOP_TRIGGER_SET;
+    }
+    if ((flags & 4) != 0) {
+        newStop.containerTriggered = true;
+        newStop.parametersSet |= STOP_CONTAINER_TRIGGER_SET;
+    }
+
+    SumoXMLTag stoppingPlaceType = SUMO_TAG_NOTHING;
+    if ((flags & 8) != 0) {
+        stoppingPlaceType = SUMO_TAG_BUS_STOP;
+    }
+    if ((flags & 16) != 0) {
+        stoppingPlaceType = SUMO_TAG_CONTAINER_STOP;
+    }
+    if ((flags & 32) != 0) {
+        stoppingPlaceType = SUMO_TAG_CHARGING_STATION;
+    }
+    if ((flags & 64) != 0) {
+        stoppingPlaceType = SUMO_TAG_PARKING_AREA;
+    }
+    if ((flags & 128) != 0) {
+        stoppingPlaceType = SUMO_TAG_OVERHEAD_WIRE_SEGMENT;
+    }
+
+    if (stoppingPlaceType != SUMO_TAG_NOTHING) {
+        MSStoppingPlace* bs = MSNet::getInstance()->getStoppingPlace(edgeOrStoppingPlaceID, stoppingPlaceType);
+        if (bs == nullptr) {
+            throw TraCIException("The " + toString(stoppingPlaceType) + " '" + edgeOrStoppingPlaceID + "' is not known");
+        }
+        newStop.lane = bs->getLane().getID();
+        newStop.endPos = bs->getEndLanePosition();
+        newStop.startPos = bs->getBeginLanePosition();
+        switch (stoppingPlaceType) {
+            case SUMO_TAG_BUS_STOP:
+                newStop.busstop = edgeOrStoppingPlaceID;
+                break;
+            case SUMO_TAG_CONTAINER_STOP:
+                newStop.containerstop = edgeOrStoppingPlaceID;
+                break;
+            case SUMO_TAG_CHARGING_STATION:
+                newStop.chargingStation = edgeOrStoppingPlaceID;
+                break;
+            case SUMO_TAG_PARKING_AREA:
+                newStop.parkingarea = edgeOrStoppingPlaceID;
+                break;
+            case SUMO_TAG_OVERHEAD_WIRE_SEGMENT:
+                newStop.overheadWireSegment = edgeOrStoppingPlaceID;
+                break;
+            default:
+                throw TraCIException("Unknown stopping place type '" + toString(stoppingPlaceType) + "'.");
+        }
+    } else {
+        if (startPos == INVALID_DOUBLE_VALUE) {
+            startPos = pos - POSITION_EPS;
+        }
+        if (startPos < 0.) {
+            throw TraCIException("Position on lane must not be negative.");
+        }
+        if (pos < startPos) {
+            throw TraCIException("End position on lane must be after start position.");
+        }
+        // get the actual lane that is referenced by laneIndex
+        MSEdge* road = MSEdge::dictionary(edgeOrStoppingPlaceID);
+        if (road == nullptr) {
+            throw TraCIException("Edge '" + edgeOrStoppingPlaceID + "' is not known.");
+        }
+        const std::vector<MSLane*>& allLanes = road->getLanes();
+        if ((laneIndex < 0) || laneIndex >= (int)(allLanes.size())) {
+            throw TraCIException("No lane with index '" + toString(laneIndex) + "' on edge '" + edgeOrStoppingPlaceID + "'.");
+        }
+        newStop.lane = allLanes[laneIndex]->getID();
+        newStop.endPos = pos;
+        newStop.startPos = startPos;
+        newStop.parametersSet |= STOP_START_SET | STOP_END_SET;
+    }
+    return newStop;
+}
+
+TraCINextStopData
+Vehicle::buildStopData(const SUMOVehicleParameter::Stop& stopPar) {
+    std::string stoppingPlaceID = "";
+    if (stopPar.busstop != "") {
+        stoppingPlaceID = stopPar.busstop;
+    }
+    if (stopPar.containerstop != "") {
+        stoppingPlaceID = stopPar.containerstop;
+    }
+    if (stopPar.parkingarea != "") {
+        stoppingPlaceID = stopPar.parkingarea;
+    }
+    if (stopPar.chargingStation != "") {
+        stoppingPlaceID = stopPar.chargingStation;
+    }
+    if (stopPar.overheadWireSegment != "") {
+        stoppingPlaceID = stopPar.overheadWireSegment;
+    }
+    int stopFlags = (
+                        (stopPar.parking ? 1 : 0) +
+                        (stopPar.triggered ? 2 : 0) +
+                        (stopPar.containerTriggered ? 4 : 0) +
+                        (stopPar.busstop != "" ? 8 : 0) +
+                        (stopPar.containerstop != "" ? 16 : 0) +
+                        (stopPar.chargingStation != "" ? 32 : 0) +
+                        (stopPar.parkingarea != "" ? 64 : 0) +
+                        (stopPar.overheadWireSegment != "" ? 128 : 0));
+
+    return TraCINextStopData(stopPar.lane,
+                             stopPar.startPos,
+                             stopPar.endPos,
+                             stoppingPlaceID,
+                             stopFlags,
+                             // negative duration is permitted to indicate that a vehicle cannot
+                             // re-enter traffic after parking
+                             stopPar.duration != -1 ? STEPS2TIME(stopPar.duration) : INVALID_DOUBLE_VALUE,
+                             stopPar.until >= 0 ? STEPS2TIME(stopPar.until) : INVALID_DOUBLE_VALUE,
+                             stopPar.arrival >= 0 ? STEPS2TIME(stopPar.arrival) : INVALID_DOUBLE_VALUE,
+                             stopPar.actualArrival >= 0 ? STEPS2TIME(stopPar.actualArrival) : INVALID_DOUBLE_VALUE,
+                             stopPar.depart >= 0 ? STEPS2TIME(stopPar.depart) : INVALID_DOUBLE_VALUE,
+                             stopPar.split,
+                             stopPar.join,
+                             stopPar.actType,
+                             stopPar.tripId,
+                             stopPar.line,
+                             stopPar.speed);
+}
+
+
 
 }
+
 
 /****************************************************************************/

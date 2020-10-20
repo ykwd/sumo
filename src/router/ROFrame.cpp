@@ -19,11 +19,6 @@
 ///
 // Sets and checks options for routing
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <iostream>
@@ -36,6 +31,7 @@
 #include <utils/common/RandHelper.h>
 #include <utils/common/ToString.h>
 #include <utils/common/SUMOTime.h>
+#include <utils/common/SystemFrame.h>
 #include "ROFrame.h"
 
 
@@ -80,6 +76,9 @@ ROFrame::fillOptions(OptionsCont& oc) {
 
     oc.doRegister("phemlight-path", new Option_FileName(StringVector({ "./PHEMlight/" })));
     oc.addDescription("phemlight-path", "Input", "Determines where to load PHEMlight definitions from.");
+
+    // need to do this here to be able to check for network and route input options
+    SystemFrame::addReportOptions(oc);
 
     // register the time settings
     oc.doRegister("begin", 'b', new Option_String("0", "TIME"));
@@ -138,7 +137,7 @@ ROFrame::fillOptions(OptionsCont& oc) {
     oc.addDescription("mapmatch.distance", "Processing", "Maximum distance when mapping input coordinates (fromXY etc.) to the road network");
 
     oc.doRegister("mapmatch.junctions", new Option_Bool(false));
-    oc.addDescription("mapmatch.junctions", "Processing", "Match postions to junctions instead of edges");
+    oc.addDescription("mapmatch.junctions", "Processing", "Match positions to junctions instead of edges");
 
     oc.doRegister("bulk-routing", new Option_Bool(false));
     oc.addDescription("bulk-routing", "Processing", "Aggregate routing queries with the same origin");
@@ -203,6 +202,4 @@ ROFrame::checkOptions(OptionsCont& oc) {
 }
 
 
-
 /****************************************************************************/
-

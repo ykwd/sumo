@@ -18,10 +18,6 @@
 ///
 // A class that performs the loading of routes
 /****************************************************************************/
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/xml/SUMOSAXReader.h>
@@ -35,7 +31,7 @@
 // ===========================================================================
 SUMORouteLoader::SUMORouteLoader(SUMORouteHandler* handler)
     : myParser(nullptr), myMoreAvailable(true), myHandler(handler) {
-    myParser = XMLSubSys::getSAXReader(*myHandler);
+    myParser = XMLSubSys::getSAXReader(*myHandler, false, true);
     if (!myParser->parseFirst(myHandler->getFileName())) {
         throw ProcessError("Can not read XML-file '" + myHandler->getFileName() + "'.");
     }

@@ -35,9 +35,9 @@ netedit.supermodeDemand()
 netedit.routeMode()
 
 # create route using three edges
-netedit.leftClick(referencePosition, 274, 414)
+netedit.leftClick(referencePosition, 274, 392)
 netedit.leftClick(referencePosition, 570, 250)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create route
 netedit.typeEnter()
@@ -45,29 +45,32 @@ netedit.typeEnter()
 # go to vehicle mode
 netedit.vehicleMode()
 
-# set invalid arrival lane
-netedit.changeDefaultValue(11, "dummyLane")
-
-# try to create vehicle
-netedit.leftClick(referencePosition, 274, 414)
+# select vehicle
+netedit.changeElement("vehicle (over route)")
 
 # set invalid arrival lane
-netedit.changeDefaultValue(11, "-12")
+netedit.changeDefaultValue(10, "dummyLane")
 
 # try to create vehicle
-netedit.leftClick(referencePosition, 274, 414)
+netedit.leftClick(referencePosition, 274, 392)
+
+# set invalid arrival lane
+netedit.changeDefaultValue(10, "-12")
+
+# try to create vehicle
+netedit.leftClick(referencePosition, 274, 392)
 
 # set valid arrival lane
-netedit.changeDefaultValue(11, "random")
+netedit.changeDefaultValue(10, "random")
 
 # create vehicle
-netedit.leftClick(referencePosition, 274, 414)
+netedit.leftClick(referencePosition, 274, 392)
 
 # set valid arrival lane
-netedit.changeDefaultValue(11, "20")
+netedit.changeDefaultValue(10, "20")
 
 # create vehicle
-netedit.leftClick(referencePosition, 274, 414)
+netedit.leftClick(referencePosition, 274, 392)
 
 # Check undo redo
 netedit.undo(referencePosition, 3)

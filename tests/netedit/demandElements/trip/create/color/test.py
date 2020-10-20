@@ -34,35 +34,35 @@ netedit.supermodeDemand()
 # go to vehicle mode
 netedit.vehicleMode()
 
-# select trip
-netedit.changeElement("trip")
+# disable select trip due this is the first vehicle in the list
+# netedit.changeElement("trip")
 
 # set invalid color
-netedit.changeDefaultValue(7, "dummyColor")
+netedit.changeDefaultValue(6, "dummyColor")
 
 # try to create trip
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create trip
 netedit.typeEnter()
 
 # set valid color
-netedit.changeDefaultValue(7, "cyan")
+netedit.changeDefaultValue(6, "cyan")
 
 # create trip
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create trip
 netedit.typeEnter()
 
 # set valid color
-netedit.changeDefaultValue(7, "12,13,14")
+netedit.changeDefaultValue(6, "12,13,14")
 
 # create trip
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create trip
 netedit.typeEnter()

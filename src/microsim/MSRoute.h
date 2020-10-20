@@ -21,13 +21,7 @@
 ///
 // A vehicle route
 /****************************************************************************/
-#ifndef MSRoute_h
-#define MSRoute_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -49,7 +43,6 @@
 // class declarations
 // ===========================================================================
 class MSEdge;
-class BinaryInputDevice;
 class OutputDevice;
 
 
@@ -111,7 +104,7 @@ public:
 
     const MSEdge* operator[](int index) const;
 
-    /// @name State I/O (mesosim only)
+    /// @name State I/O
     /// @{
 
     /** @brief Saves all known routes into the given stream
@@ -119,6 +112,9 @@ public:
      * @param[in] os The stream to write the routes into (binary)
      */
     static void dict_saveState(OutputDevice& out);
+
+    /** @brief Decrement  all route references before quick-loading state */
+    static void dict_clearState();
     /// @}
 
     const ConstMSEdgeVector& getEdges() const {
@@ -153,8 +149,13 @@ public:
      */
     double getDistanceBetween(double fromPos, double toPos, const MSRouteIterator& fromEdge, const MSRouteIterator& toEdge, bool includeInternal = true) const;
 
-    /// Returns the color
+    /// @brief Returns the color
     const RGBColor& getColor() const;
+
+    /// @brief returns the period
+    SUMOTime getPeriod() const {
+        return myPeriod;
+    }
 
     /** @brief Returns the costs of the route
      *
@@ -172,6 +173,11 @@ public:
         return mySavings;
     }
 
+    /// @brief sets the period
+    void setPeriod(SUMOTime period) {
+        myPeriod = period;
+    }
+
     /** @brief Sets the costs of the route
      *
      * @param[in] costs The new route costs
@@ -185,6 +191,14 @@ public:
      */
     void setSavings(double savings) {
         mySavings = savings;
+    }
+
+    bool mustReroute() const {
+        return myReroute;
+    }
+
+    void setReroute(bool reroute = true) {
+        myReroute = reroute;
     }
 
     /// Returns the stops
@@ -257,11 +271,17 @@ private:
     /// The color
     const RGBColor* const myColor;
 
+    /// The period when repeating this route
+    SUMOTime myPeriod;
+
     /// @brief The assigned or calculated costs
     double myCosts;
 
     /// @brief The estimated savings when rerouting
     double mySavings;
+
+    /// @brief Whether this route is incomplete and requires rerouting
+    bool myReroute;
 
     /// @brief List of the stops on the parsed route
     std::vector<SUMOVehicleParameter::Stop> myStops;
@@ -288,9 +308,3 @@ private:
     MSRoute& operator=(const MSRoute& s);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

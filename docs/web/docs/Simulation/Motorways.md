@@ -11,22 +11,27 @@ best practices when modelling motorway networks and traffic.
 # Building a network for motorway simulation
 
 Networks can be imported from any supported data source or created from
-scratch with [NETEDIT](../NETEDIT.md). Depending on the level of
+scratch with [netedit](../netedit.md). Depending on the level of
 detail special processing may be necessary
 
 ## Motorway ramps
 
 If the network does not contain detailed ramp data,
-[NETCONVERT](../NETCONVERT.md) can be [configured to add them
+[netconvert](../netconvert.md) can be [configured to add them
 heuristically](../Networks/Further_Options.md#guessing_on-_and_off-ramps).
 This basically adds acceleration at on-ramps and deceleration lanes at
 off-ramps.
 
+Ramps usually merge into the main road via an acceleration lane. This acceleration lane opens up where the ramp enters the motorway and is modelled as a dead-end lane (no outgoing connection). This forces on-ramp vehicles to change lanes in order to continue their route.
+
+It may be useful to make acceleration lanes in SUMO somewhat longer than in reality.
+This compensates the cautious default behavior of SUMO drivers: Vehicles on the acceleration lane will decelerate when approaching the end of that lane since they cannot anticipate with certainty whether their lanechange will be successful. In contrast, human drivers are better at predicting the future and may accelerate up to the end of the acceleration lane (and then change into the anticipated gap at the last moment)
+
 ### Reduction in the number of lanes
 
-The usual way to set up a lane-number reduction is to configure the
-rightmost lane as a dead-end (no connection to the next edge) and force
-vehicles to change-lanes to the left. In some situations it may be
+The usual way to set up a lane-number reduction is to configure one of the lanes
+as a dead-end (no connection to the next edge) and force
+vehicles to change-lanes. In some situations it may be
 appropriate to declare the node where the lane number changes as a
 [zipper node](../Networks/PlainXML.md#node_types)
 instead.
@@ -37,7 +42,7 @@ Combined ramps are those where the acceleration lane from an on-ramp
 becomes the deceleration lane for a nearby off-ramp. This forces
 vehicles into a weaving pattern where entering and exiting vehicles need
 to swap lanes. This type of situation may cause deadlocks in
-[SUMO](../SUMO.md) unless preventive measures are taking. The
+[sumo](../sumo.md) unless preventive measures are taking. The
 problem is exacerbated if the acceleration/deceleration lane is short or
 traffic is very dense.
 

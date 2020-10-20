@@ -20,13 +20,7 @@
 ///
 // C++ TraCI client API implementation
 /****************************************************************************/
-#ifndef POI_h
-#define POI_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -65,6 +59,7 @@ public:
     static double getAngle(const std::string& poiID);
     static std::string getImageFile(const std::string& poiID);
     static std::string getParameter(const std::string& poiID, const std::string& key);
+    LIBSUMO_GET_PARAMETER_WITH_KEY_API
 
     static void setType(const std::string& poiID, const std::string& setType);
     static void setColor(const std::string& poiID, const TraCIColor& c);
@@ -85,6 +80,7 @@ public:
      *  @return The rtree of PoIs
      */
     static NamedRTree* getTree();
+    static void cleanup();
 
     /** @brief Saves the shape of the requested object in the given container
     *  @param id The id of the poi to retrieve
@@ -99,9 +95,11 @@ public:
 private:
     static PointOfInterest* getPoI(const std::string& id);
 
+
 private:
     static SubscriptionResults mySubscriptionResults;
     static ContextSubscriptionResults myContextSubscriptionResults;
+    static NamedRTree* myTree;
 
     /// @brief invalidated standard constructor
     POI() = delete;
@@ -109,8 +107,3 @@ private:
 
 
 }
-
-
-#endif
-
-/****************************************************************************/

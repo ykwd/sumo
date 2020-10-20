@@ -18,13 +18,7 @@
 ///
 // A class that performs the loading of routes
 /****************************************************************************/
-#ifndef SUMORouteLoader_h
-#define SUMORouteLoader_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/SUMOTime.h>
@@ -70,9 +64,3 @@ private:
     /// @brief the used Handler
     SUMORouteHandler* myHandler;
 };
-
-
-#endif
-
-/****************************************************************************/
-

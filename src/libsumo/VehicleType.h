@@ -18,13 +18,7 @@
 // C++ TraCI client API implementation
 /****************************************************************************/
 
-#ifndef SUMO_VehicleType_H
-#define SUMO_VehicleType_H
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <string>
 #include <libsumo/TraCIDefs.h>
 #include <libsumo/TraCIConstants.h>
@@ -99,6 +93,7 @@ public:
     static int getIDCount();
     LIBSUMO_VEHICLE_TYPE_GETTER
     static std::string getParameter(const std::string& typeID, const std::string& key);
+    LIBSUMO_GET_PARAMETER_WITH_KEY_API
 
     LIBSUMO_VEHICLE_TYPE_SETTER
     static void copy(const std::string& origTypeID, const std::string& newTypeID);
@@ -113,6 +108,8 @@ public:
 
     static bool handleVariable(const std::string& objID, const int variable, VariableWrapper* wrapper);
 
+    static bool handleVariableWithID(const std::string& objID, const std::string& typeID, const int variable, VariableWrapper* wrapper);
+
 private:
     static SubscriptionResults mySubscriptionResults;
     static ContextSubscriptionResults myContextSubscriptionResults;
@@ -124,8 +121,3 @@ private:
 
 
 }
-
-
-#endif //SUMO_VehicleType_H
-
-/****************************************************************************/

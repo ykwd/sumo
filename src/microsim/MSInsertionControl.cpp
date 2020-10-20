@@ -21,11 +21,6 @@
 ///
 // Inserts vehicles into the network when their departure time is reached
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <iostream>
@@ -141,7 +136,7 @@ MSInsertionControl::emitVehicles(SUMOTime time) {
 int
 MSInsertionControl::tryInsert(SUMOTime time, SUMOVehicle* veh,
                               MSVehicleContainer::VehicleVector& refusedEmits) {
-    assert(veh->getParameter().depart < time + DELTA_T);
+    assert(veh->getParameter().depart <= time);
     const MSEdge& edge = *veh->getEdge();
     if (veh->isOnRoad()) {
         return 1;
@@ -161,6 +156,10 @@ MSInsertionControl::tryInsert(SUMOTime time, SUMOVehicle* veh,
         // remove vehicles which shall not be inserted for some reason
         myAbortedEmits.erase(veh);
         myVehicleControl.deleteVehicle(veh, true);
+    } else if ((veh->getRouteValidity(false) & (
+                    MSBaseVehicle::ROUTE_START_INVALID_LANE
+                    | MSBaseVehicle::ROUTE_START_INVALID_PERMISSIONS)) != 0) {
+        myVehicleControl.deleteVehicle(veh, true);
     } else {
         // let the vehicle wait one step, we'll retry then
         refusedEmits.push_back(veh);
@@ -172,7 +171,7 @@ MSInsertionControl::tryInsert(SUMOTime time, SUMOVehicle* veh,
 
 void
 MSInsertionControl::checkCandidates(SUMOTime time, const bool preCheck) {
-    while (myAllVeh.anyWaitingBefore(time + DELTA_T)) {
+    while (myAllVeh.anyWaitingBefore(time)) {
         const MSVehicleContainer::VehicleVector& top = myAllVeh.top();
         copy(top.begin(), top.end(), back_inserter(myPendingEmits));
         myAllVeh.pop();
@@ -203,9 +202,9 @@ MSInsertionControl::determineCandidates(SUMOTime time) {
         bool tryEmitByProb = pars->repetitionProbability > 0;
         while ((pars->repetitionProbability < 0
                 && pars->repetitionsDone < pars->repetitionNumber
-                && pars->depart + pars->repetitionsDone * pars->repetitionOffset < time + DELTA_T)
+                && pars->depart + pars->repetitionsDone * pars->repetitionOffset <= time)
                 || (tryEmitByProb
-                    && pars->depart < time + DELTA_T
+                    && pars->depart <= time
                     && pars->repetitionEnd > time
                     // only call rand if all other conditions are met
                     && RandHelper::rand(&myFlowRNG) < (pars->repetitionProbability * TS))
@@ -239,9 +238,8 @@ MSInsertionControl::determineCandidates(SUMOTime time) {
                     vehControl.deleteVehicle(vehicle, true);
                 }
             } else {
-                // strange: another vehicle with the same id already exists
                 if (MSGlobals::gStateLoaded) {
-                    vehControl.discountStateLoaded();
+                    /// @note probably obsolete since flows save their state
                     break;
                 }
                 throw ProcessError("Another vehicle with the id '" + newPars->id + "' exists.");
@@ -348,6 +346,19 @@ MSInsertionControl::saveState(OutputDevice& out) {
     }
 }
 
+void
+MSInsertionControl::clearState() {
+    for (std::vector<Flow>::iterator i = myFlows.begin(); i != myFlows.end(); ++i) {
+        delete (i->pars);
+    }
+    myFlows.clear();
+    myFlowIDs.clear();
+    myAllVeh.clearState();
+    myPendingEmits.clear();
+    myEmitCandidates.clear();
+    myAbortedEmits.clear();
+    myPendingEmitsForLane.clear();
+}
 
 SUMOTime
 MSInsertionControl::computeRandomDepartOffset() const {
@@ -358,7 +369,6 @@ MSInsertionControl::computeRandomDepartOffset() const {
         return 0;
     }
 }
-
 
 
 /****************************************************************************/

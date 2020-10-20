@@ -19,11 +19,6 @@
 ///
 // A window which displays the time line of one (or more) value(s)
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <string>
@@ -73,7 +68,7 @@ GUIParameterTracker::GUIParameterTracker(GUIMainWindow& app,
     FXVerticalFrame* glcanvasFrame = new FXVerticalFrame(this, FRAME_SUNKEN | LAYOUT_SIDE_TOP | LAYOUT_FILL_X | LAYOUT_FILL_Y, 0, 0, 0, 0, 0, 0, 0, 0);
     myPanel = new GUIParameterTrackerPanel(glcanvasFrame, *myApplication, *this);
     setTitle(name.c_str());
-    setIcon(GUIIconSubSys::getIcon(ICON_APP_TRACKER));
+    setIcon(GUIIconSubSys::getIcon(GUIIcon::APP_TRACKER));
 }
 
 
@@ -105,7 +100,7 @@ GUIParameterTracker::buildToolBar() {
     new FXToolBarGrip(myToolBar, myToolBar, FXToolBar::ID_TOOLBARGRIP, GUIDesignToolBarGrip);
     // save button
     new FXButton(myToolBar, "\t\tSave the data...",
-                 GUIIconSubSys::getIcon(ICON_SAVE), this, GUIParameterTracker::MID_SAVE, GUIDesignButtonToolbar);
+                 GUIIconSubSys::getIcon(GUIIcon::SAVE), this, GUIParameterTracker::MID_SAVE, GUIDesignButtonToolbar);
     // aggregation interval combo
     myAggregationInterval =
         new FXComboBox(myToolBar, 8, this, MID_AGGREGATIONINTERVAL,
@@ -186,7 +181,7 @@ GUIParameterTracker::onCmdChangeAggregation(FXObject*, FXSelector, void*) {
 
 long
 GUIParameterTracker::onCmdSave(FXObject*, FXSelector, void*) {
-    FXString file = MFXUtils::getFilename2Write(this, "Save Data", ".csv", GUIIconSubSys::getIcon(ICON_EMPTY), gCurrentFolder);
+    FXString file = MFXUtils::getFilename2Write(this, "Save Data", ".csv", GUIIconSubSys::getIcon(GUIIcon::EMPTY), gCurrentFolder);
     if (file == "") {
         return 1;
     }
@@ -368,17 +363,18 @@ GUIParameterTracker::GUIParameterTrackerPanel::drawValue(TrackerValueDesc& desc,
     GLHelper::drawText(toString(desc.getMax()), Position(0, 0), 1, fontHeight, RGBColor::BLACK, 0, FONS_ALIGN_LEFT | FONS_ALIGN_MIDDLE, fontWidth);
     glTranslated(0.98, -0.78, 0);
 
-    // draw current value
-    double p = (double) 0.8 -
-               ((double) 1.6 / (desc.getMax() - desc.getMin()) * (latest - desc.getMin()));
-    glTranslated(-0.98, -(p + .02), 0);
-    GLHelper::drawText(toString(latest), Position(0, 0), 1, fontHeight, RGBColor::BLACK, 0, FONS_ALIGN_LEFT | FONS_ALIGN_MIDDLE, fontWidth);
-    glTranslated(0.98, p + .02, 0);
-
     // draw name
     glTranslated(-0.98, .92, 0);
     GLHelper::drawText(desc.getName(), Position(0, 0), 1, fontHeight, RGBColor::BLACK, 0, FONS_ALIGN_LEFT | FONS_ALIGN_MIDDLE, fontWidth);
     glTranslated(0.98, -.92, 0);
+
+    // draw current value (with contrasting color)
+    double p = (double) 0.8 -
+               ((double) 1.6 / (desc.getMax() - desc.getMin()) * (latest - desc.getMin()));
+    glTranslated(-0.98, -(p + .02), 0);
+    GLHelper::drawText(toString(latest), Position(0, 0), 1, fontHeight, RGBColor::RED, 0, FONS_ALIGN_LEFT | FONS_ALIGN_MIDDLE, fontWidth);
+    glTranslated(0.98, p + .02, 0);
+
 }
 
 
@@ -437,6 +433,4 @@ GUIParameterTracker::GUIParameterTrackerPanel::onPaint(FXObject*,
 }
 
 
-
 /****************************************************************************/
-

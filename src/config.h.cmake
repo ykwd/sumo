@@ -1,32 +1,64 @@
+/* Macros for Microsoft Visual Studio */
 #ifdef _MSC_VER
 
-/* Disable "decorated name length exceeded, name was truncated" warnings. */
-#pragma warning(disable: 4503)
-/* Disable "identifier truncated in debug info" warnings. */
-#pragma warning(disable: 4786)
-/* Disable "C++ Exception Specification ignored" warnings */
-#pragma warning(disable: 4290)
-/* Disable DLL-Interface warnings */
-#pragma warning(disable: 4251)
-/* Disable integer overflow in arithmetics warnings */
-#pragma warning(disable: 26451)
+    /* Disable "decorated name length exceeded, name was truncated" warnings. */
+    #pragma warning(disable: 4503)
+    /* Disable "identifier truncated in debug info" warnings. */
+    #pragma warning(disable: 4786)
+    /* Disable "C++ Exception Specification ignored" warnings */
+    #pragma warning(disable: 4290)
+    /* Disable DLL-Interface warnings */
+    #pragma warning(disable: 4251)
+    /* Disable integer overflow in arithmetics warnings */
+    #pragma warning(disable: 26451)
 
-/* Disable "unsafe" warnings for crt functions in VC++ 2005. */
-#if _MSC_VER >= 1400
-#define _CRT_SECURE_NO_WARNINGS
-#endif
+    /* Disable "unsafe" warnings for crt functions in VC++ 2005. */
+    #if _MSC_VER >= 1400
+        #define _CRT_SECURE_NO_WARNINGS
+    #endif
 
-#ifndef WIN32
-#define WIN32
-#endif
+    /* define WIN32 */
+    #ifndef WIN32
+        #define WIN32
+    #endif
 
-/* Define for dynamic Fox linkage */
-#define FOXDLL 1
+    /* Define for dynamic Fox linkage */
+    #define FOXDLL 1
 
-#define FOX_CONSTRUCTOR(classname) __pragma(warning(suppress: 26495)) \
-classname() {}
+    /* define default constructor for FOX moduls (Visual Studio) */
+    #define FOX_CONSTRUCTOR(classname) __pragma(warning(suppress: 26495)) \
+    classname() {}
+
+/* Macros for GNU Compiler */
 #else
-#define FOX_CONSTRUCTOR(classname) classname() {}
+
+    /* defined if we're using MINGW32 */
+    #cmakedefine MINGW32
+
+    /* Windows (MinGW32) */
+    #ifdef MINGW32
+
+        /* Define WIN32 */
+        #ifndef WIN32
+            #define WIN32
+        #endif
+
+        /* Define for dynamic Fox linkage */
+        #define FOXDLL 1
+
+        /* Define default constructor for FOX moduls (MinGW32) */
+        #define FOX_CONSTRUCTOR(classname) classname() {}
+
+    /* Linux and OS */
+    #else
+
+        /* Define default constructor for FOX moduls (Linux and OS) */
+        #define FOX_CONSTRUCTOR(classname) classname() {}
+
+    /* MinGW32 */
+    #endif
+
+/* Visual Studio */
 #endif
 
 
@@ -48,6 +80,9 @@ classname() {}
 /* defined if GL2PS is available */
 #cmakedefine HAVE_GL2PS
 
+/* defined if JuPedSim is available */
+#cmakedefine HAVE_JPS
+
 /* defined if osg is available */
 #cmakedefine HAVE_OSG
 
@@ -61,10 +96,10 @@ classname() {}
 #cmakedefine HAVE_PYTHON
 
 /* Define if auto-generated version.h should be used. */
-//#define HAVE_VERSION_H
+#define HAVE_VERSION_H
 #ifndef HAVE_VERSION_H
-/* Define if auto-generated version.h is unavailable. */
-#define VERSION_STRING "1.5.0"
+    /* Define if auto-generated version.h is unavailable. */
+    #define VERSION_STRING "1.7.0"
 #endif
 
 /* defines the epsilon to use on general floating point comparison */

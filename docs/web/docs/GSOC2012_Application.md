@@ -3,7 +3,7 @@ title: GSOC2012 Application
 permalink: /GSOC2012_Application/
 ---
 
-This is the Application for the SUMO project by the Core Developement
+This is the Application for the SUMO project by the Core Development
 team of the DLR.
 
 ## Describe your organization.
@@ -17,8 +17,8 @@ Using SUMO you can simulate how a given traffic demand which consists of
 single vehicles moves through a given road network. The Application
 suite consists of tool for preparing the road network, computing route
 choices and managing various simulation outputs. Thus, a large set of
-traffic management topics can be adressed [(see our one-page
-overview)](https://sumo.dlr.de/docs/Sumo_at_a_Glance.html).
+traffic management topics can be addressed [(see our one-page
+overview)](https://sumo.dlr.de/docs/SUMO_at_a_Glance.html).
 
 Designed to be easy to use, yet powerful and flexible, GnuCash allows
 you to track bank accounts, stocks, income and expenses. As quick and

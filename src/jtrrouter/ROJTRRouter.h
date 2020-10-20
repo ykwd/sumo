@@ -18,13 +18,7 @@
 ///
 // Computes routes using junction turning percentages
 /****************************************************************************/
-#ifndef ROJTRRouter_h
-#define ROJTRRouter_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/router/SUMOAbstractRouter.h>
@@ -113,9 +107,3 @@ private:
     /// @brief Whether upstream flows shall be discounted from source flows
     const bool myDiscountSources;
 };
-
-
-#endif
-
-/****************************************************************************/
-

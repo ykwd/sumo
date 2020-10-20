@@ -20,11 +20,6 @@
 ///
 // The dialog to change the view (gui) settings.
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <vector>
@@ -151,6 +146,8 @@ GUISettingsHandler::myStartElement(int element, const SUMOSAXAttributes& attrs) 
             mySettings.vehicleParam = attrs.getStringSecure("vehicleParam", mySettings.vehicleParam);
             mySettings.vehicleTextParam = attrs.getStringSecure("vehicleTextParam", mySettings.vehicleTextParam);
             mySettings.edgeData = attrs.getStringSecure("edgeData", mySettings.edgeData);
+            mySettings.edgeValueHideCheck = StringUtils::toBool(attrs.getStringSecure("edgeValueHideCheck", toString(mySettings.edgeValueHideCheck)));
+            mySettings.edgeValueHideThreshold = StringUtils::toDouble(attrs.getStringSecure("edgeValueHideThreshold", toString(mySettings.edgeValueHideThreshold)));
             myCurrentColorer = element;
             mySettings.edgeColorer.setActive(laneEdgeMode);
             mySettings.edgeScaler.setActive(laneEdgeScaleMode);
@@ -207,14 +204,14 @@ GUISettingsHandler::myStartElement(int element, const SUMOSAXAttributes& attrs) 
                 if (myCurrentScheme->isFixed()) {
                     myCurrentScheme->setColor(attrs.getStringSecure(SUMO_ATTR_NAME, ""), color);
                 } else {
-                    myCurrentScheme->addColor(color, attrs.getOpt<double>(SUMO_ATTR_THRESHOLD, nullptr, ok, 0));
+                    myCurrentScheme->addColor(color, attrs.getOpt<double>(SUMO_ATTR_THRESHOLD, nullptr, ok, std::numeric_limits<double>::max()));
                 }
             } else if (myCurrentScaleScheme != nullptr) {
                 double scale = attrs.get<double>(SUMO_ATTR_COLOR, nullptr, ok);
                 if (myCurrentScaleScheme->isFixed()) {
                     myCurrentScaleScheme->setColor(attrs.getStringSecure(SUMO_ATTR_NAME, ""), scale);
                 } else {
-                    myCurrentScaleScheme->addColor(scale, attrs.getOpt<double>(SUMO_ATTR_THRESHOLD, nullptr, ok, 0));
+                    myCurrentScaleScheme->addColor(scale, attrs.getOpt<double>(SUMO_ATTR_THRESHOLD, nullptr, ok, std::numeric_limits<double>::max()));
                 }
             }
             break;
@@ -251,6 +248,7 @@ GUISettingsHandler::myStartElement(int element, const SUMOSAXAttributes& attrs) 
             mySettings.junctionColorer.setActive(StringUtils::toInt(attrs.getStringSecure("junctionMode", "0")));
             mySettings.drawLinkTLIndex = parseTextSettings("drawLinkTLIndex", attrs, mySettings.drawLinkTLIndex);
             mySettings.drawLinkJunctionIndex = parseTextSettings("drawLinkJunctionIndex", attrs, mySettings.drawLinkJunctionIndex);
+            mySettings.junctionID = parseTextSettings("junctionID", attrs, mySettings.junctionID);
             mySettings.junctionName = parseTextSettings("junctionName", attrs, mySettings.junctionName);
             mySettings.internalJunctionName = parseTextSettings("internalJunctionName", attrs, mySettings.internalJunctionName);
             mySettings.tlsPhaseIndex = parseTextSettings("tlsPhaseIndex", attrs, mySettings.tlsPhaseIndex);
@@ -269,9 +267,11 @@ GUISettingsHandler::myStartElement(int element, const SUMOSAXAttributes& attrs) 
             mySettings.addFullName = parseTextSettings("addFullName", attrs, mySettings.addFullName);
             break;
         case SUMO_TAG_VIEWSETTINGS_POIS:
+            mySettings.poiTextParam = attrs.getStringSecure("poiTextParam", mySettings.poiTextParam);
             mySettings.poiSize = parseSizeSettings("poi", attrs, mySettings.poiSize);
             mySettings.poiName = parseTextSettings("poiName", attrs, mySettings.poiName);
             mySettings.poiType = parseTextSettings("poiType", attrs, mySettings.poiType);
+            mySettings.poiText = parseTextSettings("poiText", attrs, mySettings.poiText);
             mySettings.poiColorer.setActive(StringUtils::toInt(attrs.getStringSecure("personMode", "0")));
             myCurrentColorer = element;
             break;
@@ -285,6 +285,7 @@ GUISettingsHandler::myStartElement(int element, const SUMOSAXAttributes& attrs) 
         case SUMO_TAG_VIEWSETTINGS_LEGEND:
             mySettings.showSizeLegend = StringUtils::toBool(attrs.getStringSecure("showSizeLegend", toString(mySettings.showSizeLegend)));
             mySettings.showColorLegend = StringUtils::toBool(attrs.getStringSecure("showColorLegend", toString(mySettings.showColorLegend)));
+            mySettings.showVehicleColorLegend = StringUtils::toBool(attrs.getStringSecure("showVehicleColorLegend", toString(mySettings.showVehicleColorLegend)));
             break;
         case SUMO_TAG_VIEWSETTINGS_DECAL: {
             GUISUMOAbstractView::Decal d;
@@ -461,4 +462,3 @@ GUISettingsHandler::getEventDistribution(const std::string& id) {
 
 
 /****************************************************************************/
-

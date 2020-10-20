@@ -18,13 +18,7 @@
 ///
 // A BT receiver
 /****************************************************************************/
-#ifndef MSDevice_BTreceiver_h
-#define MSDevice_BTreceiver_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <random>
@@ -125,7 +119,6 @@ public:
      * @param[in] lastPos Position on the lane when leaving.
      * @param[in] isArrival whether the vehicle arrived at its destination
      * @param[in] isLaneChange whether the vehicle changed from the lane
-     * @see leaveDetectorByLaneChange
      * @see MSMoveReminder
      * @see MSMoveReminder::notifyLeave
      */
@@ -165,7 +158,7 @@ public:
 
     private:
         /// @brief Invalidated assignment operator.
-        MeetingPoint& operator=(const MeetingPoint&);
+        MeetingPoint& operator=(const MeetingPoint&) = delete;
 
     };
 
@@ -386,8 +379,3 @@ private:
 
 
 };
-
-#endif
-
-/****************************************************************************/
-

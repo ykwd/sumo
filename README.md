@@ -2,10 +2,12 @@
 
 Eclipse SUMO - Simulation of Urban MObility 
 ===========================================
-
-![Windows, Linux and MacOS Build Status](https://github.com/eclipse/sumo/workflows/build/badge.svg)
-[![Windows Build status](https://ci.appveyor.com/api/projects/status/github/eclipse/sumo?svg=true)](https://ci.appveyor.com/project/eclipsewebmaster/sumo)
+![Windows](https://github.com/eclipse/sumo/workflows/windows/badge.svg)
+![Linux](https://github.com/eclipse/sumo/workflows/linux/badge.svg)
+![macOS](https://github.com/eclipse/sumo/workflows/macos/badge.svg)
 ![Repo Size](https://img.shields.io/github/repo-size/eclipse/sumo.svg)
+
+<!-- [![Windows Build status](https://ci.appveyor.com/api/projects/status/github/eclipse/sumo?svg=true)](https://ci.appveyor.com/project/eclipsewebmaster/sumo) -->
 
 What is SUMO
 ------------
@@ -51,7 +53,7 @@ If you want to develop under Windows, please also clone the dependent libraries 
 
 Using Linux you should have a look whether your distribution already contains sumo.
 There is also a [ppa for ubuntu users](https://launchpad.net/~sumo) and an
-[open build service instance](https://build.opensuse.org/project/show?project=home%3Abehrisch).
+[open build service instance](https://build.opensuse.org/project/show/home:behrisch).
 If you want to build yourself, the steps for ubuntu are:
 
         sudo apt-get install cmake python g++ libxerces-c-dev libfox-1.6-dev libgdal-dev libproj-dev libgl2ps-dev swig

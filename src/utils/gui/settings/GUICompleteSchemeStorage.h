@@ -18,13 +18,7 @@
 ///
 // Storage for available visualization settings
 /****************************************************************************/
-#ifndef GUICompleteSchemeStorage_h
-#define GUICompleteSchemeStorage_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -148,9 +142,3 @@ protected:
 };
 
 extern GUICompleteSchemeStorage gSchemeStorage;
-
-
-#endif
-
-/****************************************************************************/
-

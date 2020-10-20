@@ -19,11 +19,6 @@
 ///
 // GUI-version of the person control for building gui persons
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <vector>
@@ -37,7 +32,10 @@
 // ===========================================================================
 // method definitions
 // ===========================================================================
-GUITransportableControl::GUITransportableControl(const bool isPerson) : MSTransportableControl(isPerson) {}
+GUITransportableControl::GUITransportableControl(const bool isPerson) :
+    MSTransportableControl(isPerson),
+    myIsPerson(isPerson)
+{}
 
 
 GUITransportableControl::~GUITransportableControl() {
@@ -59,11 +57,15 @@ GUITransportableControl::buildContainer(const SUMOVehicleParameter* pars, MSVehi
 
 
 void
-GUITransportableControl::insertPersonIDs(std::vector<GUIGlID>& into) {
+GUITransportableControl::insertIDs(std::vector<GUIGlID>& into) {
     into.reserve(myTransportables.size());
     for (std::map<std::string, MSTransportable*>::const_iterator it = myTransportables.begin(); it != myTransportables.end(); ++it) {
         if (it->second->getCurrentStageType() != MSStageType::WAITING_FOR_DEPART) {
-            into.push_back(static_cast<const GUIPerson*>(it->second)->getGlID());
+            if (myIsPerson) {
+                into.push_back(static_cast<const GUIPerson*>(it->second)->getGlID());
+            } else {
+                into.push_back(static_cast<const GUIContainer*>(it->second)->getGlID());
+            }
         }
     }
 }

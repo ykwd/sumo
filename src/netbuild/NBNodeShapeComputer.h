@@ -19,13 +19,7 @@
 ///
 // This class computes shapes of junctions
 /****************************************************************************/
-#ifndef NBNodeShapeComputer_h
-#define NBNodeShapeComputer_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/geom/PositionVector.h>
@@ -84,6 +78,10 @@ private:
      */
     PositionVector computeNodeShapeSmall();
 
+    /// @brief compute clockwise/counter-clockwise edge boundaries
+    void computeEdgeBoundaries(const EdgeVector& edges,
+                               GeomsMap& geomsCCW,
+                               GeomsMap& geomsCW);
 
     /** @brief Joins edges and computes ccw/cw boundaries
      *
@@ -94,18 +92,16 @@ private:
      *  all edges within the value-vector which direction at the node differs
      *  less than 1 from the key-edge's direction.
      */
-    void joinSameDirectionEdges(std::map<NBEdge*, std::set<NBEdge*> >& same,
-                                GeomsMap& geomsCCW,
-                                GeomsMap& geomsCW);
+    void joinSameDirectionEdges(const EdgeVector& edges, std::map<NBEdge*, std::set<NBEdge*> >& same);
 
-    /** @brief Joins edges and computes ccw/cw boundaries
+    /** @brief Joins edges
      *
      * This methods joins edges which are in marked as being "same" in the means
      *  as given by joinSameDirectionEdges. The result (list of so-to-say "directions"
-     *  is returned; additionally, the boundaries of these directions are stored in
-     *  ccwBoundary/cwBoundary.
+     *  is returned;
      */
     EdgeVector computeUniqueDirectionList(
+        const EdgeVector& all,
         std::map<NBEdge*, std::set<NBEdge*> >& same,
         GeomsMap& geomsCCW,
         GeomsMap& geomsCW);
@@ -145,6 +141,10 @@ private:
     /// @brief return the intersection point closest to the given offset
     double closestIntersection(const PositionVector& geom1, const PositionVector& geom2, double offset);
 
+    /// @brief whether the given edges (along with those in the same direction) requires a large turning radius
+    bool needsLargeTurn(NBEdge* e1, NBEdge* e2,
+                        std::map<NBEdge*, std::set<NBEdge*> >& same) const;
+
     /// @brief determine the default radius appropriate for the current junction
     double getDefaultRadius(const OptionsCont& oc);
 
@@ -158,13 +158,10 @@ private:
     /// @brief the computed node radius
     double myRadius;
 
+    static const SVCPermissions SVC_LARGE_TURN;
+
 private:
     /// @brief Invalidated assignment operator
     NBNodeShapeComputer& operator=(const NBNodeShapeComputer& s);
 
 };
-
-#endif
-
-/****************************************************************************/
-

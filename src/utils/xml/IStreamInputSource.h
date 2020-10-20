@@ -19,13 +19,7 @@
 // Xerces InputSource reading from arbitrary std::istream
 // reimplementation inspired by https://marc.info/?l=xerces-dev&m=86952133511623
 /****************************************************************************/
-#ifndef IStreamInputSource_h
-#define IStreamInputSource_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <iostream>
 #include <xercesc/util/BinInputStream.hpp>
 #include <xercesc/sax/InputSource.hpp>
@@ -72,9 +66,3 @@ public:
 private:
     std::istream& myIn;
 };
-
-
-#endif
-
-
-/****************************************************************************/

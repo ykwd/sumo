@@ -17,13 +17,7 @@
 ///
 // The class responsible for building and deletion of vehicles (meso-version)
 /****************************************************************************/
-#ifndef MEVehicleControl_h
-#define MEVehicleControl_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -83,9 +77,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

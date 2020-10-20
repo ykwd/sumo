@@ -17,13 +17,7 @@
 ///
 // An output device that encapsulates a stringstream
 /****************************************************************************/
-#ifndef OutputDevice_String_h
-#define OutputDevice_String_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <fstream>
@@ -45,7 +39,7 @@ public:
     /** @brief Constructor
      * @exception IOError Should not be thrown by this implementation
      */
-    OutputDevice_String(const bool binary = false, const int defaultIndentation = 0);
+    OutputDevice_String(const int defaultIndentation = 0);
 
 
     /// @brief Destructor
@@ -73,9 +67,3 @@ private:
     std::ostringstream myStream;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

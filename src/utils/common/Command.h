@@ -18,14 +18,7 @@
 ///
 // Base (microsim) event class
 /****************************************************************************/
-#ifndef Command_h
-#define Command_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-
+#pragma once
 #include <utils/common/SUMOTime.h>
 #include <utils/common/UtilExceptions.h>
 
@@ -75,11 +68,19 @@ public:
      */
     virtual SUMOTime execute(SUMOTime currentTime) = 0;
 
+    /** @brief Reschedule or deschedule the command when quick-loading state
+     *
+     * The implementations should return -1 if the command shall not be re-scheduled,
+     *  or a value >= 0 that describe the new time at which the command
+     *  shall be executed again.
+     *
+     * @param[in] currentTime The current simulation time
+         * @param[in] execTime The time at which the command would have been executed
+     * @param[in] newTime The simulation time at which the simulation is restarted
+     * @return The time at which the command shall be executed again
+     */
+    virtual SUMOTime shiftTime(SUMOTime /*currentTime*/, SUMOTime /*execTime*/, SUMOTime /*newTime*/) {
+        return -1;
+    }
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

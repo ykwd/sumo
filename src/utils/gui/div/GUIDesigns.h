@@ -17,12 +17,7 @@
 ///
 // File with the definitions of standard style of FXObjects in SUMO
 /****************************************************************************/
-#ifndef GUIDesigns_h
-#define GUIDesigns_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <fx.h>
@@ -36,8 +31,11 @@
 /// @brief text field extended over Frame with thick frame
 #define GUIDesignTextField                  (FRAME_THICK | LAYOUT_FILL_X | LAYOUT_FIX_HEIGHT), 0, 0, 0, 23, 2, 2, 2, 2
 
-/// @brief text field with thick frame and size of 100x23
-#define GUIDesignTextFielWidth100           (FRAME_THICK | LAYOUT_FIX_WIDTH | LAYOUT_FIX_HEIGHT), 0, 0, 100, 23, 2, 2, 2, 2
+/// @brief text field with thick frame and size of 50x23
+#define GUIDesignTextFielWidth50           (FRAME_THICK | LAYOUT_FIX_WIDTH | LAYOUT_FIX_HEIGHT), 0, 0, 50, 23, 2, 2, 2, 2
+
+/// @brief text field with thick frame and size of 50x23 and limited to doubles
+#define GUIDesignTextFielWidth50Real       (FRAME_THICK | LAYOUT_FIX_WIDTH | LAYOUT_FIX_HEIGHT | TEXTFIELD_REAL), 0, 0, 50, 23, 2, 2, 2, 2
 
 /// @brief text field with thick frame, size of 180x23 /doubles (Used in GNEVehicleType)
 #define GUIDesignTextFielWidth180           (FRAME_THICK | LAYOUT_FIX_WIDTH | LAYOUT_FIX_HEIGHT), 0, 0, 180, 23, 2, 2, 2, 2
@@ -197,6 +195,9 @@
 /// @brief label extended over frame without thick and with text justify to left, used to show information in frames
 #define GUIDesignLabelFrameInformation      (JUSTIFY_LEFT | LAYOUT_FILL_X | ICON_BEFORE_TEXT), 0, 0, 0, 0, 2, 2, 2, 2
 
+/// @brief label extended over frame without thick and with text justify to left, used to show information in frames
+#define GUIDesignLabelFrameThicked          (FRAME_THICK | JUSTIFY_LEFT | LAYOUT_FILL_X | ICON_BEFORE_TEXT), 0, 0, 0, 0, 2, 2, 2, 2
+
 /// @brief label with thick, text justify to left and size of 100x23
 #define GUIDesignLabelThick100              (FRAME_THICK | ICON_BEFORE_TEXT | LAYOUT_FIX_WIDTH | LAYOUT_FIX_HEIGHT), 0, 0, 100, 23, 2, 2, 2, 2
 
@@ -208,14 +209,20 @@
 /// @brief Combo box editable extended over the all frame
 #define GUIDesignComboBox                   (FRAME_THICK | LAYOUT_FILL_X | LAYOUT_FIX_HEIGHT), 0, 0, 0, 23, 2, 2, 2, 2
 
-/// @brief Combo box static     (not editable)
+/// @brief Combo box static (not editable)
 #define GUIDesignComboBoxStatic             (COMBOBOX_STATIC | FRAME_SUNKEN | LAYOUT_LEFT | LAYOUT_TOP | LAYOUT_FIX_HEIGHT), 0, 0, 0, 23, 2, 2, 2, 2
+
+/// @brief Combo box static (not editable) extended over the all frame
+#define GUIDesignComboBoxStaticExtended     (COMBOBOX_STATIC | FRAME_THICK | LAYOUT_FILL_X | LAYOUT_FIX_HEIGHT), 0, 0, 0, 23, 2, 2, 2, 2
 
 /// @brief Combo box static     (cannot be edited) extended over the matrix column
 #define GUIDesignComboBoxAttribute          (COMBOBOX_NORMAL | FRAME_THICK | LAYOUT_FILL_X | LAYOUT_FIX_HEIGHT), 0, 0, 0, 23, 2, 2, 2, 2
 
-/// @brief comboBox with thick frame, size of 180x23 /doubles (Used in GNEVehicleType)
+/// @brief comboBox with thick frame, size of 180x23 (Used in GNEVehicleType)
 #define GUIDesignComboBoxWidth180           (COMBOBOX_NORMAL | FRAME_THICK | LAYOUT_FIX_WIDTH | LAYOUT_FIX_HEIGHT), 0, 0, 180, 23, 2, 2, 2, 2
+
+/// @brief comboBox with thick frame, size of 120x23
+#define GUIDesignComboBoxWidth120           (COMBOBOX_NORMAL | FRAME_THICK | LAYOUT_FIX_WIDTH | LAYOUT_FIX_HEIGHT), 0, 0, 120, 23, 2, 2, 2, 2
 
 /// @brief number of column of every combo box
 #define GUIDesignComboBoxNCol               1
@@ -234,7 +241,7 @@
 #define GUIDesignHorizontalFrameIcons       (LAYOUT_FILL_X | FRAME_THICK), 0, 0, 0, 0, 0, 0, 0, 0, 2, 2
 
 /// @brief Horizontal frame used in status bar
-#define GUIDesignHorizontalFrameStatusBar   (LAYOUT_FIX_WIDTH | LAYOUT_FILL_Y | LAYOUT_RIGHT | FRAME_SUNKEN), 0, 0, 20, 0, 0, 0, 0, 0, 0, 0
+#define GUIDesignHorizontalFrameStatusBar   (LAYOUT_FILL_Y | LAYOUT_RIGHT | FRAME_SUNKEN), 0, 0, 20, 0, 0, 0, 0, 0, 0, 0
 
 /// @brief Matrix design extended over Frame packed by columns
 #define GUIDesignMatrix                     (LAYOUT_FILL_X | LAYOUT_FILL_Y | MATRIX_BY_COLUMNS | PACK_UNIFORM_WIDTH)
@@ -513,9 +520,6 @@
 /// @brief design for FXLists
 #define GUIDesignList                           (LIST_NORMAL | FRAME_NORMAL | LAYOUT_FILL_X)
 
-/// @brief design for FXList sthat only allow a single selected elements selected
-#define GUIDesignListSingleElement              (LIST_SINGLESELECT | FRAME_NORMAL | LAYOUT_FILL_X)
-
 /// @brief design for FXLists with height fixed
 #define GUIDesignListFixedHeight                (LIST_NORMAL | FRAME_NORMAL | LAYOUT_FILL_X | LAYOUT_FIX_HEIGHT)
 
@@ -527,7 +531,3 @@
 
 /// @brief desgin for TabBooks
 #define GUIDesignTabBook                        (TABBOOK_LEFTTABS | PACK_UNIFORM_WIDTH | PACK_UNIFORM_HEIGHT | LAYOUT_FILL_X | LAYOUT_FILL_Y | LAYOUT_RIGHT)
-
-#endif
-
-/****************************************************************************/

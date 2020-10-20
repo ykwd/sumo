@@ -17,11 +17,6 @@
 ///
 // C++ TraCI client API implementation
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <microsim/transportables/MSTransportableControl.h>
@@ -31,6 +26,8 @@
 #include <microsim/MSStoppingPlace.h>
 #include <microsim/transportables/MSPerson.h>
 #include <microsim/transportables/MSStageDriving.h>
+#include <microsim/devices/MSDevice_Taxi.h>
+#include <microsim/devices/MSDispatch_TraCI.h>
 #include <libsumo/TraCIConstants.h>
 #include <utils/geom/GeomHelper.h>
 #include <utils/common/StringTokenizer.h>
@@ -119,9 +116,51 @@ Person::getRoadID(const std::string& personID) {
 }
 
 
+std::string
+Person::getLaneID(const std::string& personID) {
+    return Named::getIDSecure(getPerson(personID)->getLane(), "");
+}
+
+
 double
 Person::getLanePosition(const std::string& personID) {
     return getPerson(personID)->getEdgePos();
+}
+
+std::vector<TraCIReservation>
+Person::getTaxiReservations(int onlyNew) {
+    std::vector<TraCIReservation> result;
+    MSDispatch* dispatcher = MSDevice_Taxi::getDispatchAlgorithm();
+    if (dispatcher != nullptr) {
+        MSDispatch_TraCI* traciDispatcher = dynamic_cast<MSDispatch_TraCI*>(dispatcher);
+        if (traciDispatcher == nullptr) {
+            throw TraCIException("device.taxi.dispatch-algorithm 'traci' has not been loaded");
+        }
+        for (Reservation* res : dispatcher->getReservations()) {
+            if (onlyNew != 0) {
+                if (res->recheck != SUMOTime_MAX) {
+                    continue;
+                }
+                // reservations become the responsibility of the traci client
+                res->recheck = SUMOTime_MAX;
+            }
+            std::vector<std::string> personIDs;
+            for (MSTransportable* p : res->persons) {
+                personIDs.push_back(p->getID());
+            }
+            result.push_back(TraCIReservation(traciDispatcher->getReservationID(res),
+                                              personIDs,
+                                              res->group,
+                                              res->from->getID(),
+                                              res->to->getID(),
+                                              res->fromPos,
+                                              res->toPos,
+                                              STEPS2TIME(res->pickupTime),
+                                              STEPS2TIME(res->reservationTime)
+                                             ));
+        }
+    }
+    return result;
 }
 
 
@@ -182,7 +221,7 @@ Person::getStage(const std::string& personID, int nextStageIndex) {
         throw TraCIException("The stage index must be lower than the number of remaining stages.");
     }
     if (nextStageIndex < (p->getNumRemainingStages() - p->getNumStages())) {
-        throw TraCIException("The negative stage index must refer to a valid previous stage.");
+        throw TraCIException("The negative stage index " + toString(nextStageIndex) + " must refer to a valid previous stage.");
     }
     //stageType, arrivalPos, edges, destStop, vType, and description can be retrieved directly from the base Stage class.
     MSStage* stage = p->getNextStage(nextStageIndex);
@@ -197,21 +236,25 @@ Person::getStage(const std::string& personID, int nextStageIndex) {
     if (destinationStop != nullptr) {
         result.destStop = destinationStop->getID();
     }
-    SUMOVehicle* vehicle = stage->getVehicle();
-    if (vehicle != nullptr) {
-        result.vType = vehicle->getVehicleType().getID();
-    }
     result.description = stage->getStageDescription(p->isPerson());
     result.length = stage->getDistance();
-    // negative values indicate that the information is not available
-    result.cost = -1;
-    result.travelTime = -1;
+    if (result.length == -1.) {
+        result.length = INVALID_DOUBLE_VALUE;
+    }
+    result.departPos = INVALID_DOUBLE_VALUE;
+    result.cost = INVALID_DOUBLE_VALUE;
+    result.travelTime = INVALID_DOUBLE_VALUE;
+    result.depart = stage->getDeparted() >= 0 ? STEPS2TIME(stage->getDeparted()) : INVALID_DOUBLE_VALUE;
+    result.travelTime = stage->getArrived() >= 0 ? STEPS2TIME(stage->getArrived() - stage->getDeparted()) : INVALID_DOUBLE_VALUE;
     // Some stage type dependant attributes
     switch (stage->getStageType()) {
         case MSStageType::DRIVING: {
             MSStageDriving* const drivingStage = static_cast<MSStageDriving*>(stage);
+            result.vType = drivingStage->getVehicleType();
             result.intended = drivingStage->getIntendedVehicleID();
-            result.depart = STEPS2TIME(drivingStage->getIntendedDepart());
+            if (result.depart < 0 && drivingStage->getIntendedDepart() >= 0) {
+                result.depart = STEPS2TIME(drivingStage->getIntendedDepart());
+            }
             const std::set<std::string> lines = drivingStage->getLines();
             for (auto line = lines.begin(); line != lines.end(); line++) {
                 if (line != lines.begin()) {
@@ -254,6 +297,9 @@ std::string
 Person::getParameter(const std::string& personID, const std::string& param) {
     return getPerson(personID)->getParameter().getParameter(param, "");
 }
+
+
+LIBSUMO_GET_PARAMETER_WITH_KEY_IMPLEMENTATION(Person)
 
 
 std::string
@@ -437,7 +483,7 @@ Person::add(const std::string& personID, const std::string& edgeID, double pos, 
         vehicleParams.depart = depart;
     }
 
-    vehicleParams.departPosProcedure = DEPART_POS_GIVEN;
+    vehicleParams.departPosProcedure = DepartPosDefinition::GIVEN;
     if (fabs(pos) > edge->getLength()) {
         throw TraCIException("Invalid departure position.");
     }
@@ -462,6 +508,19 @@ Person::add(const std::string& personID, const std::string& edgeID, double pos, 
 
 MSStage*
 Person::convertTraCIStage(const TraCIStage& stage, const std::string personID) {
+    MSStoppingPlace* bs = nullptr;
+    if (!stage.destStop.empty()) {
+        bs = MSNet::getInstance()->getStoppingPlace(stage.destStop, SUMO_TAG_BUS_STOP);
+        if (bs == nullptr) {
+            bs = MSNet::getInstance()->getStoppingPlace(stage.destStop, SUMO_TAG_PARKING_AREA);
+            if (bs == nullptr) {
+                throw TraCIException("Invalid stopping place id '" + stage.destStop + "' for person: '" + personID + "'");
+            } else {
+                // parkingArea is not a proper arrival place
+                bs = nullptr;
+            }
+        }
+    }
     switch (stage.type) {
         case STAGE_DRIVING: {
             if (stage.edges.empty()) {
@@ -472,17 +531,18 @@ Person::convertTraCIStage(const TraCIStage& stage, const std::string personID) {
             if (!edge) {
                 throw TraCIException("Invalid edge '" + edgeId + "' for person: '" + personID + "'");
             }
-            MSStoppingPlace* bs = nullptr;
-            if (!stage.destStop.empty()) {
-                bs = MSNet::getInstance()->getStoppingPlace(stage.destStop, SUMO_TAG_BUS_STOP);
-                if (bs == nullptr) {
-                    throw TraCIException("Invalid stopping place id '" + stage.destStop + "' for person: '" + personID + "'");
-                }
-            }
             if (stage.line.empty()) {
                 throw TraCIException("Empty lines parameter for person: '" + personID + "'");
             }
-            return new MSStageDriving(edge, bs, edge->getLength() - NUMERICAL_EPS, StringTokenizer(stage.line).getVector());
+            double arrivalPos = stage.arrivalPos;
+            if (arrivalPos == INVALID_DOUBLE_VALUE) {
+                if (bs != nullptr) {
+                    arrivalPos = bs->getEndLanePosition();
+                } else {
+                    arrivalPos = edge->getLength();
+                }
+            }
+            return new MSStageDriving(edge, bs, arrivalPos, StringTokenizer(stage.line).getVector());
         }
 
         case STAGE_WALKING: {
@@ -504,13 +564,6 @@ Person::convertTraCIStage(const TraCIStage& stage, const std::string personID) {
                 arrivalPos += edges.back()->getLength();
             }
             double speed = p->getVehicleType().getMaxSpeed();
-            MSStoppingPlace* bs = nullptr;
-            if (!stage.destStop.empty()) {
-                bs = MSNet::getInstance()->getStoppingPlace(stage.destStop, SUMO_TAG_BUS_STOP);
-                if (bs == nullptr) {
-                    throw TraCIException("Invalid stopping place id '" + stage.destStop + "' for person: '" + personID + "'");
-                }
-            }
             return new MSPerson::MSPersonStage_Walking(p->getID(), edges, bs, -1, speed, p->getArrivalPos(), arrivalPos, 0);
         }
 
@@ -518,13 +571,6 @@ Person::convertTraCIStage(const TraCIStage& stage, const std::string personID) {
             MSTransportable* p = getPerson(personID);
             if (stage.travelTime < 0) {
                 throw TraCIException("Duration for person: '" + personID + "' must not be negative");
-            }
-            MSStoppingPlace* bs = nullptr;
-            if (!stage.destStop.empty()) {
-                bs = MSNet::getInstance()->getStoppingPlace(stage.destStop, SUMO_TAG_BUS_STOP);
-                if (bs == nullptr) {
-                    throw TraCIException("Invalid stopping place id '" + stage.destStop + "' for person: '" + personID + "'");
-                }
             }
             return new MSStageWaiting(p->getArrivalEdge(), nullptr, TIME2STEPS(stage.travelTime), 0, p->getArrivalPos(), stage.description, false);
         }
@@ -535,11 +581,12 @@ Person::convertTraCIStage(const TraCIStage& stage, const std::string personID) {
 
 
 void
-Person::appendStage(const TraCIStage& stage, const std::string& personID) {
+Person::appendStage(const std::string& personID, const TraCIStage& stage) {
     MSTransportable* p = getPerson(personID);
     MSStage* personStage = convertTraCIStage(stage, personID);
     p->appendStage(personStage);
 }
+
 
 void
 Person::replaceStage(const std::string& personID, const int stageIndex, const TraCIStage& stage) {
@@ -675,7 +722,7 @@ Person::rerouteTraveltime(const std::string& personID) {
     }
     ConstMSEdgeVector oldEdges = p->getEdges(firstIndex);
     assert(!oldEdges.empty());
-    if (oldEdges.front()->getFunction() != EDGEFUNC_NORMAL) {
+    if (oldEdges.front()->getFunction() != SumoXMLEdgeFunc::NORMAL) {
         oldEdges.erase(oldEdges.begin());
     }
     //std::cout << " remainingStages=" << p->getNumRemainingStages() << " oldEdges=" << toString(oldEdges) << " newEdges=" << toString(newEdges) << " firstIndex=" << firstIndex << " nextIndex=" << nextIndex << "\n";
@@ -771,14 +818,43 @@ Person::moveToXY(const std::string& personID, const std::string& edgeID, const d
         //  we additionally assume it is moving forward (SUMO-limit);
         //  note that the route ("edges") is not changed in this case
         found = Helper::moveToXYMap_matchingRoutePosition(pos, edgeID,
-                ev, routeIndex, vClass,
+                ev, routeIndex, vClass, true,
                 bestDistance, &lane, lanePos, routeOffset);
     } else {
         double speed = pos.distanceTo2D(p->getPosition()); // !!!veh->getSpeed();
         found = Helper::moveToXYMap(pos, maxRouteDistance, mayLeaveNetwork, edgeID, angle,
-                                    speed, ev, routeIndex, currentLane, p->getEdgePos(), true,
-                                    vClass,
+                                    speed, ev, routeIndex, currentLane, p->getEdgePos(), currentLane != nullptr,
+                                    vClass, true,
                                     bestDistance, &lane, lanePos, routeOffset, edges);
+        if (edges.size() != 0 && ev.size() > 1) {
+            // try to rebuild the route
+            const MSEdge* origEdge = p->getEdge();
+            assert(lane != nullptr);
+            const MSJunction* originalTarget = nullptr;
+            if (origEdge->isNormal()) {
+                if (routeIndex == 0) {
+                    if (origEdge->getToJunction() == ev[1]->getToJunction() || origEdge->getToJunction() == ev[1]->getFromJunction()) {
+                        originalTarget = origEdge->getToJunction();
+                    } else {
+                        originalTarget = origEdge->getFromJunction();
+                    }
+                } else {
+                    if (origEdge->getToJunction() == ev[routeIndex - 1]->getToJunction() || origEdge->getToJunction() == ev[routeIndex - 1]->getFromJunction()) {
+                        originalTarget = origEdge->getFromJunction();
+                    } else {
+                        originalTarget = origEdge->getToJunction();
+                    }
+                }
+            } else {
+                originalTarget = origEdge->getToJunction();
+                assert(originalTarget == origEdge->getFromJunction());
+            }
+            const MSEdge* newEdge = edges[0];
+            if (edges[0]->getFromJunction() == originalTarget || edges[0]->getToJunction() == originalTarget) {
+                edges = ev;
+                edges[routeIndex] = newEdge;
+            }
+        }
     }
     if ((found && bestDistance <= maxRouteDistance) || mayLeaveNetwork) {
         // compute lateral offset
@@ -807,22 +883,41 @@ Person::moveToXY(const std::string& personID, const std::string& edgeID, const d
             pos = lane->geometryPositionAtOffset(lanePos, -lanePosLat);
         }
         assert((found && lane != 0) || (!found && lane == 0));
-        if (angle == INVALID_DOUBLE_VALUE) {
-            if (lane != nullptr) {
-                angle = GeomHelper::naviDegree(lane->getShape().rotationAtOffset(lanePos));
-            } else {
-                // compute angle outside road network from old and new position
-                angle = GeomHelper::naviDegree(p->getPosition().angleTo2D(pos));
-            }
-        }
         switch (p->getStageType(0)) {
             case MSStageType::WALKING: {
-                Helper::setRemoteControlled(p, pos, lane, lanePos, lanePosLat, angle, routeOffset, edges, MSNet::getInstance()->getCurrentTimeStep());
+                if (angle == INVALID_DOUBLE_VALUE) {
+                    // walking angle cannot be deduced from road angle so we always use the last pos
+                    angle = GeomHelper::naviDegree(p->getPosition().angleTo2D(pos));
+                }
+                break;
+            }
+            case MSStageType::WAITING_FOR_DEPART:
+                MSNet::getInstance()->getPersonControl().forceDeparture();
+                FALLTHROUGH;
+            case MSStageType::WAITING: {
+                if (p->getNumRemainingStages() <= 1 || p->getStageType(1) != MSStageType::WALKING) {
+                    // insert walking stage after the current stage
+                    ConstMSEdgeVector route({p->getEdge()});
+                    const double departPos = p->getCurrentStage()->getArrivalPos();
+                    p->appendStage(new MSPerson::MSPersonStage_Walking(p->getID(), route, nullptr, -1, -1, departPos, departPos, 0), 1);
+                }
+                // abort waiting stage and proceed to walking stage
+                p->removeStage(0);
+                assert(p->getStageType(0) == MSStageType::WALKING);
+                if (angle == INVALID_DOUBLE_VALUE) {
+                    if (lane != nullptr && !lane->getEdge().isWalkingArea()) {
+                        angle = GeomHelper::naviDegree(lane->getShape().rotationAtOffset(lanePos));
+                    } else {
+                        // compute angle outside road network or on walkingarea from old and new position
+                        angle = GeomHelper::naviDegree(p->getPosition().angleTo2D(pos));
+                    }
+                }
                 break;
             }
             default:
                 throw TraCIException("Command moveToXY is not supported for person '" + personID + "' while " + p->getCurrentStageDescription() + ".");
         }
+        Helper::setRemoteControlled(p, pos, lane, lanePos, lanePosLat, angle, routeOffset, edges, MSNet::getInstance()->getCurrentTimeStep());
     } else {
         if (lane == nullptr) {
             throw TraCIException("Could not map person '" + personID + "' no road found within " + toString(maxRouteDistance) + "m.");
@@ -968,12 +1063,7 @@ LIBSUMO_SUBSCRIPTION_IMPLEMENTATION(Person, PERSON)
 
 MSPerson*
 Person::getPerson(const std::string& personID) {
-    MSTransportableControl& c = MSNet::getInstance()->getPersonControl();
-    MSPerson* p = dynamic_cast<MSPerson*>(c.get(personID));
-    if (p == nullptr) {
-        throw TraCIException("Person '" + personID + "' is not known");
-    }
-    return p;
+    return Helper::getPerson(personID);
 }
 
 
@@ -1008,6 +1098,8 @@ Person::handleVariable(const std::string& objID, const int variable, VariableWra
             return wrapper->wrapDouble(objID, variable, getSpeed(objID));
         case VAR_ROAD_ID:
             return wrapper->wrapString(objID, variable, getRoadID(objID));
+        case VAR_LANE_ID:
+            return wrapper->wrapString(objID, variable, getLaneID(objID));
         case VAR_LANEPOSITION:
             return wrapper->wrapDouble(objID, variable, getLanePosition(objID));
         case VAR_COLOR:
@@ -1022,8 +1114,10 @@ Person::handleVariable(const std::string& objID, const int variable, VariableWra
             return wrapper->wrapInt(objID, variable, getRemainingStages(objID));
         case VAR_VEHICLE:
             return wrapper->wrapString(objID, variable, getVehicle(objID));
-        default:
+        case VAR_TAXI_RESERVATIONS:
             return false;
+        default:
+            return libsumo::VehicleType::handleVariable(getTypeID(objID), variable, wrapper);
     }
 }
 

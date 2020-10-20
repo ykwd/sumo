@@ -21,13 +21,7 @@
 ///
 // A lane change model developed by D. Krajzewicz, J. Erdmann et al. between 2004 and 2013
 /****************************************************************************/
-#ifndef MSLCM_LC2013_h
-#define MSLCM_LC2013_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSAbstractLaneChangeModel.h"
@@ -117,7 +111,7 @@ public:
     void setParameter(const std::string& key, const std::string& value);
 
     /// @brief decides the next lateral speed (for continuous lane changing)
-    double computeSpeedLat(double latDist, double& maneuverDist);
+    double computeSpeedLat(double latDist, double& maneuverDist) const;
 
     /// @brief Returns a deceleration value which is used for the estimation of the duration of a lane change.
     /// @note  Effective only for continuous lane-changing when using attributes myMaxSpeedLatFactor and myMaxSpeedLatStanding. See #3771
@@ -278,9 +272,3 @@ protected:
     double myChangeProbThresholdLeft;
     //@}
 };
-
-
-#endif
-
-/****************************************************************************/
-

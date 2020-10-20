@@ -17,13 +17,7 @@
 ///
 // The base class for traffic light logic with phases
 /****************************************************************************/
-#ifndef MSPhasedTrafficLightLogic_h
-#define MSPhasedTrafficLightLogic_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utility>
@@ -197,9 +191,3 @@ protected:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

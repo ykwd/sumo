@@ -19,13 +19,7 @@
 // A complete traffic light logic loaded from a sumo-net. (opted to reimplement
 // since NBLoadedTLDef is quite vissim specific)
 /****************************************************************************/
-#ifndef NBLoadedSUMOTLDef_h
-#define NBLoadedSUMOTLDef_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -60,7 +54,7 @@ public:
      * @param[in] def The definition to copy
      * @param[in] logic The computed logic of the given def
      */
-    NBLoadedSUMOTLDef(NBTrafficLightDefinition* def, NBTrafficLightLogic* logic);
+    NBLoadedSUMOTLDef(const NBTrafficLightDefinition& def, const NBTrafficLightLogic& logic);
 
 
     /// @brief Destructor
@@ -91,7 +85,7 @@ public:
      * @param[in] byLane This edge's lane to insert instead
      */
     void replaceRemoved(NBEdge* removed, int removedLane,
-                        NBEdge* by, int byLane);
+                        NBEdge* by, int byLane, bool incoming);
 
     /** @brief patches signal plans by modifying lane indices
      * with the given offset, only indices with a value above threshold are modified
@@ -213,9 +207,6 @@ private:
     /** @brief phases are added directly to myTLLogic which is then returned in myCompute() */
     NBTrafficLightLogic* myTLLogic;
 
-    /// @brief The original nodes for which the loaded logic is valid
-    std::set<NBNode*> myOriginalNodes;
-
     /// @brief repair the plan if controlled nodes received pedestrian crossings
     void patchIfCrossingsAdded();
 
@@ -260,9 +251,3 @@ private:
     };
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

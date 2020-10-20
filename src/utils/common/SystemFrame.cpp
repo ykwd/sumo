@@ -19,11 +19,6 @@
 ///
 // A set of actions common to all applications
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include "SystemFrame.h"
@@ -83,8 +78,15 @@ SystemFrame::addReportOptions(OptionsCont& oc) {
     oc.doRegister("xml-validation", 'X', new Option_String("auto"));
     oc.addDescription("xml-validation", "Report", "Set schema validation scheme of XML inputs (\"never\", \"auto\" or \"always\")");
 
-    oc.doRegister("xml-validation.net", new Option_String("never"));
-    oc.addDescription("xml-validation.net", "Report", "Set schema validation scheme of SUMO network inputs (\"never\", \"auto\" or \"always\")");
+    if (oc.exists("net-file")) {
+        oc.doRegister("xml-validation.net", new Option_String("never"));
+        oc.addDescription("xml-validation.net", "Report", "Set schema validation scheme of SUMO network inputs (\"never\", \"auto\" or \"always\")");
+    }
+
+    if (oc.exists("route-files")) {
+        oc.doRegister("xml-validation.routes", new Option_String("auto"));
+        oc.addDescription("xml-validation.routes", "Report", "Set schema validation scheme of SUMO route inputs (\"never\", \"auto\" or \"always\")");
+    }
 
     oc.doRegister("no-warnings", 'W', new Option_Bool(false));
     oc.addSynonyme("no-warnings", "suppress-warnings", true);
@@ -116,7 +118,7 @@ SystemFrame::addReportOptions(OptionsCont& oc) {
     oc.addDescription("precision.geo", "Output", "Defines the number of digits after the comma for lon,lat output");
 
     oc.doRegister("human-readable-time", 'H', new Option_Bool(false));
-    oc.addDescription("human-readable-time", "Output", "Write time values as hour:minute:second or day:hour:minute:second rathern than seconds");
+    oc.addDescription("human-readable-time", "Output", "Write time values as hour:minute:second or day:hour:minute:second rather than seconds");
 }
 
 
@@ -129,6 +131,10 @@ SystemFrame::checkOptions() {
     if (oc.exists("weights.random-factor")) {
         gWeightsRandomFactor = oc.getFloat("weights.random-factor");
     }
+    if (oc.exists("xml-validation.routes") && oc.isDefault("xml-validation.routes") && !oc.isDefault("xml-validation")) {
+        oc.set("xml-validation.routes", oc.getString("xml-validation"));
+    }
+    std::cout << std::setprecision(gPrecision);
     return true;
 }
 
@@ -149,4 +155,3 @@ SystemFrame::close() {
 
 
 /****************************************************************************/
-

@@ -18,13 +18,7 @@
 ///
 // APIs for getting/setting junction values via TraCI
 /****************************************************************************/
-#ifndef TraCIServerAPI_Junction_h
-#define TraCIServerAPI_Junction_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <foreign/tcpip/storage.h>
@@ -63,8 +57,3 @@ private:
     /// @brief invalidated assignment operator
     TraCIServerAPI_Junction& operator=(const TraCIServerAPI_Junction& s);
 };
-
-
-#endif
-
-/****************************************************************************/

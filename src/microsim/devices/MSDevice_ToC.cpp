@@ -21,10 +21,6 @@
 // The ToC Device controls the transition of control between automated and manual driving.
 //
 /****************************************************************************/
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <algorithm>
@@ -41,6 +37,7 @@
 #include <microsim/MSEventControl.h>
 #include <microsim/MSDriverState.h>
 #include <microsim/MSStoppingPlace.h>
+#include <microsim/MSStop.h>
 #include "MSDevice_ToC.h"
 
 
@@ -159,6 +156,10 @@ void
 MSDevice_ToC::buildVehicleDevices(SUMOVehicle& v, std::vector<MSVehicleDevice*>& into) {
     OptionsCont& oc = OptionsCont::getOptions();
     if (equippedByDefaultAssignmentOptions(oc, "toc", v, false)) {
+        if (MSGlobals::gUseMesoSim) {
+            WRITE_WARNING("ToC device is not supported by the mesoscopic simulation.");
+            return;
+        }
         const std::string manualType = getStringParam(v, oc, "toc.manualType", DEFAULT_MANUAL_TYPE, true);
         const std::string automatedType = getStringParam(v, oc, "toc.automatedType", DEFAULT_AUTOMATED_TYPE, true);
         const SUMOTime responseTime = TIME2STEPS(getFloatParam(v, oc, "toc.responseTime", DEFAULT_RESPONSE_TIME, false));
@@ -290,6 +291,7 @@ MSDevice_ToC::MSDevice_ToC(SUMOVehicle& holder, const std::string& id, const std
     myOutputFile(nullptr),
     myEvents(),
     myEventLanes(),
+    myEventXY(),
     myPreviousLCMode(-1),
     myOpenGapParams(ogp),
     myDynamicToCThreshold(dynamicToCThreshold),
@@ -543,6 +545,7 @@ MSDevice_ToC::requestToC(SUMOTime timeTillMRM, SUMOTime responseTime) {
         if (generatesOutput()) {
             myEvents.push(std::make_pair(SIMSTEP, "TOR"));
             myEventLanes.push(std::make_pair(myHolder.getLane()->getID(), myHolder.getPositionOnLane())); // add lane and lanepos
+            myEventXY.push(std::make_pair(myHolder.getPosition().x(), myHolder.getPosition().y()));       // add (x, y) position
         }
     } else {
         // Switch to automated mode is performed immediately
@@ -597,6 +600,7 @@ MSDevice_ToC::triggerMRM(SUMOTime /* t */) {
     if (generatesOutput()) {
         myEvents.push(std::make_pair(SIMSTEP, "MRM"));
         myEventLanes.push(std::make_pair(myHolder.getLane()->getID(), myHolder.getPositionOnLane())); // add lane and lanepos
+        myEventXY.push(std::make_pair(myHolder.getPosition().x(), myHolder.getPosition().y()));       // add (x, y) position
     }
 
     return 0;
@@ -626,6 +630,7 @@ MSDevice_ToC::triggerUpwardToC(SUMOTime /* t */) {
     if (generatesOutput()) {
         myEvents.push(std::make_pair(SIMSTEP, "ToCup"));
         myEventLanes.push(std::make_pair(myHolder.getLane()->getID(), myHolder.getPositionOnLane())); // add lane and lanepos
+        myEventXY.push(std::make_pair(myHolder.getPosition().x(), myHolder.getPosition().y()));       // add (x, y) position
     }
 
     return 0;
@@ -662,6 +667,7 @@ MSDevice_ToC::triggerDownwardToC(SUMOTime /* t */) {
     if (generatesOutput()) {
         myEvents.push(std::make_pair(SIMSTEP, "ToCdown"));
         myEventLanes.push(std::make_pair(myHolder.getLane()->getID(), myHolder.getPositionOnLane())); // add lane and lanepos
+        myEventXY.push(std::make_pair(myHolder.getPosition().x(), myHolder.getPosition().y()));       // add (x, y) position
     }
     return 0;
 }
@@ -817,6 +823,7 @@ MSDevice_ToC::notifyMove(SUMOTrafficObject& /*veh*/,
         if (generatesOutput()) {
             myEvents.push(std::make_pair(SIMSTEP, "DYNTOR"));
             myEventLanes.push(std::make_pair(myHolder.getLane()->getID(), myHolder.getPositionOnLane())); // add lane and lanepos
+            myEventXY.push(std::make_pair(myHolder.getPosition().x(), myHolder.getPosition().y()));       // add (x, y) position
         }
         // Leadtime for dynamic ToC is proportional to the time assumed for the dynamic ToC threshold
         const double leadTime = myDynamicToCThreshold * 1000 * DYNAMIC_TOC_LEADTIME_FACTOR;
@@ -830,6 +837,7 @@ MSDevice_ToC::notifyMove(SUMOTrafficObject& /*veh*/,
         if (generatesOutput()) {
             myEvents.push(std::make_pair(SIMSTEP, "DYNTOR"));
             myEventLanes.push(std::make_pair(myHolder.getLane()->getID(), myHolder.getPositionOnLane())); // add lane and lanepos
+            myEventXY.push(std::make_pair(myHolder.getPosition().x(), myHolder.getPosition().y()));       // add (x, y) position
         }
         // NOTE: This should not occur if lane changing is prevented during ToC preparation...
         // TODO: Reset response time to the original value (unnecessary if re-sampling for each call to requestToC)
@@ -1022,12 +1030,24 @@ MSDevice_ToC::writeOutput() {
     while (!myEvents.empty()) {
         std::pair<SUMOTime, std::string>& e = myEvents.front();
         std::pair<std::string, double>& l = myEventLanes.front();
+        std::pair<double, double>& p = myEventXY.front();
         myOutputFile->openTag(e.second);
         myOutputFile->writeAttr("id", myHolder.getID()).writeAttr("t", STEPS2TIME(e.first));
-        myOutputFile->writeAttr("lane", l.first).writeAttr("lanePos", STEPS2TIME(l.second));
+        myOutputFile->writeAttr("lane", l.first).writeAttr("lanePos", l.second);
+        myOutputFile->writeAttr("x", p.first).writeAttr("y", p.second);
         myOutputFile->closeTag();
         myEvents.pop();
         myEventLanes.pop();
+        myEventXY.pop();
+
+        if (e.second.compare("DYNTOR") == 0 && !myEvents.empty()) { // skip "TOR" events if duplicate of "DYNTOR"
+            std::pair<SUMOTime, std::string>& eNext = myEvents.front();
+            if (eNext.second.compare("TOR") == 0 && eNext.first == e.first) {
+                myEvents.pop();
+                myEventLanes.pop();
+                myEventXY.pop();
+            }
+        }
     }
 }
 
@@ -1274,4 +1294,3 @@ std::vector<std::vector<double> > MSDevice_ToC::lookupResponseTimeVariances = {
 
 
 /****************************************************************************/
-

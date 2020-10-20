@@ -17,13 +17,7 @@
 ///
 // A RT-tree for efficient storing of SUMO's GL-objects
 /****************************************************************************/
-#ifndef SUMORTree_h
-#define SUMORTree_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <fx.h>
@@ -172,8 +166,10 @@ public:
                 throw ProcessError("Boundary of GUIGlObject " + o->getMicrosimID() + " has an invalid size");
             } else if (myTreeDebug.count(o) == 0) {
                 throw ProcessError("GUIGlObject wasn't inserted");
-            } else if (b != myTreeDebug.at(o)) {
-                 throw ProcessError("add boundary of GUIGlObject " + o->getMicrosimID() + " is different of removed boundary (" + toString(b) + " != " + toString(myTreeDebug.at(o)) + ")");
+            } else if (toString(b) != toString(myTreeDebug.at(o))) {
+                // show information in console before throwing exception
+                std::cout << "Tree: " << toString(myTreeDebug.at(o)) << " original: " << toString(b) << std::endl;
+                throw ProcessError("add boundary of GUIGlObject " + o->getMicrosimID() + " is different of removed boundary (" + toString(b) + " != " + toString(myTreeDebug.at(o)) + ")");
             } else {
                 myTreeDebug.erase(o);
                 WRITE_GLDEBUG("\tRemoved object " + o->getFullName() + " from SUMORTree with boundary " + toString(b));
@@ -195,9 +191,3 @@ private:
      */
     std::map<GUIGlObject*, Boundary> myTreeDebug;
 };
-
-
-#endif
-
-/****************************************************************************/
-

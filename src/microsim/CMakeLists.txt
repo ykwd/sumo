@@ -45,8 +45,6 @@ set(microsim_STAT_SRCS
    MSLaneChangerSublane.h
    MSLink.cpp
    MSLink.h
-   MSLinkCont.cpp
-   MSLinkCont.h
    MSLogicJunction.cpp
    MSLogicJunction.h
    MSMoveReminder.cpp
@@ -61,6 +59,8 @@ set(microsim_STAT_SRCS
    MSRoute.h
    MSRouteHandler.cpp
    MSRouteHandler.h
+   MSStop.cpp
+   MSStop.h
    MSStoppingPlace.cpp
    MSStoppingPlace.h
    MSParkingArea.cpp

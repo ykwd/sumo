@@ -19,13 +19,7 @@
 ///
 // Contraction Hierarchy Builder for the shortest path search
 /****************************************************************************/
-#ifndef CHBuilder_h
-#define CHBuilder_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -111,7 +105,7 @@ public:
     }
 
 
-    const Hierarchy* buildContractionHierarchy(SUMOTime time, const V* const vehicle, const SUMOAbstractRouter<E, V>* effortProvider) {
+    Hierarchy* buildContractionHierarchy(SUMOTime time, const V* const vehicle, const SUMOAbstractRouter<E, V>* effortProvider) {
         Hierarchy* result = new Hierarchy();
         const int numEdges = (int)myCHInfos.size();
         const std::string vClass = (mySPTree->validatePermissions() ?
@@ -524,9 +518,3 @@ private:
     /// @brief Invalidated assignment operator
     CHBuilder& operator=(const CHBuilder& s);
 };
-
-
-#endif
-
-/****************************************************************************/
-

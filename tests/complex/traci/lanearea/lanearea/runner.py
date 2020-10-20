@@ -44,9 +44,11 @@ def check():
             print("     meanSpeed", traci.lanearea.getLastStepMeanSpeed(detID))
             print("     vehIDs", traci.lanearea.getLastStepVehicleIDs(detID))
             print("     occupancy", traci.lanearea.getLastStepOccupancy(detID))
+            print("     jamLengthVeh", traci.lanearea.getJamLengthVehicle(detID))
+            print("     jamLengthMet", traci.lanearea.getJamLengthMeters(detID))
 
 
-traci.start([sumolib.checkBinary('sumo'), "-c", "sumo.sumocfg"])
+traci.start([sumolib.checkBinary('sumo'), "-c", "sumo.sumocfg"] + sys.argv[1:])
 while traci.simulation.getTime() < 4:
     traci.simulationStep()
     check()

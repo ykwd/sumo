@@ -18,13 +18,7 @@
 ///
 // APIs for getting/setting areal detector values via TraCI
 /****************************************************************************/
-#ifndef TraCIServerAPI_LaneArea_h
-#define TraCIServerAPI_LaneArea_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <foreign/tcpip/storage.h>
@@ -64,9 +58,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

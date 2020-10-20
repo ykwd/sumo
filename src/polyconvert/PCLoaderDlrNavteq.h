@@ -18,13 +18,7 @@
 ///
 // A reader of pois and polygons stored in DLR-Navteq (Elmar)-format
 /****************************************************************************/
-#ifndef PCLoaderDlrNavteq_h
-#define PCLoaderDlrNavteq_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -127,9 +121,3 @@ protected:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

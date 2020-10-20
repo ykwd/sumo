@@ -19,13 +19,7 @@
 ///
 // A window which displays the time line of one (or more) value(s)
 /****************************************************************************/
-#ifndef GUIParameterTracker_h
-#define GUIParameterTracker_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -210,9 +204,3 @@ protected:
     FOX_CONSTRUCTOR(GUIParameterTracker)
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

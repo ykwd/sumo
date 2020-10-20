@@ -18,13 +18,7 @@
 ///
 // An edge imported from Vissim together for a container for
 /****************************************************************************/
-#ifndef NIVissimDistrictConnection_h
-#define NIVissimDistrictConnection_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <map>
@@ -139,9 +133,3 @@ private:
     static std::map<int, std::vector<int> > myDistrictsConnections;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

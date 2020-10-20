@@ -19,13 +19,7 @@
 ///
 // A traffic light logics which must be computed (only nodes/edges are given)
 /****************************************************************************/
-#ifndef NBOwnTLDef_h
-#define NBOwnTLDef_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -139,6 +133,11 @@ public:
     ///@brief Returns the maximum index controlled by this traffic light
     int getMaxIndex();
 
+    /// @brief sets the layout for the generated signal plan
+    void setLayout(TrafficLightLayout layout) {
+        myLayout = layout;
+    }
+
 protected:
     /// @name Protected methods from NBTrafficLightDefinition-interface
     /// @{
@@ -166,7 +165,7 @@ protected:
      * @see NBTrafficLightDefinition::replaceRemoved
      */
     void replaceRemoved(NBEdge* removed, int removedLane,
-                        NBEdge* by, int byLane);
+                        NBEdge* by, int byLane, bool incoming);
     /// @}
 
 
@@ -251,16 +250,32 @@ protected:
      * @param[in] hadGreenMajor
      * @param[out] haveForbiddenLeftMover
      * @param[out] rightTurnConflicts
+     * @param[out] mergeConflicts
      * @return The corrected state
      */
     std::string correctConflicting(std::string state, const EdgeVector& fromEdges, const EdgeVector& toEdges,
                                    const std::vector<bool>& isTurnaround,
                                    const std::vector<int>& fromLanes,
+                                   const std::vector<int>& toLanes,
                                    const std::vector<bool>& hadGreenMajor,
-                                   bool& haveForbiddenLeftMover, std::vector<bool>& rightTurnConflicts);
+                                   bool& haveForbiddenLeftMover,
+                                   std::vector<bool>& rightTurnConflicts,
+                                   std::vector<bool>& mergeConflicts);
 
     /// @brief fix states in regard to custom crossing indices
     void checkCustomCrossingIndices(NBTrafficLightLogic* logic) const;
+
+    /// @brief avoid yellow signal between successive green (major) phases
+    void fixSuperfluousYellow(NBTrafficLightLogic* logic) const;
+
+    /// @brief switch of signal for links that are always green
+    void deactivateAlwaysGreen(NBTrafficLightLogic* logic) const;
+
+    /// @brief switch of signal for links that are inside a joined tls
+    void deactivateInsideEdges(NBTrafficLightLogic* logic, const EdgeVector& fromEdges) const;
+
+    /// @brief compute time to clear all vehicles from within an alternateOneWay layout
+    SUMOTime computeEscapeTime(const std::string& state, const EdgeVector& fromEdges, const EdgeVector& toEdges) const;
 
     /** @class edge_by_incoming_priority_sorter
      * @brief Sorts edges by their priority within the node they end at
@@ -284,10 +299,7 @@ private:
     /// @brief Whether left-mover should not have an additional phase
     bool myHaveSinglePhase;
 
+    /// @brief the layout for generated signal plans
+    TrafficLightLayout myLayout;
+
 };
-
-
-#endif
-
-/****************************************************************************/
-

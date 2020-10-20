@@ -23,11 +23,6 @@
 ///
 // Main object of the ActivityGen application
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #ifdef HAVE_VERSION_H
@@ -107,7 +102,7 @@ main(int argc, char* argv[]) {
             SystemFrame::close();
             return 0;
         }
-        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"));
+        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"), "never");
         MsgHandler::initOutputOptions();
         RandHelper::initRandGlobal();
         SystemFrame::checkOptions();
@@ -159,5 +154,5 @@ main(int argc, char* argv[]) {
     return ret;
 }
 
-/****************************************************************************/
 
+/****************************************************************************/

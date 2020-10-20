@@ -38,7 +38,7 @@ for batch processing called [\#LiSuM-Core](#lisum-core)
 "LISASumo.MainWindow.PNG")LiSuM Main window
 
 The installation of LiSuM is straightforward and it may not present
-major difficulties. It is recomended to have Java SE Runtime Environment
+major difficulties. It is recommended to have Java SE Runtime Environment
 (version 8 and later) and SUMO (version 1.0.1 and later) installed
 before beginning with the installation. In order to install it on a
 Windows machine just download and execute the provided *msi* file and
@@ -52,15 +52,15 @@ directory which is going to be used as the workspace directory. The
 workspace is the directory where LiSuM looks for existing simulation
 projects, where new ones should be stored and where the system
 preferences are saved. If needed use the system preferences window to
-change the workpace path.
+change the workplace path.
 
 ## Getting started
 
-Open LiSuM, set the SUMO path in the system proferences dialog window
+Open LiSuM, set the SUMO path in the system preferences dialog window
 and open an existing simulation project from the workspace. In the Tools
 menu, select "Start Lisa+ Virtual Controller" to start an instance of
 the LISA+ Virtual Controller. Pressing Ctrl+p or clicking on the "Play"
-button on the toolbar will open an instance of the SUMO-GUI, which will
+button on the toolbar will open an instance of the sumo-gui, which will
 take control over the system. Almost all menus, toolbars and dialog
 windows of LiSuM get blocked and from hereon the simulation may be
 started, paused, resumed and stopped from SUMO. Only the Control Units
@@ -145,7 +145,7 @@ The configuration file shown above declares the following:
       <b><i>gneJ2</i></b> in SUMO.
      - contains also four signal groups in LISA+ and 9 in SUMO,
       where, for example, the LISA+ signal group <b>K2</b>
-      controls the behaviour of the SUMO signal groups number 3
+      controls the behavior of the SUMO signal groups number 3
       and 4.
      - the fourth signal group contains the attribute
       <span style="background:#ffe6e6">main</span> set to
@@ -161,9 +161,9 @@ The configuration file shown above declares the following:
 ![LISASumo.ControlUnitsOptionsWindow.PNG](../images/LISASumo.ControlUnitsOptionsWindow.PNG
 "LISASumo.ControlUnitsOptionsWindow.PNG")Control units management window
 
-The Control Units Managemente dialog window gets opened by pressing
+The Control Units Management dialog window gets opened by pressing
 Ctrl+M or by clicking on the "Grid" button on the simulation toolbar. In
-this dialog it is possible to change the behaviour of all available
+this dialog it is possible to change the behavior of all available
 control units of the simulation by turning them off and on, selecting
 the program, or enabling or disabling program settings like VA
 (Verkehrsabhänhig) and ÖV (Öffentliche Verkehrsmittel).
@@ -233,7 +233,7 @@ If you want to contribute to the source or want to build for another reason
 make sure you have maven and a compatible JDK (8 or above) on your system.
 The cmake configuration step will create a "lisum-core" and a "lisum-gui" target
 (as well as a "lisum" target to build them both). Just run this target either
-using make (in a Linux or MacOS like environment) or by running the target from
+using make (in a Linux or macOS like environment) or by running the target from
 your IDE (e.g. Visual Studio on Windows). If you are using JDK8 and want the GUI
 you need to make sure that you have openjfx8 installed, since there is no openjfx
 for JDK8 on maven.

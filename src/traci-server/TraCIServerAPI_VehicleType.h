@@ -18,13 +18,7 @@
 ///
 // APIs for getting/setting vehicle type values via TraCI
 /****************************************************************************/
-#ifndef TraCIServerAPI_VehicleType_h
-#define TraCIServerAPI_VehicleType_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "TraCIServer.h"
@@ -76,9 +70,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

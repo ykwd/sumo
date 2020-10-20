@@ -17,13 +17,7 @@
 ///
 // -------------------
 /****************************************************************************/
-#ifndef NIVissimClosedLanesVector_h
-#define NIVissimClosedLanesVector_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 
@@ -31,9 +25,3 @@
 #include "NIVissimClosedLaneDef.h"
 
 typedef std::vector<NIVissimClosedLaneDef*> NIVissimClosedLanesVector;
-
-
-#endif
-
-/****************************************************************************/
-

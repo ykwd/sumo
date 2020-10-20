@@ -18,7 +18,7 @@ routecheck.py <net> <vehicletypes> [-f|--fix] <routes>+
 routecheck.py <net> <vehicletypes+routes>
 ```
 
-If a route is broken (a diconnected), the tool writes something like the
+If a route is broken (or disconnected), the tool writes something like the
 following to cout:
 
 If **--fix** (**-f**) is given, routes are tried to be repaired
@@ -35,7 +35,7 @@ vehicle.
 - No tests for dealing with networks that have internal edges
 
 # analyzePersonPlans.py
-Count the different types of person plans according to the sequence of used modes. Private rides are distinguished from public transport rides using the assumption that the name of the private vehicle will start with the name of the person (as happens for [DUAROUTER](../DUAROUTER.md)-generated person plans).
+Count the different types of person plans according to the sequence of used modes. Private rides are distinguished from public transport rides using the assumption that the name of the private vehicle will start with the name of the person (as happens for [duarouter](../duarouter.md)-generated person plans).
 ```
 tools\route\analyzePersonPlans.py -r routes.xml
 ```
@@ -80,7 +80,7 @@ Attention\! The routes are not sorted in time\!
 # sort_routes.py
 
 This script sorts the vehicles in the given route file by their depart
-time. If the option **--big** is supplied, a slow but memory efficent algorithm
+time. If the option **--big** is supplied, a slow but memory efficient algorithm
 is used.
 
 ```
@@ -95,9 +95,9 @@ This assumes the existence of a big scenario (*orig.net.xml* and
 network (*reduced.net.xml*) keeping all of the routes that pass through
 the reduced network. Output can be a route file or a trip file.
 Depending on the given options the new departure times can be computed
-from exitTimes (see [SUMO](../SUMO.md) option **--vehroute-output.exit-times**), extrapolated from
+from exitTimes (see [sumo](../sumo.md) option **--vehroute-output.exit-times**), extrapolated from
 the original network or simply copied from the original departure times.
-If the option **--big** is supplied, a slow but memory efficent algorithm is used
+If the option **--big** is supplied, a slow but memory efficient algorithm is used
 for sorting the output by departure time. Example usage
 
 ```
@@ -124,7 +124,7 @@ differences) is generated instead.
 # route2poly.py
 
 Transform routes into polygons for visualization in
-[SUMO-GUI](../SUMO-GUI.md). Using the options **--hue, --saturation, --brightness** the colors can be
+[sumo-gui](../sumo-gui.md). Using the options **--hue, --saturation, --brightness** the colors can be
 controlled. Each of these options supports values from \[0, 1\] as well
 as the special value *random*.
 
@@ -136,8 +136,8 @@ as the special value *random*.
 
 Transform routes into an edge selection file which contains all edges
 used in any of the routes, trips or person plans. This file may be used
-for visualization in [SUMO-GUI](../SUMO-GUI.md) or pruning a
-network via [NETCONVERT](../NETCONVERT.md).
+for visualization in [sumo-gui](../sumo-gui.md) or pruning a
+network via [netconvert](../netconvert.md).
 
 ```
 <SUMO_HOME>/tools/route2sel.py myRoutes.rou.xml -o usedEdges.txt
@@ -176,9 +176,9 @@ route file.
 The option **--intermediate** may be used to include the total number of passing vehicles
 for each edge in the generated output.
 
-The generated file *result.xml* can be loaded in [SUMO-GUI to color
+The generated file *result.xml* can be loaded in [sumo-gui to color
 edges by number of departs, arrivals or total number of passing
-vehicles](../SUMO-GUI.md#visualizing_edge-related_data)
+vehicles](../sumo-gui.md#visualizing_edge-related_data)
 
 When investigating routes that pass a particular edge or intersection,
 the input routes may be filtered using the option **--subpart** {{DT_STR}}:
@@ -200,7 +200,7 @@ routes.
 <SUMO_HOME>/tools/addStops2Routes.py -r <route-file> -p <parking-areas> -d <duration in seconds> [-o <output-file>]
 ```
 
-Stops in one or more parking areas (seperated by comma) are added to the
+Stops in one or more parking areas (separated by comma) are added to the
 vehicles route, if they are part of the vehicles id. Example:
 
 ```
@@ -297,4 +297,13 @@ The tool reports routes with an implausibility score above a given threshold.
 It can also be used to generated restrictions for [flowrouter](Detector.md#flowrouterpy).
 
 
+# addStopDelay.py
 
+This tool adds a random delay to some or all stops that have a 'duration' value by increasing the duration
+```
+<SUMO_HOME>/tools/route/addStopDelay.py -r <route-file> -o <output-route-file>
+```
+
+The delays are sampled from a [truncated Normal distribution](https://en.wikipedia.org/wiki/Truncated_normal_distribution) with parameters set via options
+**--mean FLOAT, --dev FLOAT, --min FLOAT, --max FLOAT**. In the special case where min=max, a fixed delay is added.
+By setting option **--probability FLOAT**, stops only receive a delay with the given probability.

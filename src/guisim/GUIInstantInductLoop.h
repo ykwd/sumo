@@ -17,13 +17,7 @@
 ///
 // The gui-version of the MSInstantInductLoop
 /****************************************************************************/
-#ifndef GUIInstantInductLoop_h
-#define GUIInstantInductLoop_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <fx.h>
@@ -141,9 +135,3 @@ public:
     mutable FXMutex myLock;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

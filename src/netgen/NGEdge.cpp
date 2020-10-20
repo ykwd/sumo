@@ -20,11 +20,6 @@
 ///
 // A netgen-representation of an edge
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <algorithm>
@@ -76,9 +71,9 @@ NGEdge::buildNBEdge(NBNetBuilder& nb, const std::string& type) const {
     }
 
     SVCPermissions permissions = nb.getTypeCont().getPermissions(type);
-    LaneSpreadFunction lsf = LANESPREAD_RIGHT;
+    LaneSpreadFunction lsf = LaneSpreadFunction::RIGHT;
     if (isRailway(permissions) &&  nb.getTypeCont().getIsOneWay(type)) {
-        lsf = LANESPREAD_CENTER;
+        lsf = LaneSpreadFunction::CENTER;
     }
     NBEdge* result = new NBEdge(
         myID,
@@ -93,4 +88,3 @@ NGEdge::buildNBEdge(NBNetBuilder& nb, const std::string& type) const {
 
 
 /****************************************************************************/
-

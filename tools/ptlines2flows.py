@@ -167,12 +167,12 @@ def createTrips(options):
             if line.hasAttribute("nightService"):
                 if line.nightService == "only" and not options.night:
                     if options.verbose:
-                        print("Skipping line '%s' because because it only drives at night" % (line.id))
+                        print("Skipping line '%s' because it only drives at night" % (line.id))
                     numSkipped += 1
                     continue
                 if line.nightService == "no" and options.night:
                     if options.verbose:
-                        print("Skipping line '%s' because because it only drives during the day" % (line.id))
+                        print("Skipping line '%s' because it only drives during the day" % (line.id))
                     numSkipped += 1
                     continue
 
@@ -268,6 +268,7 @@ def runSimulation(options):
                      "--vehroute-output", options.routes,
                      "--stop-output", options.stopinfos, ])
     print("done.")
+    sys.stdout.flush()
 
 
 def formatTime(seconds):

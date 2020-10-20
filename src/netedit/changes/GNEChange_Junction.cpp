@@ -17,14 +17,9 @@
 ///
 // A network change in which a single junction is created or deleted
 /****************************************************************************/
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <netedit/GNENet.h>
-#include <netedit/netelements/GNEJunction.h>
 
 #include "GNEChange_Junction.h"
 
@@ -40,15 +35,13 @@ FXIMPLEMENT_ABSTRACT(GNEChange_Junction, GNEChange, nullptr, 0)
 
 /// @brief constructor for creating a junction
 GNEChange_Junction::GNEChange_Junction(GNEJunction* junction, bool forward):
-    GNEChange(junction->getNet(), forward),
+    GNEChange(junction, forward, junction->isAttributeCarrierSelected()),
     myJunction(junction) {
-    assert(myNet);
     junction->incRef("GNEChange_Junction");
 }
 
 
 GNEChange_Junction::~GNEChange_Junction() {
-    assert(myJunction);
     myJunction->decRef("GNEChange_Junction");
     if (myJunction->unreferenced()) {
         // show extra information for tests
@@ -63,16 +56,24 @@ GNEChange_Junction::undo() {
     if (myForward) {
         // show extra information for tests
         WRITE_DEBUG("Removing " + myJunction->getTagStr() + " '" + myJunction->getID() + "' from " + toString(SUMO_TAG_NET));
+        // unselect if mySelectedElement is enabled
+        if (mySelectedElement) {
+            myJunction->unselectAttributeCarrier();
+        }
         // add junction to net
-        myNet->deleteSingleJunction(myJunction, false);
+        myJunction->getNet()->getAttributeCarriers()->deleteSingleJunction(myJunction);
     } else {
         // show extra information for tests
         WRITE_DEBUG("Adding " + myJunction->getTagStr() + " '" + myJunction->getID() + "' into " + toString(SUMO_TAG_NET));
+        // select if mySelectedElement is enabled
+        if (mySelectedElement) {
+            myJunction->selectAttributeCarrier();
+        }
         // delete junction from net
-        myNet->insertJunction(myJunction);
+        myJunction->getNet()->getAttributeCarriers()->insertJunction(myJunction);
     }
-    // enable save netElements
-    myNet->requireSaveNet(true);
+    // enable save networkElements
+    myJunction->getNet()->requireSaveNet(true);
 }
 
 
@@ -81,16 +82,24 @@ GNEChange_Junction::redo() {
     if (myForward) {
         // show extra information for tests
         WRITE_DEBUG("Adding " + myJunction->getTagStr() + " '" + myJunction->getID() + "' into " + toString(SUMO_TAG_NET));
+        // select if mySelectedElement is enabled
+        if (mySelectedElement) {
+            myJunction->selectAttributeCarrier();
+        }
         // add junction into net
-        myNet->insertJunction(myJunction);
+        myJunction->getNet()->getAttributeCarriers()->insertJunction(myJunction);
     } else {
         // show extra information for tests
         WRITE_DEBUG("Removing " + myJunction->getTagStr() + " '" + myJunction->getID() + "' from " + toString(SUMO_TAG_NET));
+        // unselect if mySelectedElement is enabled
+        if (mySelectedElement) {
+            myJunction->unselectAttributeCarrier();
+        }
         // delete junction from net
-        myNet->deleteSingleJunction(myJunction, false);
+        myJunction->getNet()->getAttributeCarriers()->deleteSingleJunction(myJunction);
     }
-    // enable save netElements
-    myNet->requireSaveNet(true);
+    // enable save networkElements
+    myJunction->getNet()->requireSaveNet(true);
 }
 
 

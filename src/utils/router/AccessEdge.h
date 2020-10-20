@@ -17,13 +17,7 @@
 ///
 // The AccessEdge is a special intermodal edge connecting different modes
 /****************************************************************************/
-#ifndef AccessEdge_h
-#define AccessEdge_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "IntermodalEdge.h"
@@ -41,9 +35,12 @@ private:
 public:
     AccessEdge(int numericalID, const _IntermodalEdge* inEdge, const _IntermodalEdge* outEdge, const double length,
                SVCPermissions modeRestriction = SVC_IGNORING,
-               SVCPermissions vehicleRestriction = SVC_IGNORING) :
-        _IntermodalEdge(inEdge->getID() + ":" + outEdge->getID(), numericalID, outEdge->getEdge(), "!access"),
+               SVCPermissions vehicleRestriction = SVC_IGNORING,
+               double traveltime = -1) :
+        _IntermodalEdge(inEdge->getID() + ":" + outEdge->getID() + (modeRestriction == SVC_TAXI ? ":taxi" : ""),
+                numericalID, outEdge->getEdge(), "!access"),
         myLength(length > 0. ? length : NUMERICAL_EPS),
+        myTraveltime(traveltime),
         myModeRestrictions(modeRestriction),
         myVehicleRestriction(vehicleRestriction)
     { }
@@ -53,29 +50,29 @@ public:
                SVCPermissions vehicleRestriction = SVC_IGNORING) :
         _IntermodalEdge(id, numericalID, edge, "!access"),
         myLength(length > 0. ? length : NUMERICAL_EPS),
+        myTraveltime(-1),
         myModeRestrictions(modeRestriction),
         myVehicleRestriction(vehicleRestriction)
     { }
 
     double getTravelTime(const IntermodalTrip<E, N, V>* const trip, double /* time */) const {
-        return myLength / trip->speed;
+        return myTraveltime > 0 ? myTraveltime : myLength / trip->speed;
     }
 
     bool prohibits(const IntermodalTrip<E, N, V>* const trip) const {
-        return ((trip->modeSet & myModeRestrictions) != myModeRestrictions
-                || ((trip->vehicle == nullptr ? SVC_IGNORING : trip->vehicle->getVClass()) & myVehicleRestriction) != myVehicleRestriction);
+        return ((myModeRestrictions != SVC_IGNORING && (trip->modeSet & myModeRestrictions) == 0)
+                || (myVehicleRestriction != SVC_IGNORING &&
+                    ((trip->vehicle == nullptr ? SVC_PEDESTRIAN : trip->vehicle->getVClass()) & myVehicleRestriction) == 0));
     }
 
 private:
+    /// @brief length for determining travel time based on person speed
     const double myLength;
+    /// @brief travel time (alternative to length)
+    const double myTraveltime;
     /// @brief only allow using this edge if the modeSet matches (i.e. entering a taxi)
     const SVCPermissions myModeRestrictions;
     /// @brief only allow using this edge if the vehicle class matches (i.e. exiting a taxi)
     const SVCPermissions myVehicleRestriction;
 
 };
-
-
-#endif
-
-/****************************************************************************/

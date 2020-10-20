@@ -19,13 +19,7 @@
 ///
 // junction.
 /****************************************************************************/
-#ifndef MSInternalJunction_h
-#define MSInternalJunction_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/StdDefs.h>
@@ -95,9 +89,3 @@ private:
     MSInternalJunction& operator=(const MSInternalJunction&);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

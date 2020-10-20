@@ -19,13 +19,7 @@
 ///
 // The popup menu of a globject.
 /****************************************************************************/
-#ifndef GUIGLObjectPopupMenu_h
-#define GUIGLObjectPopupMenu_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -123,9 +117,3 @@ protected:
     /// @brief vector mit Sub-MenuPanes
     std::vector<FXMenuPane*> myMenuPanes;
 };
-
-
-#endif
-
-/****************************************************************************/
-

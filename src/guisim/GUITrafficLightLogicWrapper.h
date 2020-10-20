@@ -19,13 +19,7 @@
 ///
 // A wrapper for tl-logics to allow their visualisation and interaction
 /****************************************************************************/
-#ifndef GUITrafficLightLogicWrapper_h
-#define GUITrafficLightLogicWrapper_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <gui/GUITLLogicPhasesTrackerWindow.h>
@@ -167,9 +161,3 @@ private:
     GUIMainWindow* myApp;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

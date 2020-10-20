@@ -19,13 +19,7 @@
 ///
 // The gui-version of the MS_E2_ZS_Collector
 /****************************************************************************/
-#ifndef GUIE2Collector_h
-#define GUIE2Collector_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <microsim/output/MSE2Collector.h>
@@ -102,9 +96,20 @@ public:
      */
     virtual GUIDetectorWrapper* buildDetectorGUIRepresentation();
 
+    /// @brief whether the induction loop shall be visible
+    bool isVisible() const {
+        return myShow;
+    }
+
+    /// @brief toggle visibility
+    void setVisible(bool show) {
+        myShow = show;
+    }
+
+
 private:
     /// @brief Whether the detector shall be drawn in the gui
-    bool myShowDetectorInGUI;
+    bool myShow;
 
 public:
     /**
@@ -180,9 +185,3 @@ public:
     };
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

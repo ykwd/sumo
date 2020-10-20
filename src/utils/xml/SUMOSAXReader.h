@@ -19,13 +19,7 @@
 ///
 // SAX-reader encapsulation containing binary reader
 /****************************************************************************/
-#ifndef SUMOSAXReader_h
-#define SUMOSAXReader_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -41,7 +35,6 @@
 // class declarations
 // ===========================================================================
 class GenericSAXHandler;
-class BinaryInputDevice;
 class IStreamInputSource;
 
 
@@ -63,7 +56,7 @@ public:
      *
      * @param[in] file The name of the processed file
      */
-    SUMOSAXReader(GenericSAXHandler& handler, const XERCES_CPP_NAMESPACE::SAX2XMLReader::ValSchemes validationScheme);
+    SUMOSAXReader(GenericSAXHandler& handler, const XERCES_CPP_NAMESPACE::SAX2XMLReader::ValSchemes validationScheme, XERCES_CPP_NAMESPACE::XMLGrammarPool* grammarPool);
 
     /// Destructor
     ~SUMOSAXReader();
@@ -114,17 +107,16 @@ private:
     /// @brief Information whether built reader/parser shall validate XML-documents against schemata
     XERCES_CPP_NAMESPACE::SAX2XMLReader::ValSchemes myValidationScheme;
 
+    /// @brief Schema cache to be used for grammars which are not declared
+    XERCES_CPP_NAMESPACE::XMLGrammarPool* myGrammarPool;
+
     XERCES_CPP_NAMESPACE::XMLPScanToken myToken;
 
     XERCES_CPP_NAMESPACE::SAX2XMLReader* myXMLReader;
 
-    BinaryInputDevice* myBinaryInput;
-
     std::unique_ptr<std::istream> myIStream;
 
     std::unique_ptr<IStreamInputSource> myInputStream;
-
-    char mySbxVersion;
 
     /// @brief The stack of begun xml elements
     std::vector<SumoXMLTag> myXMLStack;
@@ -139,8 +131,3 @@ private:
     const SUMOSAXReader& operator=(const SUMOSAXReader& s);
 
 };
-
-
-#endif
-
-/****************************************************************************/

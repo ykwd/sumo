@@ -19,13 +19,7 @@
 ///
 // Some methods which help to draw certain geometrical objects in openGL
 /****************************************************************************/
-#ifndef GLHelper_h
-#define GLHelper_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -277,12 +271,6 @@ public:
     static void drawTriangleAtEnd(const Position& p1, const Position& p2,
                                   double tLength, double tWidth);
 
-    /// @brief draw a dotted contour around the given Non closed shape with certain width
-    static void drawShapeDottedContourAroundShape(const GUIVisualizationSettings& s, const int type, const PositionVector& shape, const double width);
-
-    /// @brief draw a dotted contour around the given Position with certain width and height
-    static void drawShapeDottedContourRectangle(const GUIVisualizationSettings& s, const int type, const Position& center, const double width, const double height, const double rotation = 0, const double offsetX = 0, const double offsetY = 0);
-
     /// @brief Sets the gl-color to this value
     static void setColor(const RGBColor& c);
 
@@ -291,12 +279,15 @@ public:
 
     /* @brief draw Text with given parameters
      * when width is not given (negative) the font is scaled proportionally in
-     * height and with according to size.
+     * height and width according to size.
+     *
+     * align: see foreign/fontstash/fontstash.h for flags
     */
     static void drawText(const std::string& text, const Position& pos,
                          const double layer, const double size,
-                         const RGBColor& col = RGBColor::BLACK, const double angle = 0,
-                         int align = 0,
+                         const RGBColor& col = RGBColor::BLACK,
+                         const double angle = 0,
+                         const int align = 0,
                          double width = -1);
 
     static void drawTextSettings(
@@ -304,7 +295,8 @@ public:
         const std::string& text, const Position& pos,
         const double scale,
         const double angle = 0,
-        const double layer = 2048); // GLO_MAX
+        const double layer = 2048, // GLO_MAX
+        const int align = 0); // centered
 
     /// @brief draw Text box with given parameters
     static void drawTextBox(const std::string& text, const Position& pos,
@@ -314,7 +306,8 @@ public:
                             const RGBColor& borderColor = RGBColor::BLACK,
                             const double angle = 0,
                             const double relBorder = 0.05,
-                            const double relMargin = 0.5);
+                            const double relMargin = 0.5,
+                            const int align = 0);
 
     /// @brief draw text and the end of shape
     static void drawTextAtEnd(const std::string& text, const PositionVector& shape, double x,
@@ -365,9 +358,3 @@ private:
     /// @brief static vector with a list of alternated black/white colors (used for contourns)
     static std::vector<RGBColor> myDottedcontourColors;
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -61,9 +61,14 @@ def ppStages(comment, stages):
     print("%s\n  %s\n" % (comment, "\n  ".join(map(str, stages))))
 
 
-traci.start([sumolib.checkBinary('sumo'), "-c", "sumo.sumocfg",
-             "--ignore-route-errors",
-             "--log", "log.txt"])
+print("loaded?", traci.isLoaded())
+version = traci.start([sumolib.checkBinary('sumo'), "-c", "sumo.sumocfg",
+                       "--ignore-route-errors",
+                       "--log", "log.txt"])
+print("version at start", version)
+print("version", traci.getVersion())
+print("loaded?", traci.isLoaded())
+
 traci.simulation.subscribe(
     [traci.constants.VAR_LOADED_VEHICLES_IDS, traci.constants.VAR_DEPARTED_VEHICLES_IDS])
 print(traci.simulation.getSubscriptionResults())
@@ -138,6 +143,7 @@ except traci.TraCIException as e:
         print(e, file=sys.stderr)
         sys.stderr.flush()
 
+print("getBusStopIDList", traci.simulation.getBusStopIDList())
 print("getBusStopWaiting", traci.simulation.getBusStopWaiting("bs"))
 print("getBusStopWaitingIDList", traci.simulation.getBusStopWaitingIDList("bs"))
 
@@ -192,4 +198,6 @@ for step in range(12):
 print("check whether GUI is present", traci.hasGUI())
 traci.simulation.writeMessage("custom log message")
 traci.simulationStep()
+print("loaded?", traci.isLoaded())
 traci.close()
+print("loaded?", traci.isLoaded())

@@ -20,13 +20,7 @@
 ///
 //
 /****************************************************************************/
-#ifndef GUIPropertySchemeStorage_h
-#define GUIPropertySchemeStorage_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -64,7 +58,7 @@ public:
     void fill(MFXIconComboBox& cb) {
         for (const auto& scheme : mySchemes) {
             cb.appendIconItem(scheme.getName().c_str(),
-                              scheme.getIcon() == ICON_EMPTY ? nullptr : GUIIconSubSys::getIcon(scheme.getIcon()),
+                              scheme.getIcon() == GUIIcon::EMPTY ? nullptr : GUIIconSubSys::getIcon(scheme.getIcon()),
                               MFXUtils::getFXColor(scheme.getBackgroundColor()));
         }
         cb.setCurrentItem((FXint)myActiveScheme);
@@ -138,7 +132,3 @@ protected:
 
 typedef GUIPropertySchemeStorage<GUIColorScheme> GUIColorer;
 typedef GUIPropertySchemeStorage<GUIScaleScheme> GUIScaler;
-
-#endif
-
-/****************************************************************************/

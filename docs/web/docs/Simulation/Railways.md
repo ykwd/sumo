@@ -69,31 +69,31 @@ the time.
 Bidirectional track usage is modeled by two edges that have their
 geometries exactly reversed and using the attribute `spreadType="center"`. This will result
 in lane geometries that are overlayed exactly. These edges are referred
-to as *superposed* (alternatively as bidirecticional rail edges). In the
+to as *superposed* (alternatively as bidirectional rail edges). In the
 .net.xml file these edges are marked with `bidi="<REVERSE_EDGE_ID>"` but this is a generated
 attribute and not to be set by the user.
 
-When Rail signals are placed at both ends of a bidrectional track they
+When Rail signals are placed at both ends of a bidirectional track they
 will restrict it's usage to one direction at a time.
 
-### Bidirectional rails in [SUMO-GUI](../SUMO-GUI.md)
+### Bidirectional rails in [sumo-gui](../sumo-gui.md)
 
-SUMO-GUI automatically shows only one of both edges to avoid duplicate
+sumo-gui automatically shows only one of both edges to avoid duplicate
 drawing of cross-ties. The visualisation option *show lane direction*
-can be used to identifiy superposed edges. (arrows in both directions
+can be used to identify superposed edges. (arrows in both directions
 will be show).
 
-### Working with bidirectional tracks in [NETEDIT](../NETEDIT.md)
+### Working with bidirectional tracks in [netedit](../netedit.md)
 
 - To show both edges that constitute a bidirectional track, activate
-  edge visualisation otpion *spread superposed*. Both edges will be
+  edge visualisation option *spread superposed*. Both edges will be
   drawn narrower and with a side-offset to make them both visible
   without overlap.
 - To find (and highlight) all bidirectional tracks, use [attribute
-  selection](../NETEDIT.md#match_attribute) and search for
+  selection](../netedit.md#match_attribute) and search for
   attribute *bidi* with a value of *1*
 - Create bidirectional tracks [as explained
-  here](../NETEDIT.md#creating_bidirectional_railway_tracks)
+  here](../netedit.md#creating_bidirectional_railway_tracks)
 
 ### Importing bidirectional tracks from OSM
 
@@ -107,7 +107,7 @@ Commonly, rail networks import from OSM are incomplete in regard to
 bidirectional track usage. One example would be terminal tracks which a
 train can only leave by reversing direction. A large number of these
 issues can be fixed automatically be setting the
-[NETCONVERT](../NETCONVERT.md)-option **--railway.topology.repair**. To analyze problems with
+[netconvert](../netconvert.md)-option **--railway.topology.repair**. To analyze problems with
 bidirectional tracks, the option **--railway.topology.output** {{DT_FILE}} can be used to identify problematic
 tracks. The option **--railway.topology.all-bidi** can be used to make all tracks usable in both
 directions.
@@ -118,7 +118,7 @@ The [node type](../Networks/PlainXML.md#node_descriptions)
 `rail_signal` may be used to define signals which implement [Automatic Block
 Signaling](https://en.wikipedia.org/wiki/Automatic_block_signaling).
 
-By setting the [NETCONVERT](../NETCONVERT.md)-option **--railway.signals.discard** all signals
+By setting the [netconvert](../netconvert.md)-option **--railway.signals.discard** all signals
 can be removed from a network.
 
 ## Rail Crossings
@@ -133,7 +133,7 @@ When importing networks from
 crossings will be imported automatically. For other input data sources
 the crossings may have to be specified [via additional xml
 files](../Tutorials/ScenarioGuide.md#modifying_an_imported_network_via_plainxml)
-or set via [NETEDIT](../NETEDIT.md) after importing.
+or set via [netedit](../netedit.md) after importing.
 
 ## Kilometrage (Mileage, Chainage)
 
@@ -147,11 +147,28 @@ The distance value along an edge is computed as:
   |edgeDistance + vehiclePos|
 ```
 
-Edge distance is imported from OSM and can also be be set along a route in [NETEDIT](../NETEDIT.md#route)
+Edge distance is imported from OSM and can also be be set along a route in [netedit](../netedit.md#route)
 
 !!! note
     Negative distance values are not currently supported (pending introduction of another attribute)
 
+# Routing on Bidirectional Tracks
+When train tracks can be used in both directions, there is considerable freedom for trains when search a path through the network. To reduce the number of conflicts (when two vehicles want to use the same track in opposite directions), the preferred direction for each track can be defined and factored into the routing decision.
+
+When routes are computed in the simulation, this is done by setting the option **--device.rerouting.priority-factor FLOAT**. This causes the priority values of edges to be factored into the routing decision with higher values being preferred. 
+At the default value of 0. Edge priority is ignored when routing. When setting a positive value, the edges with the lowest priority receive a penalty factor to their estimated travel time of 1 + FLOAT whereas the edges with the highest priority receive no penalty. Edges with medium priority will receive a penality of 1 + x * FLOAT where 
+
+```
+  x = (edgePriority - minPriority) / (maxPriority - minPriority)
+```
+
+The priority values can either be assigned by the user or computed heuristically by [netconvert](../netconvert.md) by setting the option **--railway.topology.direction-priority**. This requires that some of the tracks in the network are uni-directional (to unambiguously define the main direction). The assigned priority values are:
+
+- 4: unidirectional track
+- 3: main direction of bidirectional track
+- 2: undetermined main direction (straight continuation from different directions of unidirectional track)
+- 1: undetermined main direction (no continuation from unidirectional track)
+- 0: reverse of main direction of bidirectional track
 
 # Modelling Trains
 
@@ -237,11 +254,55 @@ The rear part of the train will be joined to the front part if the followign con
 After being joined to the front part, the rear part will no longer be part of the simulation.
 The front half of the train will stop until the rear part is joined to it. Afterwards it will continue with increased length. 
 
+# Rail Signal Behavior
+Rail signals perform the following safety functions automatically
+
+- guard the track up to the next rail signal (signal block) so that only one train can enter this section at a time. This prevents rear-end collisions.
+- guard the track so that vehicles from different branches (flanks) cannot enter the same section. This prevents flanking collisions.
+- guard the track so that vehicles cannot enter bidirectional sections at the same time. This prevents head-on collisions.
+- prevent deadlocks on bidirectional sections
+
+## Schedule Constraints
+Additionally rail signals can enforce train ordering to ensure that a scheduled order at stations can be kept.
+To make use of this, the following elements can be loaded from an additional file:
+
+```
+   <railSignalConstraints id="A">
+        <predecessor tripId="t0" tl="D" foes="t1" limit="2"/>
+        <predecessor tripId="t0" tl="C" foes="t2"/>        
+        <insertionPredecessor tripId="t3" tl="E" foes="t4"/>
+    </railSignalConstraints>
+```
+
+
+
+### predecessor constraint
+This constrain defines that a given vehicle id (or tripId) can only pass the current signal after some other vehicle ('foe') with the given id or tripId has passed signal 'tl'. The foe vehicle must have been the last vehicle to do so or it must have been one of the last 'limit' vehicles at the time of switching green.
+
+### insertionPredecessor constraint
+This constrain defines that a given vehicle id (or tripId) can only be inserted on the block leading up to the current signal after some other vehicle ('foe') with the given id or tripId has passed signal 'tl'. The foe vehicle must have been the last vehicle to do so or it must have been one of the last 'limit' vehicles at the time of switching green.
+
+### generateRailSignalConstraints.py
+Constraints can be generated using the tool `generateRailSignalConstraints.py`. Example:
+
+```
+<SUMO_HOME>/tools/generateRailSignalConstraints.py -r <input-route-file> -n <input-net-file> -a <input-stop-file> -o <output-file>
+```
+The tool will analyze the order of arrival at stations (stops). 
+
+- If vehicles have successive stops at the same station but reach this station via different tracks, constraints will be generated for the signals ahead of the merging switch. The vehicle that comes later has to wait for the vehicle that comes earlier (`predecessorConstraint`).
+- If vehicles are inserted on the edge of their first stop, a `insertionPredecessor`-constraint is generated so that insertion is delayed until the train that stops earlier has passed the signal subsequent to the station.
+
 # TraCI
 
 Rail signals and rail crossings can be controlled with function *traci.trafficlight.setRedYellowGreenState*. They can also be switched off with *traci.trafficlight.setProgram(tlsID, "off")*. In either case, normal operations can be resumed by reactivating the default program "0": *traci.trafficlight.setProgram(tlsID, "0")*.
 
 Trains can be controlled just like cars by using the *traci.vehicle* functions. 
+Furthermore the following functions are available for rail signals:
+
+- traci.trafficlight.getBlockingVehicles(tlsID, linkIndex): Returns the list of vehicles that are blocking the subsequent block for the given tls-linkIndex from the perspective of the closest vehicle upstream of the signal
+- traci.trafficlight.getRivalVehicles(tlsID, linkIndex): Returns the list of vehicles that also wish to enter the subsequent block for the given tls-linkIndex (regardless of priority) from the perspective of the closest vehicle upstream of the signal
+- traci.trafficlight.getPriorityVehicles(tlsID, linkIndex): Returns the list of vehicles that also wish to enter the subsequent block for the given tls-linkIndex (only those with higher priority) from the perspective of the closest vehicle upstream of the signal
 
 # Visualisation
 
@@ -253,7 +314,7 @@ parameters](../Simulation/GenericParameters.md):
 - locomotiveLength
 - carriageGap
 
-# Limitiations
+# Limitations
 
 - Individual rail cars / coupling / uncoupling cannot currently be
   modeled

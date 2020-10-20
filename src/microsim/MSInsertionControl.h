@@ -20,13 +20,7 @@
 ///
 // Inserts vehicles into the network when their departure time is reached
 /****************************************************************************/
-#ifndef MSInsertionControl_h
-#define MSInsertionControl_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -160,6 +154,9 @@ public:
      */
     void saveState(OutputDevice& out);
 
+    /** @brief Remove all vehicles before quick-loading state */
+    void clearState();
+
     /// @brief retrieve internal RNG
     std::mt19937* getFlowRNG() {
         return &myFlowRNG;
@@ -254,9 +251,3 @@ private:
     std::mt19937 myFlowRNG;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

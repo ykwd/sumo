@@ -44,20 +44,20 @@ netedit.inspectMode()
 netedit.leftClick(referencePosition, 320, 255)
 
 # Change parameter name with an non valid value
-netedit.modifyAttribute(1, "%%%;:..&&%$%$", True)
+netedit.modifyAttribute(2, "%%%;:..&&%$%$", True)
 
 # Change parameter name with a duplicated value
-netedit.modifyAttribute(1, "customName", True)
+netedit.modifyAttribute(2, "customName", True)
 
 # Check undo redo
 netedit.undo(referencePosition, 3)
 netedit.redo(referencePosition, 3)
 
-# save additionals
-netedit.saveAdditionals(referencePosition)
-
 # save network
 netedit.saveNetwork(referencePosition)
+
+# save additionals
+netedit.saveAdditionals(referencePosition)
 
 # quit netedit
 netedit.quit(neteditProcess)

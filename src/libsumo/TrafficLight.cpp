@@ -20,11 +20,6 @@
 ///
 // C++ TraCI client API implementation
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <microsim/MSLane.h>
@@ -71,16 +66,16 @@ TrafficLight::getRedYellowGreenState(const std::string& tlsID) {
 
 
 std::vector<TraCILogic>
-TrafficLight::getCompleteRedYellowGreenDefinition(const std::string& tlsID) {
+TrafficLight::getAllProgramLogics(const std::string& tlsID) {
     std::vector<TraCILogic> result;
     const std::vector<MSTrafficLightLogic*> logics = getTLS(tlsID).getAllLogics();
     for (MSTrafficLightLogic* logic : logics) {
         TraCILogic l(logic->getProgramID(), (int)logic->getLogicType(), logic->getCurrentPhaseIndex());
         l.subParameter = logic->getParametersMap();
         for (const MSPhaseDefinition* const phase : logic->getPhases()) {
-            l.phases.emplace_back(TraCIPhase(STEPS2TIME(phase->duration), phase->getState(),
-                                             STEPS2TIME(phase->minDuration), STEPS2TIME(phase->maxDuration),
-                                             phase->getNextPhases(), phase->getName()));
+            l.phases.emplace_back(new TraCIPhase(STEPS2TIME(phase->duration), phase->getState(),
+                                                 STEPS2TIME(phase->minDuration), STEPS2TIME(phase->maxDuration),
+                                                 phase->getNextPhases(), phase->getName()));
         }
         result.emplace_back(l);
     }
@@ -207,10 +202,56 @@ TrafficLight::getServedPersonCount(const std::string& tlsID, int index) {
     return result;
 }
 
+std::vector<std::string>
+TrafficLight::getBlockingVehicles(const std::string& tlsID, int linkIndex) {
+    std::vector<std::string> result;
+    // for railsignals we cannot use the "online" program
+    MSTrafficLightLogic* const active = getTLS(tlsID).getDefault();
+    if (linkIndex < 0 || linkIndex >= active->getNumLinks()) {
+        throw TraCIException("The link index " + toString(linkIndex) + " is not in the allowed range [0,"
+                             + toString(active->getNumLinks() - 1) + "].");
+    }
+    for (const SUMOVehicle* veh : active->getBlockingVehicles(linkIndex)) {
+        result.push_back(veh->getID());
+    }
+    return result;
+}
+
+std::vector<std::string>
+TrafficLight::getRivalVehicles(const std::string& tlsID, int linkIndex) {
+    std::vector<std::string> result;
+    MSTrafficLightLogic* const active = getTLS(tlsID).getDefault();
+    if (linkIndex < 0 || linkIndex >= active->getNumLinks()) {
+        throw TraCIException("The link index " + toString(linkIndex) + " is not in the allowed range [0,"
+                             + toString(active->getNumLinks() - 1) + "].");
+    }
+    for (const SUMOVehicle* veh : active->getRivalVehicles(linkIndex)) {
+        result.push_back(veh->getID());
+    }
+    return result;
+}
+
+std::vector<std::string>
+TrafficLight::getPriorityVehicles(const std::string& tlsID, int linkIndex) {
+    std::vector<std::string> result;
+    MSTrafficLightLogic* const active = getTLS(tlsID).getDefault();
+    if (linkIndex < 0 || linkIndex >= active->getNumLinks()) {
+        throw TraCIException("The link index " + toString(linkIndex) + " is not in the allowed range [0,"
+                             + toString(active->getNumLinks() - 1) + "].");
+    }
+    for (const SUMOVehicle* veh : active->getPriorityVehicles(linkIndex)) {
+        result.push_back(veh->getID());
+    }
+    return result;
+}
+
 std::string
 TrafficLight::getParameter(const std::string& tlsID, const std::string& paramName) {
     return getTLS(tlsID).getActive()->getParameter(paramName, "");
 }
+
+
+LIBSUMO_GET_PARAMETER_WITH_KEY_IMPLEMENTATION(TrafficLight)
 
 
 void
@@ -258,15 +299,15 @@ TrafficLight::setPhaseDuration(const std::string& tlsID, const double phaseDurat
 
 
 void
-TrafficLight::setCompleteRedYellowGreenDefinition(const std::string& tlsID, const TraCILogic& logic) {
+TrafficLight::setProgramLogic(const std::string& tlsID, const TraCILogic& logic) {
     MSTLLogicControl::TLSLogicVariants& vars = getTLS(tlsID);
     // make sure index and phaseNo are consistent
     if (logic.currentPhaseIndex >= (int)logic.phases.size()) {
         throw TraCIException("set program: parameter index must be less than parameter phase number.");
     }
     std::vector<MSPhaseDefinition*> phases;
-    for (TraCIPhase phase : logic.phases) {
-        phases.push_back(new MSPhaseDefinition(TIME2STEPS(phase.duration), phase.state, TIME2STEPS(phase.minDur), TIME2STEPS(phase.maxDur), phase.next, phase.name));
+    for (TraCIPhase* phase : logic.phases) {
+        phases.push_back(new MSPhaseDefinition(TIME2STEPS(phase->duration), phase->state, TIME2STEPS(phase->minDur), TIME2STEPS(phase->maxDur), phase->next, phase->name));
     }
     if (vars.getLogic(logic.programID) == nullptr) {
         MSTLLogicControl& tlc = MSNet::getInstance()->getTLSControl();
@@ -274,22 +315,22 @@ TrafficLight::setCompleteRedYellowGreenDefinition(const std::string& tlsID, cons
         const std::string basePath = "";
         MSTrafficLightLogic* tlLogic = nullptr;
         SUMOTime nextSwitch = 0; //MSNet::getInstance()->getCurrentTimeStep();
-        switch (logic.type) {
-            case TLTYPE_ACTUATED:
+        switch ((TrafficLightType)logic.type) {
+            case TrafficLightType::ACTUATED:
                 tlLogic = new MSActuatedTrafficLightLogic(tlc,
                         tlsID, logic.programID,
                         phases, step, nextSwitch,
                         logic.subParameter, basePath);
                 break;
-            case TLTYPE_DELAYBASED:
+            case TrafficLightType::DELAYBASED:
                 tlLogic = new MSDelayBasedTrafficLightLogic(tlc,
                         tlsID, logic.programID,
                         phases, step, nextSwitch,
                         logic.subParameter, basePath);
                 break;
-            case TLTYPE_STATIC:
+            case TrafficLightType::STATIC:
                 tlLogic = new MSSimpleTrafficLightLogic(tlc,
-                                                        tlsID, logic.programID, TLTYPE_STATIC,
+                                                        tlsID, logic.programID, TrafficLightType::STATIC,
                                                         phases, step, nextSwitch,
                                                         logic.subParameter);
                 break;
@@ -357,8 +398,6 @@ TrafficLight::handleVariable(const std::string& objID, const int variable, Varia
             return false;
     }
 }
-
-
 }
 
 

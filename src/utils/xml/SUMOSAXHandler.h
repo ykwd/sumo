@@ -19,13 +19,7 @@
 ///
 // SAX-handler base for SUMO-files
 /****************************************************************************/
-#ifndef SUMOSAXHandler_h
-#define SUMOSAXHandler_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -64,9 +58,3 @@ private:
     const SUMOSAXHandler& operator=(const SUMOSAXHandler& s);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

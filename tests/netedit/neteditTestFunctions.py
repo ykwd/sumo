@@ -29,7 +29,8 @@ import pyperclip
 
 # define delay before every operation
 DELAY_KEY = 0.2
-DELAY_KEY_TAB = 0.01
+DELAY_KEY_TAB = 0.1
+DELAY_MOVE = 0.1
 DELAY_MOUSE = 0.5
 DELAY_QUESTION = 3
 DELAY_RELOAD = 5
@@ -174,8 +175,12 @@ def leftClick(referencePosition, positionx, positiony):
     time.sleep(DELAY_MOUSE)
     # obtain clicked position
     clickedPosition = [referencePosition[0] + positionx, referencePosition[1] + positiony]
-    # click relative to offset
-    pyautogui.click(clickedPosition)
+    # move mouse to position
+    pyautogui.moveTo(clickedPosition)
+    # wait
+    time.sleep(DELAY_MOVE)
+    # click over position
+    pyautogui.click(button='left')
     # wait after every operation
     time.sleep(DELAY_MOUSE)
     print("TestFunctions: Clicked over position", clickedPosition[0], '-', clickedPosition[1])
@@ -191,8 +196,13 @@ def leftClickShift(referencePosition, positionx, positiony):
     time.sleep(DELAY_MOUSE)
     # obtain clicked position
     clickedPosition = [referencePosition[0] + positionx, referencePosition[1] + positiony]
-    # click relative to offset
-    pyautogui.click(clickedPosition)
+    # move mouse to position
+    pyautogui.moveTo(clickedPosition)
+    # wait
+    time.sleep(DELAY_MOVE)
+    # click over position
+    pyautogui.click(button='left')
+    # show debug
     print("TestFunctions: Clicked with Shift key pressed over position", clickedPosition[0], '-', clickedPosition[1])
     # Release Shift key
     pyautogui.keyUp('shift')
@@ -204,17 +214,50 @@ def leftClickControl(referencePosition, positionx, positiony):
     """
     @brief do left click over a position relative to referencePosition (pink square) while control key is pressed
     """
-    # Leave Shift key pressed
+    # Leave Control key pressed
     pyautogui.keyDown('ctrl')
     # wait before every operation
     time.sleep(DELAY_MOUSE)
     # obtain clicked position
     clickedPosition = [referencePosition[0] + positionx, referencePosition[1] + positiony]
-    # click relative to offset
-    pyautogui.click(clickedPosition)
+    # move mouse to position
+    pyautogui.moveTo(clickedPosition)
+    # wait
+    time.sleep(DELAY_MOVE)
+    # click over position
+    pyautogui.click(button='left')
+    # show debug
     print("TestFunctions: Clicked with Control key pressed over position", clickedPosition[0], '-', clickedPosition[1])
-    # Release Shift key
+    # Release Control key
     pyautogui.keyUp('ctrl')
+    # wait after key up
+    time.sleep(DELAY_KEY)
+
+
+def leftClickAltShift(referencePosition, positionx, positiony):
+    """
+    @brief do left click over a position relative to referencePosition (pink square) while alt key is pressed
+    """
+    # Leave alt key pressed
+    pyautogui.keyDown('alt')
+    # Leave shift key pressed
+    pyautogui.keyDown('shift')
+    # wait before every operation
+    time.sleep(DELAY_MOUSE)
+    # obtain clicked position
+    clickedPosition = [referencePosition[0] + positionx, referencePosition[1] + positiony]
+    # move mouse to position
+    pyautogui.moveTo(clickedPosition)
+    # wait
+    time.sleep(DELAY_MOVE)
+    # click over position
+    pyautogui.click(button='left')
+    # show debug
+    print("TestFunctions: Clicked with alt and shift key pressed over position", clickedPosition[0], '-', clickedPosition[1])
+    # Release alt key
+    pyautogui.keyUp('alt')
+    # Release shift key
+    pyautogui.keyUp('shift')
     # wait after key up
     time.sleep(DELAY_KEY)
 
@@ -265,10 +308,19 @@ def Popen(extraParameters, debugInformation):
         neteditCall += ['-a',
                         os.path.join(_TEXTTEST_SANDBOX, "input_additionals.add.xml")]
 
-    # Check if routes must be loaded
-    if os.path.exists(os.path.join(_TEXTTEST_SANDBOX, "input_routes.rou.xml")):
+    # Check if vTypes must be loaded
+    if os.path.exists(os.path.join(_TEXTTEST_SANDBOX, "input_vtypes.rou.xml")):
+        neteditCall += ['-r',
+                        os.path.join(_TEXTTEST_SANDBOX, "input_vtypes.rou.xml,input_routes.rou.xml")]
+                        
+    elif os.path.exists(os.path.join(_TEXTTEST_SANDBOX, "input_routes.rou.xml")):
         neteditCall += ['-r',
                         os.path.join(_TEXTTEST_SANDBOX, "input_routes.rou.xml")]
+
+    # Check if datas must be loaded
+    if os.path.exists(os.path.join(_TEXTTEST_SANDBOX, "input_datas.rou.xml")):
+        neteditCall += ['-d',
+                        os.path.join(_TEXTTEST_SANDBOX, "input_datas.rou.xml")]
 
     # check if a gui settings file has to be load
     if os.path.exists(os.path.join(_TEXTTEST_SANDBOX, "gui-settings.xml")):
@@ -286,6 +338,10 @@ def Popen(extraParameters, debugInformation):
     # set output for routes
     neteditCall += ['--demandelements-output',
                     os.path.join(_TEXTTEST_SANDBOX, "routes.xml")]
+
+    # set output for datas
+    neteditCall += ['--dataelements-output',
+                    os.path.join(_TEXTTEST_SANDBOX, "datas.xml")]
 
     # set output for gui
     neteditCall += ['--gui-testing.setting-output',
@@ -347,14 +403,23 @@ def setupAndStart(testRoot, extraParameters=[], debugInformation=True, waitTime=
 
 def supermodeNetwork():
     """
-    @brief select Network Supermode
+    @brief select supermode Network
     """
-    typeKey('F3')
+    typeKey('F2')
 
 
 def supermodeDemand():
     """
-    @brief select Demand Supermode
+    @brief select supermode Demand
+    """
+    typeKey('F3')
+    # wait for output
+    time.sleep(DELAY_RECOMPUTE)
+
+
+def supermodeData():
+    """
+    @brief select supermode Data
     """
     typeKey('F4')
     # wait for output
@@ -402,7 +467,8 @@ def focusOnFrame():
     """
     @brief select focus on upper element of current frame
     """
-    typeKey('F12')
+    typeTwoKeys('shift', 'F12')
+    time.sleep(1)
 
 
 def undo(referencePosition, number):
@@ -641,6 +707,18 @@ def saveRoutes(referencePosition, clickOverReference=True):
     typeThreeKeys('ctrl', 'shift', 'd')
 
 
+def saveDatas(referencePosition, clickOverReference=True):
+    """
+    @brief save datas
+    """
+    # check if clickOverReference is enabled
+    if clickOverReference:
+        # click over reference (to avoid problem with undo-redo)
+        leftClick(referencePosition, 0, 0)
+    # save datas using hotkey
+    typeThreeKeys('ctrl', 'shift', 'b')
+
+
 def fixDemandElements(solution):
     """
     @brief fix stoppingPlaces
@@ -681,8 +759,8 @@ def openAboutDialog(waitingTime=DELAY_QUESTION):
     """
     @brief open and close about dialog
     """
-    # type F2 to open about dialog
-    typeKey('F2')
+    # type F12 to open about dialog
+    typeKey('F12')
     # wait before closing
     time.sleep(waitingTime)
     # press enter to close dialog (Ok must be focused)
@@ -1332,14 +1410,53 @@ def deleteUsingSuprKey():
     time.sleep(DELAY_REMOVESELECTION)
 
 
+def changeRemoveOnlyGeometryPoint(referencePosition):
+    """
+    @brief Enable or disable 'Remove only geometry point'
+    """
+    # select delete mode again to set mode
+    deleteMode()
+    # jump to checkbox
+    typeTab()
+    # type SPACE to change value
+    typeSpace()
+
+
 def changeAutomaticallyDeleteAdditionals(referencePosition):
     """
     @brief Enable or disable 'automatically delete Additionals'
     """
     # select delete mode again to set mode
     deleteMode()
-    # use TAB to go to check box
-    typeTab()
+    # jump to checkbox
+    for _ in range(2):
+        typeTab()
+    # type SPACE to change value
+    typeSpace()
+
+
+def changeProtectTAZElements(referencePosition):
+    """
+    @brief Enable or disable 'protect TAZ elements'
+    """
+    # select delete mode again to set mode
+    deleteMode()
+    # jump to checkbox
+    for _ in range(3):
+        typeTab()
+    # type SPACE to change value
+    typeSpace()
+
+
+def changeProtectShapeElements(referencePosition):
+    """
+    @brief Enable or disable 'protect shape elements'
+    """
+    # select delete mode again to set mode
+    deleteMode()
+    # jump to checkbox
+    for _ in range(4):
+        typeTab()
     # type SPACE to change value
     typeSpace()
 
@@ -1351,7 +1468,20 @@ def changeProtectDemandElements(referencePosition):
     # select delete mode again to set mode
     deleteMode()
     # jump to checkbox
-    for _ in range(3):
+    for _ in range(5):
+        typeTab()
+    # type SPACE to change value
+    typeSpace()
+
+
+def changeProtectDataElements(referencePosition):
+    """
+    @brief Enable or disable 'protect data elements'
+    """
+    # select delete mode again to set mode
+    deleteMode()
+    # jump to checkbox
+    for _ in range(6):
         typeTab()
     # type SPACE to change value
     typeSpace()
@@ -1407,7 +1537,7 @@ def selectDefault():
     """
     # focus current frame
     focusOnFrame()
-    for _ in range(19):
+    for _ in range(20):
         typeTab()
     # type enter to select it
     typeEnter()
@@ -1421,7 +1551,7 @@ def saveSelection():
     """
     focusOnFrame()
     # jump to save
-    for _ in range(24):
+    for _ in range(25):
         typeTab()
     typeSpace()
     # jump to filename TextField
@@ -1437,7 +1567,7 @@ def loadSelection():
     """
     focusOnFrame()
     # jump to save
-    for _ in range(25):
+    for _ in range(26):
         typeTab()
     typeSpace()
     # jump to filename TextField
@@ -1456,7 +1586,7 @@ def selectItems(elementClass, elementType, attribute, value):
     # focus current frame
     focusOnFrame()
     # jump to elementClass
-    for _ in range(13):
+    for _ in range(14):
         typeTab()
     # paste the new elementClass
     pasteIntoTextField(elementClass)
@@ -1497,7 +1627,7 @@ def modificationModeAdd():
     # focus current frame
     focusOnFrame()
     # jump to mode "add"
-    for _ in range(9):
+    for _ in range(10):
         typeTab()
     # select it
     typeSpace()
@@ -1510,7 +1640,7 @@ def modificationModeRemove():
     # focus current frame
     focusOnFrame()
     # jump to mode "remove"
-    for _ in range(10):
+    for _ in range(11):
         typeTab()
     # select it
     typeSpace()
@@ -1523,7 +1653,7 @@ def modificationModeKeep():
     # focus current frame
     focusOnFrame()
     # jump to mode "keep"
-    for _ in range(11):
+    for _ in range(12):
         typeTab()
     # select it
     typeSpace()
@@ -1536,7 +1666,7 @@ def modificationModeReplace():
     # focus current frame
     focusOnFrame()
     # jump to mode "replace"
-    for _ in range(12):
+    for _ in range(13):
         typeTab()
     # select it
     typeSpace()
@@ -1560,13 +1690,27 @@ def selectionRectangle(referencePosition, startX, startY, endX, endY):
     time.sleep(DELAY_SELECT)
 
 
-def selectionClear(previouslyInserted=False):
+def selectionApply():
+    """
+    @brief apply selection
+    """
+    # focus current frame
+    focusOnFrame()
+    for _ in range(21):
+        typeTab()
+    # type space to select clear option
+    typeSpace()
+    # wait for gl debug
+    time.sleep(DELAY_SELECT)
+	
+	
+def selectionClear():
     """
     @brief clear selection
     """
     # focus current frame
     focusOnFrame()
-    for _ in range(22):
+    for _ in range(24):
         typeTab()
     # type space to select clear option
     typeSpace()
@@ -1580,9 +1724,23 @@ def selectionInvert():
     """
     # focus current frame
     focusOnFrame()
-    for _ in range(23):
+    for _ in range(25):
         typeTab()
     # type space to select invert operation
+    typeSpace()
+    # wait for gl debug
+    time.sleep(DELAY_SELECT)
+
+
+def selectionClearDemand():
+    """
+    @brief clear selection
+    """
+    # focus current frame
+    focusOnFrame()
+    for _ in range(25):
+        typeTab()
+    # type space to select clear option
     typeSpace()
     # wait for gl debug
     time.sleep(DELAY_SELECT)
@@ -1594,7 +1752,7 @@ def selectionInvertDemand():
     """
     # focus current frame
     focusOnFrame()
-    for _ in range(28):
+    for _ in range(26):
         typeTab()
     # type space to select invert operation
     typeSpace()
@@ -1621,8 +1779,8 @@ def createTLS():
     """
     # focus current frame
     focusOnFrame()
-    # type tab 3 times to jump to create TLS button
-    for _ in range(3):
+    # type tab 2 times to jump to create TLS button
+    for _ in range(2):
         typeTab()
     # create TLS
     typeSpace()
@@ -1757,6 +1915,79 @@ def GEOPOILatLon():
         typeTab()
     # Change current value
     typeSpace()
+
+
+#################################################
+# TAZs
+#################################################
+
+
+def TAZMode():
+    """
+    @brief change to TAZ mode
+    """
+    typeKey('z')
+    # wait for gl debug
+    time.sleep(DELAY_CHANGEMODE)
+
+
+def createSquaredTAZ(referencePosition, positionx, positiony, size, close):
+    """
+    @brief Create squared TAZ in position with a certain size
+    """
+    # focus current frame
+    focusOnFrame()
+    # start draw
+    typeEnter()
+    # create TAZ
+    leftClick(referencePosition, positionx, positiony)
+    leftClick(referencePosition, positionx, positiony - (size / 2))
+    leftClick(referencePosition, positionx - (size / 2), positiony - (size / 2))
+    leftClick(referencePosition, positionx - (size / 2), positiony)
+    # check if TAZ has to be closed
+    if (close is True):
+        leftClick(referencePosition, positionx, positiony)
+    # finish draw
+    typeEnter()
+
+
+def createRectangledTAZ(referencePosition, positionx, positiony, sizex, sizey, close):
+    """
+    @brief Create rectangle TAZ in position with a certain size
+    """
+    # focus current frame
+    focusOnFrame()
+    # start draw
+    typeEnter()
+    # create TAZ
+    leftClick(referencePosition, positionx, positiony)
+    leftClick(referencePosition, positionx, positiony - (sizey / 2))
+    leftClick(referencePosition, positionx - (sizex / 2), positiony - (sizey / 2))
+    leftClick(referencePosition, positionx - (sizex / 2), positiony)
+    # check if TAZ has to be closed
+    if (close is True):
+        leftClick(referencePosition, positionx, positiony)
+    # finish draw
+    typeEnter()
+
+
+def createLineTAZ(referencePosition, positionx, positiony, sizex, sizey, close):
+    """
+    @brief Create line TAZ in position with a certain size
+    """
+    # focus current frame
+    focusOnFrame()
+    # start draw
+    typeEnter()
+    # create TAZ
+    leftClick(referencePosition, positionx, positiony)
+    leftClick(referencePosition, positionx - (sizex / 2), positiony - (sizey / 2))
+    # check if TAZ has to be closed
+    if (close is True):
+        leftClick(referencePosition, positionx, positiony)
+    # finish draw
+    typeEnter()
+
 
 #################################################
 # Contextual menu

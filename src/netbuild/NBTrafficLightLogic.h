@@ -19,13 +19,7 @@
 ///
 // A SUMO-compliant built logic for a traffic light
 /****************************************************************************/
-#ifndef NBTrafficLightLogic_h
-#define NBTrafficLightLogic_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -113,7 +107,7 @@ public:
      * @param[in] type The algorithm type for the computed traffic light
      */
     NBTrafficLightLogic(const std::string& id, const std::string& subid, int noLinks,
-                        SUMOTime offset = 0, TrafficLightType type = TLTYPE_STATIC);
+                        SUMOTime offset = 0, TrafficLightType type = TrafficLightType::STATIC);
 
 
     /** @brief Copy Constructor
@@ -267,12 +261,6 @@ private:
 
 private:
     /// @brief Invalidated assignment operator
-    NBTrafficLightLogic& operator=(const NBTrafficLightLogic& s);
+    NBTrafficLightLogic& operator=(const NBTrafficLightLogic& s) = delete;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

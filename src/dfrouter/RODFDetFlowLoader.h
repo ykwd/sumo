@@ -19,13 +19,7 @@
 ///
 // A loader for detector flows
 /****************************************************************************/
-#ifndef RODFDetFlowLoader_h
-#define RODFDetFlowLoader_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -113,9 +107,3 @@ private:
     RODFDetFlowLoader& operator=(const RODFDetFlowLoader& src);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

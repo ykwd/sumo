@@ -32,37 +32,37 @@ neteditProcess, referencePosition = netedit.setupAndStart(neteditTestRoot)
 netedit.rebuildNetwork()
 
 # toogle select lanes
-netedit.changeEditMode('2')
+netedit.changeEditMode('4')
 
 # go to select mode
 netedit.selectMode()
 
-# select first edge
-netedit.leftClick(referencePosition, 250, 180)
+# select first lane
+netedit.leftClick(referencePosition, 250, 165)
 
-# select second edge
-netedit.leftClick(referencePosition, 250, 100)
+# select second lane
+netedit.leftClick(referencePosition, 250, 105)
 
 # go to inspect mode
 netedit.inspectMode()
 
-# inspect edge
-netedit.leftClick(referencePosition, 250, 180)
+# inspect lane
+netedit.leftClick(referencePosition, 250, 105)
 
 # Change parameter 1 with an non valid value (dummy)
-netedit.modifyAttribute(2, "DummyAllowed", False)
+netedit.modifyAttribute(2, "DummyAllowed", True)
 
 # Change parameter 1 with a valid value (empty)
-netedit.modifyAttribute(2, "", False)
+netedit.modifyAttribute(2, "", True)
 
 # Change parameter 1 with a valid value (different separators)
-netedit.modifyAttribute(2, "authority  army, passenger; taxi. tram", False)
+netedit.modifyAttribute(2, "authority  army, passenger; taxi. tram", True)
 
 # Change parameter 1 with a valid value (empty)
-netedit.modifyAttribute(2, "", False)
+netedit.modifyAttribute(2, "", True)
 
 # Change parameter 1 with a valid value (empty)
-netedit.modifyAttribute(2, "authority army vip passenger hov taxi bus coach tram bicycle", False)
+netedit.modifyAttribute(2, "authority army vip passenger hov taxi bus coach tram bicycle", True)
 
 # recompute
 netedit.rebuildNetwork()

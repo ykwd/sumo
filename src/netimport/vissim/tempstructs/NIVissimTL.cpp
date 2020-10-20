@@ -19,11 +19,6 @@
 ///
 // -------------------
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 
@@ -383,7 +378,7 @@ NIVissimTL::dict_SetSignals(NBTrafficLightLogicCont& tlc,
           }*/
         std::string id = toString<int>(tl->myID);
         TrafficLightType type = ((tl->getType() == "festzeit" || tl->getType() == "festzeit_fake") ?
-                                 TLTYPE_STATIC : TLTYPE_ACTUATED);
+                                 TrafficLightType::STATIC : TrafficLightType::ACTUATED);
         NBLoadedTLDef* def = new NBLoadedTLDef(ec, id, 0, type);
         if (!tlc.insert(def)) {
             WRITE_ERROR("Error on adding a traffic light\n Must be a multiple id ('" + id + "')");
@@ -435,6 +430,4 @@ NIVissimTL::getID() const {
 }
 
 
-
 /****************************************************************************/
-

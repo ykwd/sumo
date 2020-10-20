@@ -104,6 +104,9 @@ write-trips.geo
 geoTrips
 
 # test reading trips with geo-coordinates
+geoTrips_lonLat
+
+# test reading trips with geo-coordinates
 geoTrips_distance
 
 # test mapmatching trips with geo-coordinates to junctions
@@ -150,6 +153,7 @@ junctionTaz
 
 # test restriction parameters
 restrictionParams
+rail
 
 # Tests false input
 errors

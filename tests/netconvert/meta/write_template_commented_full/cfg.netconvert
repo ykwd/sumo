@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Sun Feb  9 20:59:42 2020 by Eclipse SUMO netconvert Version v1_4_0+0995-3d963feed3
+<!-- generated on Mon Oct  5 12:37:45 2020 by Eclipse SUMO netconvert Version v1_7_0+0461-873c47b3cc
 -->
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
@@ -25,7 +25,7 @@
 
     <input>
         <!-- Read SUMO-net from FILE -->
-        <sumo-net-file value="" synonymes="s sumo-net" type="FILE"/>
+        <sumo-net-file value="" synonymes="net-file s sumo-net" type="FILE"/>
 
         <!-- Read XML-node defs from FILE -->
         <node-files value="" synonymes="n nodes xml-node-files xml-nodes" type="FILE"/>
@@ -99,7 +99,7 @@
         <!-- Defines the number of digits after the comma for lon,lat output -->
         <precision.geo value="6" type="INT"/>
 
-        <!-- Write time values as hour:minute:second or day:hour:minute:second rathern than seconds -->
+        <!-- Write time values as hour:minute:second or day:hour:minute:second rather than seconds -->
         <human-readable-time value="false" synonymes="H" type="BOOL"/>
 
         <!-- The generated net will be written to FILE -->
@@ -150,7 +150,7 @@
         <!-- Writes parking areas to FILE -->
         <parking-output value="" type="FILE"/>
 
-        <!-- Analyse topology of the railway network -->
+        <!-- Analyze topology of the railway network -->
         <railway.topology.output value="" type="FILE"/>
 
         <!-- Write shapes that are embedded in the network input and that are not supported by polyconvert (OpenDRIVE) -->
@@ -213,7 +213,7 @@
         <!-- Remaps IDs of edges to integers starting at INT -->
         <numerical-ids.edge-start value="2147483647" type="INT"/>
 
-        <!-- Ensures that generated ids do not included any of the typed IDs from FILE (SUMO-GUI selection file format) -->
+        <!-- Ensures that generated ids do not included any of the typed IDs from FILE (sumo-gui selection file format) -->
         <reserved-ids value="" type="FILE"/>
 
         <!-- Removes vehicle class restrictions from imported edges -->
@@ -228,7 +228,7 @@
         <!-- Ensure that the given list of edges is not modified -->
         <geometry.remove.keep-edges.explicit value="" type="STR[]"/>
 
-        <!-- Ensure that the edges in FILE are not modified (Each id on a single line. Selection files from SUMO-GUI are also supported) -->
+        <!-- Ensure that the edges in FILE are not modified (Each id on a single line. Selection files from sumo-gui are also supported) -->
         <geometry.remove.keep-edges.input-file value="" type="FILE"/>
 
         <!-- Allow merging edges with differing attributes when their length is below min-length -->
@@ -300,6 +300,9 @@
         <!-- Enable roundabout-guessing -->
         <roundabouts.guess value="true" synonymes="guess-roundabouts" type="BOOL"/>
 
+        <!-- Default visibility when approaching a roundabout -->
+        <roundabouts.visibility-distance value="9" type="FLOAT"/>
+
         <!-- Enable guessing of opposite direction lanes usable for overtaking -->
         <opposites.guess value="false" type="BOOL"/>
 
@@ -324,6 +327,9 @@
         <!-- Modifies all edge speeds to at least FLOAT -->
         <speed.minimum value="0" type="FLOAT"/>
 
+        <!-- Joins tram edges into road lanes with similar geometry (within FLOAT distance) -->
+        <edges.join-tram-dist value="-1" type="FLOAT"/>
+
     </processing>
 
     <building_defaults>
@@ -332,6 +338,9 @@
 
         <!-- The default width of lanes -->
         <default.lanewidth value="-1" synonymes="lanewidth" type="FLOAT"/>
+
+        <!-- The default method for computing lane shapes from edge shapes -->
+        <default.spreadtype value="right" type="STR"/>
 
         <!-- The default speed on an edge (in m/s) -->
         <default.speed value="13.89" synonymes="S speed" type="FLOAT"/>
@@ -359,6 +368,9 @@
 
         <!-- The default turning radius of intersections -->
         <default.junctions.radius value="4" type="FLOAT"/>
+
+        <!-- The default length when overriding connection lengths -->
+        <default.connection-length value="-1" type="FLOAT"/>
 
         <!-- The default algorithm for computing right of way rules (&apos;default&apos;, &apos;edgePriority&apos;) -->
         <default.right-of-way value="default" type="STR"/>
@@ -510,10 +522,10 @@
         <!-- Only keep edges in STR[] or those which are kept due to other keep-edges or remove-edges options -->
         <keep-edges.explicit value="" synonymes="keep-edges" type="STR[]"/>
 
-        <!-- Only keep edges in FILE (Each id on a single line. Selection files from SUMO-GUI are also supported) or those which are kept due to other keep-edges or remove-edges options -->
+        <!-- Only keep edges in FILE (Each id on a single line. Selection files from sumo-gui are also supported) or those which are kept due to other keep-edges or remove-edges options -->
         <keep-edges.input-file value="" type="FILE"/>
 
-        <!-- Remove edges in FILE. (Each id on a single line. Selection files from SUMO-GUI are also supported) -->
+        <!-- Remove edges in FILE. (Each id on a single line. Selection files from sumo-gui are also supported) -->
         <remove-edges.input-file value="" type="FILE"/>
 
         <!-- Remove edges after joining -->
@@ -594,6 +606,9 @@
         <!-- Interprets STR[] as list of junctions to exclude from joining -->
         <junctions.join-exclude value="" type="STR[]"/>
 
+        <!-- Joins junctions that have the same coordinates even if not connected -->
+        <junctions.join-same value="false" type="BOOL"/>
+
         <!-- Generate INT intermediate points to smooth out intersection corners -->
         <junctions.corner-detail value="5" type="INT"/>
 
@@ -660,6 +675,9 @@
         <!-- Always build walking areas even if there are no crossings -->
         <walkingareas value="false" type="BOOL"/>
 
+        <!-- Do not create a walkingarea between sidewalks that are connected by a pedestrian junction within FLOAT -->
+        <walkingareas.join-dist value="15" type="FLOAT"/>
+
     </pedestrian>
 
     <bicycle>
@@ -690,11 +708,17 @@
         <!-- Allow bidiretional rail use wherever rails with opposite directions meet at a straight angle -->
         <railway.topology.repair.connect-straight value="false" type="BOOL"/>
 
+        <!-- Add turn-around connections at all loaded stops. -->
+        <railway.topology.repair.stop-turn value="false" type="BOOL"/>
+
         <!-- Make all rails usable in both direction -->
         <railway.topology.all-bidi value="false" type="BOOL"/>
 
         <!-- Make all rails edge ids from FILE usable in both direction -->
         <railway.topology.all-bidi.input-file value="" type="FILE"/>
+
+        <!-- Set edge priority values based on estimated main direction -->
+        <railway.topology.direction-priority value="false" type="BOOL"/>
 
         <!-- The search radius for finding suitable road accesses for rail stops -->
         <railway.access-distance value="150" synonymes="osm.stop-output.footway-access-distance" type="FLOAT"/>
@@ -708,6 +732,9 @@
     </railway>
 
     <formats>
+        <!-- Remove the list of keys from all params -->
+        <discard-params value="" type="STR[]"/>
+
         <!-- Skips the check for duplicate nodes and edges -->
         <osm.skip-duplicates-check value="false" type="BOOL"/>
 
@@ -779,6 +806,15 @@
 
         <!-- Guess the proper projection -->
         <shapefile.guess-projection value="false" synonymes="arcview.guess-projection" type="BOOL"/>
+
+        <!-- Use traditional axis order (lon, lat) -->
+        <shapefile.traditional-axis-mapping value="false" type="BOOL"/>
+
+        <!-- Allow more vehicle classes by default -->
+        <dlr-navteq.tolerant-permissions value="false" type="BOOL"/>
+
+        <!-- The edge lengths given in the DLR Navteq-file will be kept -->
+        <dlr-navteq.keep-length value="false" type="BOOL"/>
 
         <!-- Structure join offset -->
         <vissim.join-distance value="5" synonymes="vissim.offset" type="FLOAT"/>

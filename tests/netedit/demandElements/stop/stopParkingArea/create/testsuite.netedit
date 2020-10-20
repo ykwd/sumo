@@ -8,8 +8,6 @@ until
 
 extension
 
-index
-
 triggered
 
 expected
@@ -18,8 +16,4 @@ containerTrigger
 
 expectedContainer
 
-parking
-
 actType
-
-#tripID

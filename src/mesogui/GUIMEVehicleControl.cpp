@@ -17,11 +17,6 @@
 ///
 // The class responsible for building and deletion of meso vehicles (gui-version)
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <fx.h>
@@ -51,10 +46,8 @@ SUMOVehicle*
 GUIMEVehicleControl::buildVehicle(SUMOVehicleParameter* defs,
                                   const MSRoute* route, MSVehicleType* type,
                                   const bool ignoreStopErrors, const bool fromRouteFile) {
-    myLoadedVehNo++;
     MSBaseVehicle* built = new GUIMEVehicle(defs, route, type, type->computeChosenSpeedDeviation(fromRouteFile ? MSRouteHandler::getParsingRNG() : nullptr));
-    built->addStops(ignoreStopErrors);
-    MSNet::getInstance()->informVehicleStateListener(built, MSNet::VEHICLE_STATE_BUILT);
+    initVehicle(built, ignoreStopErrors);
     return built;
 }
 
@@ -100,6 +93,4 @@ GUIMEVehicleControl::releaseVehicles() {
 }
 
 
-
 /****************************************************************************/
-

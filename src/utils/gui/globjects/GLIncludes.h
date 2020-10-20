@@ -19,13 +19,7 @@
 ///
 // collection of includes for GL usage
 /****************************************************************************/
-#ifndef GLIncludes_h
-#define GLIncludes_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #ifdef WIN32
@@ -38,4 +32,3 @@
 #include <GL/glu.h>
 
 
-#endif

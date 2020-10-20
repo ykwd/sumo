@@ -76,12 +76,14 @@ def get_options(args=None):
                          "<person> and <walk> are supported.")
     optParser.add_option("--fringe-start-attributes", dest="fringeattrs",
                          default="", help="additional trip attributes when starting on a fringe.")
-    optParser.add_option("-b", "--begin", type="float", default=0, help="begin time")
-    optParser.add_option("-e", "--end", type="float", default=3600, help="end time (default 3600)")
+    optParser.add_option("-b", "--begin", default=0, help="begin time")
+    optParser.add_option("-e", "--end", default=3600, help="end time (default 3600)")
     optParser.add_option(
         "-p", "--period", type="float", default=1, help="Generate vehicles with equidistant departure times and " +
         "period=FLOAT (default 1.0). If option --binomial is used, the expected arrival rate is set to 1/period.")
-    optParser.add_option("-s", "--seed", type="int", help="random seed")
+    optParser.add_option("-s", "--seed", type="int", default=42, help="random seed")
+    optParser.add_option("--random", action="store_true",
+                         default=False, help="use a random seed to initialize the random number generator")
     optParser.add_option("-l", "--length", action="store_true",
                          default=False, help="weight edge probability by length")
     optParser.add_option("-L", "--lanes", action="store_true",
@@ -131,6 +133,8 @@ def get_options(args=None):
                          default=False, help="Remove loops at route start and end")
     optParser.add_option("--junction-taz", dest="junctionTaz", action="store_true",
                          default=False, help="Write trips with fromJunction and toJunction")
+    optParser.add_option("--via-edge-types", dest="viaEdgeTypes",
+                         help="Set list of edge types that cannot be used for departure or arrival (unless being on the fringe)")
     optParser.add_option("--validate", default=False, action="store_true",
                          help="Whether to produce trip output that is already checked for connectivity")
     optParser.add_option("-v", "--verbose", action="store_true",
@@ -170,6 +174,9 @@ def get_options(args=None):
             print("Error: trip-attribute 'type' cannot be used together with option --vehicle-class", file=sys.stderr)
             sys.exit(1)
 
+    if options.viaEdgeTypes:
+        options.viaEdgeTypes = options.viaEdgeTypes.split(',')
+
     return options
 
 
@@ -199,14 +206,15 @@ class RandomEdgeGenerator:
         index = bisect.bisect(self.cumulative_weights, r)
         return self.net._edges[index]
 
-    def write_weights(self, fname):
+    def write_weights(self, fname, interval_id, begin, end):
         # normalize to [0,100]
         normalizer = 100.0 / max(1, max(map(self.weight_fun, self.net._edges)))
         weights = [(self.weight_fun(e) * normalizer, e.getID()) for e in self.net.getEdges()]
         weights.sort(reverse=True)
         with open(fname, 'w+') as f:
             f.write('<edgedata>\n')
-            f.write('    <interval begin="0" end="10">\n')
+            f.write('    <interval id="%s" begin="%s" end="%s">\n' % (
+                interval_id, begin, end))
             for weight, edgeID in weights:
                 f.write('        <edge id="%s" value="%0.2f"/>\n' %
                         (edgeID, weight))
@@ -223,7 +231,7 @@ class RandomTripGenerator:
         self.intermediate = intermediate
         self.pedestrians = pedestrians
 
-    def get_trip(self, min_distance, max_distance, maxtries=100):
+    def get_trip(self, min_distance, max_distance, maxtries=100, junctionTaz=False):
         for _ in range(maxtries):
             source_edge = self.source_generator.get()
             intermediate = [self.via_generator.get()
@@ -239,12 +247,14 @@ class RandomTripGenerator:
                       [destCoord])
             distance = sum([euclidean(p, q)
                             for p, q in zip(coords[:-1], coords[1:])])
-            if distance >= min_distance and (max_distance is None or distance < max_distance):
+            if (distance >= min_distance
+                    and (not junctionTaz or source_edge.getFromNode() != sink_edge.getToNode())
+                    and (max_distance is None or distance < max_distance)):
                 return source_edge, sink_edge, intermediate
         raise Exception("no trip found after %s tries" % maxtries)
 
 
-def get_prob_fun(options, fringe_bonus, fringe_forbidden):
+def get_prob_fun(options, fringe_bonus, fringe_forbidden, max_length):
     # fringe_bonus None generates intermediate way points
     def edge_probability(edge):
         if options.vclass and not edge.allows(options.vclass):
@@ -255,9 +265,15 @@ def get_prob_fun(options, fringe_bonus, fringe_forbidden):
                 not options.pedestrians and
                 (options.allow_fringe_min_length is None or edge.getLength() < options.allow_fringe_min_length)):
             return 0  # the wrong kind of fringe
+        if fringe_bonus is not None and options.viaEdgeTypes is not None and not edge.is_fringe() and edge.getType() in options.viaEdgeTypes:
+            return 0  # the wrong type of edge (only allows depart and arrival on the fringe)
         prob = 1
         if options.length:
-            prob *= edge.getLength()
+            if options.fringe_factor != 1.0 and fringe_bonus is not None and edge.is_fringe():
+                # short fringe edges should not suffer a penalty
+                prob *= max_length
+            else:
+                prob *= edge.getLength()
         if options.lanes:
             prob *= edge.getLaneNumber()
         prob *= (edge.getSpeed() ** options.speed_exponent)
@@ -303,12 +319,16 @@ class LoadedProps:
 
 def buildTripGenerator(net, options):
     try:
+        max_length = 0
+        for edge in net.getEdges():
+            if not edge.is_fringe():
+                max_length = max(max_length, edge.getLength())
         forbidden_source_fringe = None if options.allow_fringe else "_outgoing"
         forbidden_sink_fringe = None if options.allow_fringe else "_incoming"
         source_generator = RandomEdgeGenerator(
-            net, get_prob_fun(options, "_incoming", forbidden_source_fringe))
+            net, get_prob_fun(options, "_incoming", forbidden_source_fringe, max_length))
         sink_generator = RandomEdgeGenerator(
-            net, get_prob_fun(options, "_outgoing", forbidden_sink_fringe))
+            net, get_prob_fun(options, "_outgoing", forbidden_sink_fringe, max_length))
         if options.weightsprefix:
             if os.path.isfile(options.weightsprefix + SOURCE_SUFFIX):
                 source_generator = RandomEdgeGenerator(
@@ -323,7 +343,7 @@ def buildTripGenerator(net, options):
 
     try:
         via_generator = RandomEdgeGenerator(
-            net, get_prob_fun(options, None, None))
+            net, get_prob_fun(options, None, None, 1))
         if options.weightsprefix and os.path.isfile(options.weightsprefix + VIA_SUFFIX):
             via_generator = RandomEdgeGenerator(
                 net, LoadedProps(options.weightsprefix + VIA_SUFFIX))
@@ -421,7 +441,7 @@ def prependSpace(s):
 
 
 def main(options):
-    if options.seed:
+    if not options.random:
         random.seed(options.seed)
 
     net = sumolib.net.readNet(options.netfile)
@@ -448,7 +468,8 @@ def main(options):
         label = "%s%s" % (options.tripprefix, idx)
         try:
             source_edge, sink_edge, intermediate = trip_generator.get_trip(
-                options.min_distance, options.max_distance, options.maxtries)
+                options.min_distance, options.max_distance, options.maxtries,
+                options.junctionTaz)
             combined_attrs = options.tripattrs
             if options.fringeattrs and source_edge.is_fringe(source_edge._incoming):
                 combined_attrs += " " + options.fringeattrs
@@ -501,14 +522,28 @@ def main(options):
     with open(options.tripfile, 'w') as fouttrips:
         sumolib.writeXMLHeader(fouttrips, "$Id$", "routes")  # noqa
         if options.vehicle_class:
-            fouttrips.write('    <vType id="%s" vClass="%s"%s/>\n' %
-                            (options.vtypeID, options.vehicle_class, vtypeattrs))
+            vTypeDef = '    <vType id="%s" vClass="%s"%s/>\n' % (
+                options.vtypeID, options.vehicle_class, vtypeattrs)
+            if options.vtypeout:
+                # ensure that trip output does not contain types, file may be
+                # overwritten by later call to duarouter
+                if options.additional is None:
+                    options.additional = options.vtypeout
+                else:
+                    options.additional += ",options.vtypeout"
+                with open(options.vtypeout, 'w') as fouttype:
+                    sumolib.writeXMLHeader(fouttype, "$Id$", "additional")  # noqa
+                    fouttype.write(vTypeDef)
+                    fouttype.write("</additional>\n")
+            else:
+                fouttrips.write(vTypeDef)
             options.tripattrs += ' type="%s"' % options.vtypeID
             personattrs += ' type="%s"' % options.vtypeID
-        depart = options.begin
+        depart = sumolib.miscutils.parseTime(options.begin)
+        maxTime = sumolib.miscutils.parseTime(options.end)
         if trip_generator:
             if options.flows == 0:
-                while depart < options.end:
+                while depart < maxTime:
                     if options.binomial is None:
                         # generate with constant spacing
                         idx = generate_one(idx)
@@ -549,26 +584,38 @@ def main(options):
 
     if options.routefile:
         args2 = args + ['-o', options.routefile]
-        print("calling ", " ".join(args2))
+        print("calling", " ".join(args2))
+        sys.stdout.flush()
         subprocess.call(args2)
+        sys.stdout.flush()
 
     if options.validate:
         # write to temporary file because the input is read incrementally
         tmpTrips = options.tripfile + ".tmp"
         args2 = args + ['-o', tmpTrips, '--write-trips']
-        print("calling ", " ".join(args2))
+        if options.junctionTaz:
+            args2 += ['--write-trips.junctions']
+        print("calling", " ".join(args2))
+        sys.stdout.flush()
         subprocess.call(args2)
+        sys.stdout.flush()
         os.remove(options.tripfile)  # on windows, rename does not overwrite
         os.rename(tmpTrips, options.tripfile)
 
     if options.weights_outprefix:
+        idPrefix = ""
+        if options.tripprefix:
+            idPrefix = options.tripprefix + "."
         trip_generator.source_generator.write_weights(
-            options.weights_outprefix + SOURCE_SUFFIX)
+            options.weights_outprefix + SOURCE_SUFFIX,
+            idPrefix + "src", options.begin, options.end)
         trip_generator.sink_generator.write_weights(
-            options.weights_outprefix + SINK_SUFFIX)
+            options.weights_outprefix + SINK_SUFFIX,
+            idPrefix + "dst", options.begin, options.end)
         if trip_generator.via_generator:
             trip_generator.via_generator.write_weights(
-                options.weights_outprefix + VIA_SUFFIX)
+                options.weights_outprefix + VIA_SUFFIX,
+                idPrefix + "via", options.begin, options.end)
 
     # return wether trips could be generated as requested
     return trip_generator is not None

@@ -18,11 +18,6 @@
 ///
 // Network state mean data collector for edges/lanes
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <microsim/MSEdgeControl.h>
@@ -111,19 +106,26 @@ MSMeanData_Amitran::MSLaneMeanDataValues::isEmpty() const {
 
 
 void
-MSMeanData_Amitran::MSLaneMeanDataValues::write(OutputDevice& dev, const SUMOTime /* period */,
+MSMeanData_Amitran::MSLaneMeanDataValues::write(OutputDevice& dev, long long int attributeMask, const SUMOTime /* period */,
         const double /* numLanes */, const double defaultTravelTime, const int /* numVehicles */) const {
+    int averageSpeed;
     if (sampleSeconds > 0) {
-        dev.writeAttr("amount", amount).writeAttr("averageSpeed", int(100 * travelledDistance / sampleSeconds));
+        averageSpeed = int(100 * travelledDistance / sampleSeconds);
     } else if (defaultTravelTime >= 0.) {
-        dev.writeAttr("amount", amount).writeAttr("averageSpeed", int(100 * myLaneLength / defaultTravelTime));
+        averageSpeed = int(100 * myLaneLength / defaultTravelTime);
     } else {
-        dev.writeAttr("amount", amount).writeAttr("averageSpeed", "-1");
+        averageSpeed = -1;
     }
+    checkWriteAttribute(dev, attributeMask, SUMO_ATTR_AMOUNT, amount);
+    checkWriteAttribute(dev, attributeMask, SUMO_ATTR_AVERAGESPEED, averageSpeed);
+
     if (myParent->isTyped()) {
         for (std::map<const MSVehicleType*, int>::const_iterator it = typedAmount.begin(); it != typedAmount.end(); ++it) {
-            dev.openTag("actorConfig").writeAttr(SUMO_ATTR_ID, it->first->getNumericalID());
-            dev.writeAttr("amount", it->second).writeAttr("averageSpeed", int(100 * typedTravelDistance.find(it->first)->second / typedSamples.find(it->first)->second));
+            dev.openTag("actorConfig");
+            const int averageSpeed = int(100 * typedTravelDistance.find(it->first)->second / typedSamples.find(it->first)->second);
+            dev.writeAttr(SUMO_ATTR_ID, it->first->getNumericalID());
+            checkWriteAttribute(dev, attributeMask, SUMO_ATTR_AMOUNT, it->second);
+            checkWriteAttribute(dev, attributeMask, SUMO_ATTR_AVERAGESPEED, averageSpeed);
             dev.closeTag();
         }
     }
@@ -143,10 +145,11 @@ MSMeanData_Amitran::MSMeanData_Amitran(const std::string& id,
                                        const double maxTravelTime,
                                        const double minSamples,
                                        const double haltSpeed,
-                                       const std::string& vTypes)
-    : MSMeanData(id, dumpBegin, dumpEnd, useLanes, withEmpty, printDefaults,
-                 withInternal, trackVehicles, detectPersons, maxTravelTime, minSamples, vTypes),
-      myHaltSpeed(haltSpeed) {
+                                       const std::string& vTypes,
+                                       const std::string& writeAttributes) :
+    MSMeanData(id, dumpBegin, dumpEnd, useLanes, withEmpty, printDefaults,
+               withInternal, trackVehicles, detectPersons, maxTravelTime, minSamples, vTypes, writeAttributes),
+    myHaltSpeed(haltSpeed) {
 }
 
 
@@ -189,4 +192,3 @@ MSMeanData_Amitran::createValues(MSLane* const lane, const double length, const 
 
 
 /****************************************************************************/
-

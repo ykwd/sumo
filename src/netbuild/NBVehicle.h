@@ -19,17 +19,12 @@
 ///
 // A vehicle as used by router
 /****************************************************************************/
-#ifndef NBVehicle_h
-#define NBVehicle_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
 #include <iostream>
+#include <utils/vehicle/SUMOVTypeParameter.h>
 
 
 // ===========================================================================
@@ -53,7 +48,7 @@ public:
      * @param[in] type The type of the vehicle
      */
     NBVehicle(const std::string& id, SUMOVehicleClass vClass):
-        myID(id), myVClass(vClass) {}
+        myID(id), myVClass(vClass), myLength(getDefaultVehicleLength(vClass)) {}
 
     const std::string& getID() const {
         return myID;
@@ -63,6 +58,9 @@ public:
         return myVClass;
     }
 
+    double getLength() const {
+        return myLength;
+    }
 
     /// @brief Destructor
     virtual ~NBVehicle() {}
@@ -72,8 +70,11 @@ private:
     /// @brief vehicle ID for error reporting
     std::string myID;
 
-    /// @brief The vehicle class of the
+    /// @brief The vehicle class of the vehicle
     SUMOVehicleClass myVClass;
+
+    /// @brief The length of the vehicle (for rail-routing)
+    double myLength;
 
 
 private:
@@ -84,8 +85,3 @@ private:
     NBVehicle& operator=(const NBVehicle& src);
 
 };
-
-
-#endif
-
-/****************************************************************************/

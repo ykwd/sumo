@@ -23,9 +23,9 @@ documentation in HTML format.
 
 Within the installation folder, you will find a folder named "**bin**".
 Here, you can find the executables (programs). You may double click on
-[SUMO-GUI](SUMO-GUI.md) and take a look at the examples located
+[sumo-gui](sumo-gui.md) and take a look at the examples located
 in **docs/examples**. All other applications
-([DUAROUTER](DUAROUTER.md), [DFROUTER](DFROUTER.md),
+([duarouter](duarouter.md), [dfrouter](dfrouter.md),
 etc.) have to be run from the command line. To facilitate this there is
 also a start-commandline.bat which sets up the whole environment for
 you. If you feel unsure about the command line, please read
@@ -66,9 +66,55 @@ system is not listed here or you need to modify the sources, [you have to build 
 
 # macOS
 
-A guide for Homebrew-based (encouraged) as well as Macports-based
-(legacy) installation is given
-[here](Installing/MacOS_Build.md).
+SUMO can be easily installed on macOS by using [Homebrew](http://brew.sh). If you did not already install homebrew, you can do so by invoking
+```
+ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+```
+Please make sure your homebrew installation is up-to-date:
+```
+brew update
+```
+You can then install the latest stable release of SUMO with the following commands:
+```
+brew tap dlr-ts/sumo
+brew install sumo
+```
+To finalize your setup, please make sure to set the **SUMO_HOME** environment variable and have it point to the directory of your SUMO installation. Depending on your shell, you may set this variable either in `.bash_profile` or `.zshrc`. To set this variable in `.bash_profile` you can use the following commands. 
+```
+touch ~/.bash_profile; open ~/.bash_profile
+```
+Just insert the following new line at the end of the file: 
+```
+export SUMO_HOME=/your/path/to/sumo
+```
+where `/your/path/to/sumo` is the path stated in the caveats section of the `brew install sumo` command. Restart the Terminal and test the newly added variable:
+```
+echo $SUMO_HOME
+```
+After the installation you need to log out/in in order to let X11 start automatically, when calling a gui-based application like ```sumo-gui```. (Alternatively, you may start X11 manually by pressing *cmd-space* and entering ```XQuartz```).
+
+SUMO provides native **macOS application bundles** for its graphical applications, so they can be added to the macOS dock or moved to the `Applications` folder. The brew installation will copy these bundles to `Applications` as part of the installation process. 
+
+In case this process fails, it can also be manually achieved by copying these application bundles from `$SUMO_HOME/build/osx/sumo-gui`, `$SUMO_HOME/build/osx/netedit` and `$SUMO_HOME/build/osx/osm-web-wizard` to the `/Applications` folder. 
+
+These application bundles determine the location of your SUMO installation by evaluating your `$SUMO_HOME` variable setting and start the programs accordingly. Multiple SUMO installations may be used by changing the `$SUMO_HOME` variable.
+
+## MacOS Troubleshooting
+
+If you encounter segmentation faults on MacOS Catalina, please follow the following steps (see [Issue 6242](https://github.com/eclipse/sumo/issues/6242#issuecomment-553458710)).
+
+1. Uninstall Catalina bottle of fox:
+```$ brew uninstall --ignore-dependencies fox```
+
+2. Edit brew Formula of fox:
+```$ brew edit fox```
+
+3. Comment out or delete the following line:
+```sha256 "c6697be294c9a0458580564d59f8db32791beb5e67a05a6246e0b969ffc068bc" => :catalina```
+
+4. Install Mojave bottle of fox:
+```$ brew install fox```
+
 
 # via Docker
 

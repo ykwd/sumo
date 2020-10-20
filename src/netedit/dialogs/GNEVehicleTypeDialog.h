@@ -17,13 +17,7 @@
 ///
 // Dialog for edit vehicleTypes
 /****************************************************************************/
-#ifndef GNEVehicleTypeDialog_h
-#define GNEVehicleTypeDialog_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-
+#pragma once
 #include <config.h>
 
 #include <utils/common/SUMOVehicleClass.h>
@@ -118,7 +112,8 @@ public:
                 ROWTYPE_STRING,
                 ROWTYPE_COLOR,
                 ROWTYPE_FILENAME,
-                ROWTYPE_COMBOBOX
+                ROWTYPE_COMBOBOX,
+                ROWTYPE_PARAMETERS
             };
 
             /// @brief constructor
@@ -148,6 +143,15 @@ public:
             /// @brief open OSG file dialog
             void openOSGFileDialog();
 
+            /// @brief get parameters as string
+            std::string getParametersStr() const;
+
+            /// @brief get parameters as vector of strings
+            std::vector<std::pair<std::string, std::string> > getParametersVectorStr() const;
+
+            /// @brief set parameters
+            void setParameters(const std::vector<std::pair<std::string, std::string> >& parameters);
+
         private:
             /// @brief pointer to VTypeAttributeParameters parent
             VTypeAtributes* myVTypeAtributesParent;
@@ -166,6 +170,9 @@ public:
 
             /// @brief ComboBox for attributes with limited values
             FXComboBox* myComboBox;
+
+            /// @brief pointer to current parameter map
+            std::map<std::string, std::string> myParameters;
 
             /// @brief filter attribute name
             FXString filterAttributeName(const SumoXMLAttr attr) const;
@@ -198,7 +205,10 @@ public:
         long onCmdSetAttribute(FXObject*, FXSelector, void*);
 
         /// @event called after press a button dialog
-        long onCmdSetAttributeDialog(FXObject* obj, FXSelector, void*);
+        long onCmdOpenAttributeDialog(FXObject* obj, FXSelector, void*);
+
+        /// @event called after press a button dialog
+        long onCmdOpenParametersEditor(FXObject* obj, FXSelector, void*);
 
         /// @}
 
@@ -288,6 +298,9 @@ public:
 
         /// @brief VTypeAttributeRow for Probability
         VTypeAttributeRow* myProbability;
+
+        /// @brief VTypeAttributeRow for parameters
+        VTypeAttributeRow* myParameters;
 
         /// @}
 
@@ -568,4 +581,3 @@ private:
     GNEVehicleTypeDialog& operator=(const GNEVehicleTypeDialog&) = delete;
 };
 
-#endif

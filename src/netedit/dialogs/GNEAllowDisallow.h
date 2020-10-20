@@ -17,12 +17,7 @@
 ///
 // Dialog for edit allow and disallow attributes
 /****************************************************************************/
-#ifndef GNEAllowDisallow_h
-#define GNEAllowDisallow_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 #include <utils/common/SUMOVehicleClass.h>
 
@@ -118,4 +113,3 @@ private:
     GNEAllowDisallow& operator=(const GNEAllowDisallow&) = delete;
 };
 
-#endif

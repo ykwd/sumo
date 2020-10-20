@@ -32,7 +32,7 @@ neteditProcess, referencePosition = netedit.setupAndStart(neteditTestRoot)
 netedit.rebuildNetwork()
 
 # show connections
-netedit.changeEditMode('3')
+netedit.changeEditMode('5')
 
 # go to select mode
 netedit.selectMode()
@@ -44,7 +44,7 @@ netedit.selectionInvert()
 netedit.inspectMode()
 
 # inspect selected connections
-netedit.leftClick(referencePosition, 250, 138)
+netedit.leftClick(referencePosition, 228, 170)
 
 # Change keepclear
 netedit.modifyBoolAttribute(1, True)

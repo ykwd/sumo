@@ -23,13 +23,7 @@
 // Contains various data, statistical values and functions from input used
 // by various objects
 /****************************************************************************/
-#ifndef AGDATAANDSTATISTICS_H
-#define AGDATAANDSTATISTICS_H
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <iostream>
@@ -72,6 +66,7 @@ public:
     std::map<int, AGPosition> busStations;        //<id, position>
     //std::map<SchoolType, int> schoolCapacity;
     std::map<int, double> population;            //<bracket's end age, number> (number only used in term of PROPORTION: it should be normalized)
+    std::map<int, int> ageSpan; // <brachets begin age, endage>
     //std::map<int, double> childrenAccompagniment;    //<bracket's end age, probability>
     /**
      * number of incoming or outgoing people through the given city gates
@@ -182,7 +177,3 @@ private:
     //function normalizing the map's probabilities: Sum(floats) = 1
     void normalizeMapProb(std::map<int, double>* myMap);
 };
-
-#endif
-
-/****************************************************************************/

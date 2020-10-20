@@ -19,13 +19,7 @@
 ///
 // The class storing the generated network
 /****************************************************************************/
-#ifndef NGNet_h
-#define NGNet_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/distribution/Distribution_Parameterized.h>
@@ -225,9 +219,3 @@ private:
     NGNet& operator=(const NGNet&);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

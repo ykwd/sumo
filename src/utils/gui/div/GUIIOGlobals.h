@@ -18,13 +18,7 @@
 ///
 // The folder used as last
 /****************************************************************************/
-#ifndef GUIIOGlobals_h
-#define GUIIOGlobals_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <fx.h>
@@ -39,9 +33,3 @@
  *  of the application. It is changed after a file was loaded/saved.
  */
 extern FXString gCurrentFolder;
-
-
-#endif
-
-/****************************************************************************/
-

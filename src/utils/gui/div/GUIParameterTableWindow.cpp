@@ -20,11 +20,6 @@
 ///
 // The window that holds the table of an object's parameter
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <string>
@@ -68,7 +63,7 @@ GUIParameterTableWindow::GUIParameterTableWindow(GUIMainWindow& app, GUIGlObject
     FXMainWindow(app.getApp(), (o.getFullName() + " Parameter").c_str(), nullptr, nullptr, DECOR_ALL, 20, 20, 200, 500),
     myObject(&o),
     myApplication(&app),
-    myTrackerY(0),
+    myTrackerY(50),
     myCurrentPos(0) {
     myTable = new FXTable(this, this, MID_TABLE, TABLE_COL_SIZABLE | TABLE_ROW_SIZABLE | LAYOUT_FILL_X | LAYOUT_FILL_Y);
     myTable->setTableSize(1, 3);
@@ -85,7 +80,7 @@ GUIParameterTableWindow::GUIParameterTableWindow(GUIMainWindow& app, GUIGlObject
     header->setItemSize(1, 120);
     header->setItemJustify(2, JUSTIFY_CENTER_X);
     header->setItemSize(2, 60);
-    setIcon(GUIIconSubSys::getIcon(ICON_APP_TABLE));
+    setIcon(GUIIconSubSys::getIcon(GUIIcon::APP_TABLE));
     myLock.lock();
     myObject->addParameterTable(this);
     myLock.unlock();
@@ -277,4 +272,3 @@ GUIParameterTableWindow::numParams(const GUIGlObject* obj) {
 
 
 /****************************************************************************/
-

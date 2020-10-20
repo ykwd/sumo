@@ -17,13 +17,7 @@
 ///
 // The base class for distribution descriptions.
 /****************************************************************************/
-#ifndef Distribution_h
-#define Distribution_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <random>
@@ -62,9 +56,3 @@ public:
     virtual std::string toStr(std::streamsize accuracy) const = 0;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

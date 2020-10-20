@@ -23,13 +23,7 @@
 // Generates trips related to after-work activities
 // like visiting the family or party.
 /****************************************************************************/
-#ifndef AGFREETIME_H
-#define AGFREETIME_H
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "../city/AGHousehold.h"
@@ -122,7 +116,3 @@ private:
     static const int TE_NIGHT;// = 500;
 
 };
-
-#endif
-
-/****************************************************************************/

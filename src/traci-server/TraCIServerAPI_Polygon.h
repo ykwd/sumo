@@ -18,13 +18,7 @@
 ///
 // APIs for getting/setting polygon values via TraCI
 /****************************************************************************/
-#ifndef TraCIServerAPI_Polygon_h
-#define TraCIServerAPI_Polygon_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "TraCIServer.h"
@@ -69,9 +63,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

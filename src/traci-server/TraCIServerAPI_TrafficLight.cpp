@@ -20,11 +20,6 @@
 ///
 // APIs for getting/setting traffic light values via TraCI
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <microsim/MSLane.h>
@@ -67,25 +62,25 @@ TraCIServerAPI_TrafficLight::processGet(TraCIServer& server, tcpip::Storage& inp
                         // phase number
                         storage.writeUnsignedByte(libsumo::TYPE_COMPOUND);
                         storage.writeInt((int)logic.phases.size());
-                        for (const libsumo::TraCIPhase& phase : logic.phases) {
+                        for (const libsumo::TraCIPhase* phase : logic.phases) {
                             storage.writeUnsignedByte(libsumo::TYPE_COMPOUND);
                             storage.writeInt(6);
                             storage.writeUnsignedByte(libsumo::TYPE_DOUBLE);
-                            storage.writeDouble(phase.duration);
+                            storage.writeDouble(phase->duration);
                             storage.writeUnsignedByte(libsumo::TYPE_STRING);
-                            storage.writeString(phase.state);
+                            storage.writeString(phase->state);
                             storage.writeUnsignedByte(libsumo::TYPE_DOUBLE);
-                            storage.writeDouble(phase.minDur);
+                            storage.writeDouble(phase->minDur);
                             storage.writeUnsignedByte(libsumo::TYPE_DOUBLE);
-                            storage.writeDouble(phase.maxDur);
+                            storage.writeDouble(phase->maxDur);
                             storage.writeUnsignedByte(libsumo::TYPE_COMPOUND);
-                            storage.writeInt((int)phase.next.size());
-                            for (int n : phase.next) {
+                            storage.writeInt((int)phase->next.size());
+                            for (int n : phase->next) {
                                 storage.writeUnsignedByte(libsumo::TYPE_INTEGER);
                                 storage.writeInt(n);
                             }
                             storage.writeUnsignedByte(libsumo::TYPE_STRING);
-                            storage.writeString(phase.name);
+                            storage.writeString(phase->name);
                         }
                         // subparameter
                         storage.writeUnsignedByte(libsumo::TYPE_COMPOUND);
@@ -129,11 +124,51 @@ TraCIServerAPI_TrafficLight::processGet(TraCIServer& server, tcpip::Storage& inp
                     server.getWrapperStorage().writeInt(libsumo::TrafficLight::getServedPersonCount(id, index));
                     break;
                 }
+                case libsumo::TL_BLOCKING_VEHICLES: {
+                    int index = 0;
+                    if (!server.readTypeCheckingInt(inputStorage, index)) {
+                        return server.writeErrorStatusCmd(libsumo::CMD_SET_TL_VARIABLE, "The link index must be given as an integer.", outputStorage);
+                    }
+                    server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_STRINGLIST);
+                    server.getWrapperStorage().writeStringList(libsumo::TrafficLight::getBlockingVehicles(id, index));
+                    break;
+                }
+                case libsumo::TL_RIVAL_VEHICLES: {
+                    int index = 0;
+                    if (!server.readTypeCheckingInt(inputStorage, index)) {
+                        return server.writeErrorStatusCmd(libsumo::CMD_SET_TL_VARIABLE, "The link index must be given as an integer.", outputStorage);
+                    }
+                    server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_STRINGLIST);
+                    server.getWrapperStorage().writeStringList(libsumo::TrafficLight::getRivalVehicles(id, index));
+                    break;
+                }
+                case libsumo::TL_PRIORITY_VEHICLES: {
+                    int index = 0;
+                    if (!server.readTypeCheckingInt(inputStorage, index)) {
+                        return server.writeErrorStatusCmd(libsumo::CMD_SET_TL_VARIABLE, "The link index must be given as an integer.", outputStorage);
+                    }
+                    server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_STRINGLIST);
+                    server.getWrapperStorage().writeStringList(libsumo::TrafficLight::getPriorityVehicles(id, index));
+                    break;
+                }
                 case libsumo::VAR_PARAMETER: {
                     std::string paramName = "";
                     if (!server.readTypeCheckingString(inputStorage, paramName)) {
                         return server.writeErrorStatusCmd(libsumo::CMD_GET_TL_VARIABLE, "Retrieval of a parameter requires its name.", outputStorage);
                     }
+                    server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_STRING);
+                    server.getWrapperStorage().writeString(libsumo::TrafficLight::getParameter(id, paramName));
+                    break;
+                }
+                case libsumo::VAR_PARAMETER_WITH_KEY: {
+                    std::string paramName = "";
+                    if (!server.readTypeCheckingString(inputStorage, paramName)) {
+                        return server.writeErrorStatusCmd(libsumo::CMD_GET_TL_VARIABLE, "Retrieval of a parameter requires its name.", outputStorage);
+                    }
+                    server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_COMPOUND);
+                    server.getWrapperStorage().writeInt(2);  /// length
+                    server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_STRING);
+                    server.getWrapperStorage().writeString(paramName);
                     server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_STRING);
                     server.getWrapperStorage().writeString(libsumo::TrafficLight::getParameter(id, paramName));
                     break;
@@ -326,7 +361,7 @@ TraCIServerAPI_TrafficLight::processSet(TraCIServer& server, tcpip::Storage& inp
                             return server.writeErrorStatusCmd(libsumo::CMD_SET_TL_VARIABLE, "set program: 4.6. parameter (name) must be a string.", outputStorage);
                         }
                     }
-                    logic.phases.emplace_back(libsumo::TraCIPhase(duration, state, minDuration, maxDuration, next, name));
+                    logic.phases.emplace_back(new libsumo::TraCIPhase(duration, state, minDuration, maxDuration, next, name));
                 }
                 if (inputStorage.readUnsignedByte() != libsumo::TYPE_COMPOUND) {
                     return server.writeErrorStatusCmd(libsumo::CMD_SET_TL_VARIABLE, "set program: 5. parameter (subparams) must be a compound object.", outputStorage);

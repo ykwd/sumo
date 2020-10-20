@@ -19,13 +19,7 @@
 ///
 // The handler for parsing gui settings from xml.
 /****************************************************************************/
-#ifndef GUISettingsHandler_h
-#define GUISettingsHandler_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/xml/SUMOSAXHandler.h>
@@ -187,7 +181,3 @@ private:
         GUIVisualizationSizeSettings defaults);
 
 };
-
-#endif
-
-/****************************************************************************/

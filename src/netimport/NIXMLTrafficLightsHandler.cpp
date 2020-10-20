@@ -19,11 +19,6 @@
 ///
 // Importer for traffic lights stored in XML
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <string>
@@ -87,7 +82,7 @@ NIXMLTrafficLightsHandler::myStartElement(
         case SUMO_TAG_CONNECTION:
             addTlConnection(attrs);
             break;
-        case SUMO_TAG_DELETE:
+        case SUMO_TAG_DEL:
             removeTlConnection(attrs);
             break;
         case SUMO_TAG_PARAM:
@@ -124,7 +119,7 @@ NIXMLTrafficLightsHandler::initTrafficLightLogic(const SUMOSAXAttributes& attrs,
     }
     bool ok = true;
     std::string id = attrs.get<std::string>(SUMO_ATTR_ID, nullptr, ok);
-    std::string programID = attrs.getOpt<std::string>(SUMO_ATTR_PROGRAMID, id.c_str(), ok, "<unknown>");
+    std::string programID = attrs.getOpt<std::string>(SUMO_ATTR_PROGRAMID, id.c_str(), ok, "UNKNOWN_PROGRAM");
     SUMOTime offset = attrs.hasAttribute(SUMO_ATTR_OFFSET) ? TIME2STEPS(attrs.get<double>(SUMO_ATTR_OFFSET, id.c_str(), ok)) : 0;
     std::string typeS = attrs.getOpt<std::string>(SUMO_ATTR_TYPE, nullptr, ok,
                         OptionsCont::getOptions().getString("tls.default-type"));
@@ -178,10 +173,11 @@ NIXMLTrafficLightsHandler::initTrafficLightLogic(const SUMOSAXAttributes& attrs,
             }
             loadedDef->addControlledInnerEdges(newDef->getControlledInnerEdges());
             if (deleteDefault) {
+                // make a copy because the vector is modified in the loop
+                const std::vector<NBNode*> nodes = newDef->getNodes();
                 // replace default Program
-                std::vector<NBNode*> nodes = newDef->getNodes();
-                for (std::vector<NBNode*>::iterator it = nodes.begin(); it != nodes.end(); it++) {
-                    (*it)->removeTrafficLight(newDef);
+                for (NBNode* const n : nodes) {
+                    n->removeTrafficLight(newDef);
                 }
                 myTLLCont.removeProgram(id, NBTrafficLightDefinition::DefaultProgramID);
             }
@@ -189,9 +185,8 @@ NIXMLTrafficLightsHandler::initTrafficLightLogic(const SUMOSAXAttributes& attrs,
         } else {
             // case 3
             NBTrafficLightLogic* oldLogic = oldDef->getLogic();
-            NBTrafficLightLogic* newLogic = new NBTrafficLightLogic(id, programID,
-                    oldLogic->getNumLinks(), offset, type);
-            loadedDef = new NBLoadedSUMOTLDef(oldDef, newLogic);
+            NBTrafficLightLogic newLogic(id, programID, oldLogic->getNumLinks(), offset, type);
+            loadedDef = new NBLoadedSUMOTLDef(*oldDef, newLogic);
             // copy nodes
             std::vector<NBNode*> nodes = oldDef->getNodes();
             for (std::vector<NBNode*>::iterator it = nodes.begin(); it != nodes.end(); it++) {
@@ -276,7 +271,7 @@ NIXMLTrafficLightsHandler::addTlConnection(const SUMOSAXAttributes& attrs) {
         }
     } else {
         SumoXMLNodeType type = from->getToNode()->getType();
-        if (type != NODETYPE_RAIL_CROSSING && type != NODETYPE_RAIL_SIGNAL) {
+        if (type != SumoXMLNodeType::RAIL_CROSSING && type != SumoXMLNodeType::RAIL_SIGNAL) {
             WRITE_ERROR("The traffic light '" + tlID + "' is not known.");
         }
     }
@@ -293,13 +288,11 @@ NIXMLTrafficLightsHandler::removeTlConnection(const SUMOSAXAttributes& attrs) {
         // parse identifying attributes
         NBEdge* from = retrieveEdge(attrs, SUMO_ATTR_FROM, ok);
         NBEdge* to = retrieveEdge(attrs, SUMO_ATTR_TO, ok);
-        if (!ok) {
-            return;
-        }
-        int fromLane = retrieveLaneIndex(attrs, SUMO_ATTR_FROM_LANE, from, ok, true);
-        int toLane = retrieveLaneIndex(attrs, SUMO_ATTR_TO_LANE, to, ok, true);
-        if (!ok) {
-            return;
+        int fromLane = -1;
+        int toLane = -1;
+        if (ok) {
+            fromLane = retrieveLaneIndex(attrs, SUMO_ATTR_FROM_LANE, from, ok, true);
+            toLane = retrieveLaneIndex(attrs, SUMO_ATTR_TO_LANE, to, ok, true);
         }
         int tlIndex = attrs.get<int>(SUMO_ATTR_TLLINKINDEX, nullptr, ok);
 
@@ -347,4 +340,3 @@ NIXMLTrafficLightsHandler::retrieveLaneIndex(
 
 
 /****************************************************************************/
-

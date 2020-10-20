@@ -18,14 +18,7 @@
 ///
 // Encapsulates an object's method for using it as a message retriever
 /****************************************************************************/
-#ifndef MsgRetrievingFunction_h
-#define MsgRetrievingFunction_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-
+#pragma once
 #include <string>
 #include <sstream>
 #include <utils/iodevices/OutputDevice.h>
@@ -103,9 +96,3 @@ private:
     std::ostringstream myMessage;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

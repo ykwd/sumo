@@ -19,12 +19,7 @@
 ///
 // The base abstract class for SOTL logics
 /****************************************************************************/
-#ifndef MSSOTLTrafficLightLogic_h
-#define MSSOTLTrafficLightLogic_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/SwarmDebug.h>
@@ -292,6 +287,3 @@ private:
     }
 
 };
-
-#endif
-/****************************************************************************/

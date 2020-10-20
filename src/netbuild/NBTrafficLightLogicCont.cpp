@@ -19,11 +19,6 @@
 ///
 // A container for traffic light definitions and built programs
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 #include <map>
 #include <string>
@@ -69,7 +64,7 @@ NBTrafficLightLogicCont::applyOptions(OptionsCont& oc) {
     //  them to a quarter of the duration
     if (oc.isSet("tls.quarter-offset")) {
         std::vector<std::string> ids = oc.getStringVector("tls.quarter-offset");
-        myHalfOffsetTLS.insert(ids.begin(), ids.end());
+        myQuarterOffsetTLS.insert(ids.begin(), ids.end());
     }
 }
 
@@ -157,7 +152,7 @@ NBTrafficLightLogicCont::computeLogics(OptionsCont& oc) {
             if (lDef == nullptr) {
                 NBTrafficLightLogic* logic = def->compute(oc);
                 if (logic != nullptr) {
-                    lDef = new NBLoadedSUMOTLDef(def, logic);
+                    lDef = new NBLoadedSUMOTLDef(*def, *logic);
                     lDef->setParticipantsInformation();
                     for (NBNode* node : lDef->getNodes()) {
                         node->removeTrafficLight(def);
@@ -208,10 +203,10 @@ NBTrafficLightLogicCont::computeSingleLogic(OptionsCont& oc, NBTrafficLightDefin
     // compute offset
     SUMOTime T = built->getDuration();
     if (myHalfOffsetTLS.count(id)) {
-        built->setOffset((SUMOTime)(T / 2.));
+        built->setOffset(TIME2STEPS(floor(STEPS2TIME(T / 2.))));
     }
     if (myQuarterOffsetTLS.count(id)) {
-        built->setOffset((SUMOTime)(T / 4.));
+        built->setOffset(TIME2STEPS(floor(STEPS2TIME(T / 4.))));
     }
     // and insert the result after computation
     // make sure we don't leak memory if computeSingleLogic is called externally
@@ -254,10 +249,10 @@ NBTrafficLightLogicCont::remapRemoved(NBEdge* removed, const EdgeVector& incomin
 
 void
 NBTrafficLightLogicCont::replaceRemoved(NBEdge* removed, int removedLane,
-                                        NBEdge* by, int byLane) {
+                                        NBEdge* by, int byLane, bool incoming) {
     Definitions definitions = getDefinitions();
     for (Definitions::iterator it = definitions.begin(); it != definitions.end(); it++) {
-        (*it)->replaceRemoved(removed, removedLane, by, byLane);
+        (*it)->replaceRemoved(removed, removedLane, by, byLane, incoming);
     }
 }
 
@@ -316,12 +311,36 @@ NBTrafficLightLogicCont::setTLControllingInformation(const NBEdgeCont& ec, const
     // handle rail signals which are not instantiated as normal definitions
     for (std::map<std::string, NBNode*>::const_iterator it = nc.begin(); it != nc.end(); it ++) {
         NBNode* n = it->second;
-        if (n->getType() == NODETYPE_RAIL_SIGNAL || n->getType() == NODETYPE_RAIL_CROSSING) {
-            NBOwnTLDef dummy(n->getID(), n, 0, TLTYPE_STATIC);
+        if (n->getType() == SumoXMLNodeType::RAIL_SIGNAL || n->getType() == SumoXMLNodeType::RAIL_CROSSING) {
+            NBOwnTLDef dummy(n->getID(), n, 0, TrafficLightType::STATIC);
             dummy.setParticipantsInformation();
             dummy.setTLControllingInformation();
             n->setCrossingTLIndices(dummy.getID(), (int)dummy.getControlledLinks().size());
             n->removeTrafficLight(&dummy);
+        }
+    }
+}
+
+
+void
+NBTrafficLightLogicCont::setOpenDriveSignalParameters() {
+    Definitions definitions = getDefinitions();
+    for (NBTrafficLightDefinition* def : getDefinitions()) {
+        std::map<NBEdge*, std::string> defaultSignalIDs;
+        for (const NBConnection& con : def->getControlledLinks()) {
+            const NBEdge::Connection& c = con.getFrom()->getConnection(con.getFromLane(), con.getTo(), con.getToLane());
+            if (c.knowsParameter("signalID")) {
+                defaultSignalIDs[con.getFrom()] = c.getParameter("signalID");
+                def->setParameter("linkSignalID:" + toString(con.getTLIndex()), c.getParameter("signalID"));
+            }
+        }
+        // oftentimes, signals are placed on connecting road but are meant to apply to all connections from the incoming edge
+        for (const NBConnection& con : def->getControlledLinks()) {
+            const NBEdge::Connection& c = con.getFrom()->getConnection(con.getFromLane(), con.getTo(), con.getToLane());
+            if (!c.knowsParameter("signalID") && defaultSignalIDs.count(con.getFrom()) != 0) {
+                WRITE_WARNINGF("Guessing signalID for link index % at traffic light '%'.", con.getTLIndex(), def->getID());
+                def->setParameter("linkSignalID:" + toString(con.getTLIndex()), defaultSignalIDs[con.getFrom()]);
+            }
         }
     }
 }
@@ -354,4 +373,3 @@ NBTrafficLightLogicCont::getDefinitions() const {
 
 
 /****************************************************************************/
-

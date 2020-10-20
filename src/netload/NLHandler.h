@@ -20,13 +20,7 @@
 ///
 // The XML-Handler for network loading
 /****************************************************************************/
-#ifndef NLHandler_h
-#define NLHandler_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/geom/Boundary.h>
@@ -44,6 +38,7 @@ class NLEdgeControlBuilder;
 class NLJunctionControlBuilder;
 class NLTriggerBuilder;
 class MSTrafficLightLogic;
+class MSRailSignal;
 
 
 // ===========================================================================
@@ -107,6 +102,10 @@ public:
 
     bool haveSeenInternalEdge() const {
         return myHaveSeenInternalEdge;
+    }
+
+    bool haveSeenDefaultLength() const {
+        return myHaveSeenDefaultLength;
     }
 
     bool haveSeenNeighs() const {
@@ -240,6 +239,8 @@ private:
     virtual void openWAUT(const SUMOSAXAttributes& attrs);
     void addWAUTSwitch(const SUMOSAXAttributes& attrs);
     void addWAUTJunction(const SUMOSAXAttributes& attrs);
+    void addPredecessorConstraint(const SUMOSAXAttributes& attrs);
+    void addInsertionPredecessorConstraint(const SUMOSAXAttributes& attrs);
 
     /// Parses network location description
     void setLocation(const SUMOSAXAttributes& attrs);
@@ -330,6 +331,9 @@ protected:
     /// @brief whether the loaded network contains internal lanes
     bool myHaveSeenInternalEdge;
 
+    /// @brief whether the loaded network contains edges with default lengths
+    bool myHaveSeenDefaultLength;
+
     /// @brief whether the loaded network contains explicit neighbor lanes
     bool myHaveSeenNeighs;
 
@@ -341,6 +345,9 @@ protected:
 
     /// @brief whether the location element was already loadee
     bool myNetIsLoaded;
+
+    /// @brief rail signal for which constraints are being loaded
+    MSRailSignal* myConstrainedSignal;
 
     /// @brief temporary data for building the junction graph after network parsing is finished
     typedef std::map<std::string, std::pair<std::string, std::string> > JunctionGraph;
@@ -354,11 +361,3 @@ private:
     NLHandler& operator=(const NLHandler& s);
 
 };
-
-
-
-
-#endif
-
-/****************************************************************************/
-

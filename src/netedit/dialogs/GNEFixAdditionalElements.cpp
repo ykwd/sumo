@@ -17,15 +17,10 @@
 ///
 // Dialog used to fix additional elements
 /****************************************************************************/
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/gui/windows/GUIAppEnum.h>
 #include <utils/gui/div/GUIDesigns.h>
-#include <netedit/additionals/GNEAdditional.h>
 #include <netedit/GNENet.h>
 #include <netedit/GNEViewNet.h>
 #include <netedit/GNEUndoList.h>
@@ -38,9 +33,9 @@
 // ===========================================================================
 
 FXDEFMAP(GNEFixAdditionalElements) GNEFixAdditionalElementsMap[] = {
-    FXMAPFUNC(SEL_COMMAND,  MID_CHOOSEN_OPERATION,                  GNEFixAdditionalElements::onCmdSelectOption),
-    FXMAPFUNC(SEL_COMMAND,  MID_GNE_ADDITIONALDIALOG_BUTTONACCEPT,  GNEFixAdditionalElements::onCmdAccept),
-    FXMAPFUNC(SEL_COMMAND,  MID_GNE_ADDITIONALDIALOG_BUTTONCANCEL,  GNEFixAdditionalElements::onCmdCancel),
+    FXMAPFUNC(SEL_COMMAND,  MID_CHOOSEN_OPERATION,  GNEFixAdditionalElements::onCmdSelectOption),
+    FXMAPFUNC(SEL_COMMAND,  MID_GNE_BUTTON_ACCEPT,  GNEFixAdditionalElements::onCmdAccept),
+    FXMAPFUNC(SEL_COMMAND,  MID_GNE_BUTTON_CANCEL,  GNEFixAdditionalElements::onCmdCancel),
 };
 
 // Object implementation
@@ -54,7 +49,7 @@ GNEFixAdditionalElements::GNEFixAdditionalElements(GNEViewNet* viewNet, const st
     FXDialogBox(viewNet->getApp(), ("Fix additional problems"), GUIDesignDialogBoxExplicit(500, 380)),
     myViewNet(viewNet) {
     // set busStop icon for this dialog
-    setIcon(GUIIconSubSys::getIcon(ICON_BUSSTOP));
+    setIcon(GUIIconSubSys::getIcon(GUIIcon::BUSSTOP));
     // create main frame
     myMainFrame = new FXVerticalFrame(this, GUIDesignAuxiliarFrame);
     // create AdditionalList
@@ -74,8 +69,8 @@ GNEFixAdditionalElements::GNEFixAdditionalElements(GNEViewNet* viewNet, const st
     // create dialog buttons bot centered
     FXHorizontalFrame* buttonsFrame = new FXHorizontalFrame(myMainFrame, GUIDesignHorizontalFrame);
     new FXHorizontalFrame(buttonsFrame, GUIDesignAuxiliarHorizontalFrame);
-    myAcceptButton = new FXButton(buttonsFrame, FXWindow::tr("&Accept"), GUIIconSubSys::getIcon(ICON_ACCEPT), this, MID_GNE_ADDITIONALDIALOG_BUTTONACCEPT, GUIDesignButtonAccept);
-    myCancelButton = new FXButton(buttonsFrame, FXWindow::tr("&Cancel"), GUIIconSubSys::getIcon(ICON_CANCEL), this, MID_GNE_ADDITIONALDIALOG_BUTTONCANCEL, GUIDesignButtonCancel);
+    myAcceptButton = new FXButton(buttonsFrame, FXWindow::tr("&Accept"), GUIIconSubSys::getIcon(GUIIcon::ACCEPT), this, MID_GNE_BUTTON_ACCEPT, GUIDesignButtonAccept);
+    myCancelButton = new FXButton(buttonsFrame, FXWindow::tr("&Cancel"), GUIIconSubSys::getIcon(GUIIcon::CANCEL), this, MID_GNE_BUTTON_CANCEL, GUIDesignButtonCancel);
     new FXHorizontalFrame(buttonsFrame, GUIDesignAuxiliarHorizontalFrame);
     // set focus in accept button
     myAcceptButton->setFocus();
@@ -379,5 +374,6 @@ GNEFixAdditionalElements::ConsecutiveLaneOptions::disableConsecutiveLaneOptions(
     activateFriendlyPositionAndSave->disable();
     fixPositionsAndSave->disable();
 }
+
 
 /****************************************************************************/

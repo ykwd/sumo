@@ -16,6 +16,8 @@
 # @author  Jakob Erdmann
 # @date    2018-09-27
 
+from __future__ import print_function
+from __future__ import absolute_import
 import os
 import sys
 
@@ -33,7 +35,14 @@ traci.start([sumoBinary,
              "--no-step-log",
              ])
 vehID = "v0"
-traci.vehicle.add(vehID, "r0", departLane="1", departSpeed="14")
+try:
+    traci.vehicle.add(vehID, "r0", departLane="1", departSpeed="14")
+except traci.TraCIException as e:
+    if traci.isLibsumo():
+        print(e, file=sys.stderr)
+    print("caught exception")
+    pass
+
 while traci.simulation.getMinExpectedNumber() > 0:
     traci.simulationStep()
 

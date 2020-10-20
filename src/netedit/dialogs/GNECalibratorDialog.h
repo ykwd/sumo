@@ -17,13 +17,7 @@
 ///
 // Dialog for edit calibrators
 /****************************************************************************/
-#ifndef GNECalibratorDialog_h
-#define GNECalibratorDialog_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-
+#pragma once
 #include <config.h>
 
 #include "GNEAdditionalDialog.h"
@@ -132,4 +126,3 @@ private:
     GNECalibratorDialog& operator=(const GNECalibratorDialog&) = delete;
 };
 
-#endif

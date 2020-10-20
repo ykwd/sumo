@@ -22,13 +22,7 @@
 ///
 // The handler for parsing the statistics file.
 /****************************************************************************/
-#ifndef AGACTIVITYGENHANDLER_H
-#define AGACTIVITYGENHANDLER_H
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -168,9 +162,3 @@ private:
     AGActivityGenHandler& operator=(const AGActivityGenHandler& src);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

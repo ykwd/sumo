@@ -19,13 +19,7 @@
 ///
 // Calculators for route costs and probabilities
 /****************************************************************************/
-#ifndef RouteCostCalculator_h
-#define RouteCostCalculator_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -119,7 +113,3 @@ RouteCostCalculator<R, E, V>& RouteCostCalculator<R, E, V>::getCalculator() {
     }
     return *myInstance;
 }
-#endif
-
-/****************************************************************************/
-

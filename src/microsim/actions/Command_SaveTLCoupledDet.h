@@ -18,13 +18,7 @@
 ///
 // Writes e2 state on each tls switch
 /****************************************************************************/
-#ifndef Command_SaveTLCoupledDet_h
-#define Command_SaveTLCoupledDet_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -99,9 +93,3 @@ private:
     Command_SaveTLCoupledDet& operator=(const Command_SaveTLCoupledDet&);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

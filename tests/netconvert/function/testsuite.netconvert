@@ -35,6 +35,9 @@ join_double_conn
 # tests for joining of close junctions
 junctions.join
 
+# join nodes with the same coordinates
+junctions.join-same
+
 # joining adjacent lanes
 join-lanes
 
@@ -63,6 +66,10 @@ turnarounds
 
 # test fringe-related functions
 fringe
+
+# test differt spreadType values and options
+spreadType
+geometry.avoidOverlap
 
 # tests for railway related network analysis and modification
 railway

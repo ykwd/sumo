@@ -21,11 +21,6 @@
 ///
 // Importer for networks stored in OpenStreetMap format
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 #include <algorithm>
 #include <set>
@@ -264,7 +259,7 @@ NIImporter_OpenStreetMap::load(const OptionsCont& oc, NBNetBuilder& nb) {
     // load relations (after edges are built since we want to apply
     // turn-restrictions directly to NBEdges)
     RelationHandler relationHandler(myOSMNodes, myEdges, &(nb.getPTStopCont()), myPlatformShapes,
-                                    &(nb.getPTLineCont()), oc);
+                                    &nb.getPTLineCont(), oc);
     for (std::vector<std::string>::const_iterator file = files.begin(); file != files.end(); ++file) {
         // relations
         relationHandler.setFileName(*file);
@@ -292,9 +287,9 @@ NIImporter_OpenStreetMap::insertNodeChecking(long long int id, NBNodeCont& nc, N
         }
         n->node = node;
         if (n->railwayCrossing) {
-            node->reinit(pos, NODETYPE_RAIL_CROSSING);
+            node->reinit(pos, SumoXMLNodeType::RAIL_CROSSING);
         } else if (n->railwaySignal) {
-            node->reinit(pos, NODETYPE_RAIL_SIGNAL);
+            node->reinit(pos, SumoXMLNodeType::RAIL_SIGNAL);
         } else if (n->tlsControlled) {
             // ok, this node is a traffic light node where no other nodes
             //  participate
@@ -460,7 +455,11 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
     if (e->myMaxSpeed != MAXSPEED_UNGIVEN) {
         speed = e->myMaxSpeed / 3.6;
     }
-    if (speed <= 0) {
+    double speedBackward = speed;
+    if (e->myMaxSpeedBackward != MAXSPEED_UNGIVEN) {
+        speedBackward = e->myMaxSpeedBackward / 3.6;
+    }
+    if (speed <= 0 || speedBackward <= 0) {
         WRITE_WARNINGF("Skipping edge '%' because it has speed %.", id, speed);
         ok = false;
     }
@@ -520,7 +519,7 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
     if (ok) {
         const int offsetFactor = OptionsCont::getOptions().getBool("lefthand") ? -1 : 1;
         LaneSpreadFunction lsf = (addBackward || OptionsCont::getOptions().getBool("osm.oneway-spread-right")) &&
-                                 e->myRailDirection == WAY_UNKNOWN ? LANESPREAD_RIGHT : LANESPREAD_CENTER;
+                                 e->myRailDirection == WAY_UNKNOWN ? LaneSpreadFunction::RIGHT : LaneSpreadFunction::CENTER;
 
         id = StringUtils::escapeXML(id);
         const std::string reverseID = "-" + id;
@@ -552,7 +551,7 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
         }
         if (addBackward) {
             assert(numLanesBackward > 0);
-            NBEdge* nbe = new NBEdge(reverseID, to, from, type, speed, numLanesBackward, tc.getPriority(type),
+            NBEdge* nbe = new NBEdge(reverseID, to, from, type, speedBackward, numLanesBackward, tc.getPriority(type),
                                      backwardWidth, NBEdge::UNSPECIFIED_OFFSET, shape.reverse(),
                                      StringUtils::escapeXML(streetName), origID, lsf, true);
             nbe->setPermissions(backwardPermissions);
@@ -721,7 +720,12 @@ NIImporter_OpenStreetMap::NodesHandler::myStartElement(int element, const SUMOSA
                 myToFill[myLastNodeID]->name = value;
             } else if (myImportElevation && key == "ele") {
                 try {
-                    myToFill[myLastNodeID]->ele = StringUtils::toDouble(value);
+                    const double elevation = StringUtils::toDouble(value);
+                    if (ISNAN(elevation)) {
+                        WRITE_WARNINGF("Value of key '%' is invalid ('%') in node '%'.", key, value, toString(myLastNodeID));
+                    } else {
+                        myToFill[myLastNodeID]->ele = elevation;
+                    }
                 } catch (...) {
                     WRITE_WARNINGF("Value of key '%' is not numeric ('%') in node '%'.", key, value, toString(myLastNodeID));
                 }
@@ -920,6 +924,7 @@ NIImporter_OpenStreetMap::EdgesHandler::myStartElement(int element,
         // we check whether the key is relevant (and we really need to transcode the value) to avoid hitting #1636
         if (!StringUtils::endsWith(key, "way") && !StringUtils::startsWith(key, "lanes")
                 && key != "maxspeed" && key != "maxspeed:type"
+                && key != "maxspeed:forward" && key != "maxspeed:backward"
                 && key != "junction" && key != "name" && key != "tracks" && key != "layer"
                 && key != "route"
                 && key != "sidewalk"
@@ -1042,25 +1047,11 @@ NIImporter_OpenStreetMap::EdgesHandler::myStartElement(int element,
                               toString(myCurrentEdge->id) + "'.");
             }
         } else if (myCurrentEdge->myMaxSpeed == MAXSPEED_UNGIVEN &&
-                   (key == "maxspeed" || key == "maxspeed:type")) {
+                   (key == "maxspeed" || key == "maxspeed:type" || key == "maxspeed:forward")) {
             // both 'maxspeed' and 'maxspeed:type' may be given so we must take care not to overwrite an already seen value
-            if (mySpeedMap.find(value) != mySpeedMap.end()) {
-                myCurrentEdge->myMaxSpeed = mySpeedMap[value];
-            } else {
-                double conversion = 1; // OSM default is km/h
-                if (StringUtils::to_lower_case(value).find("km/h") != std::string::npos) {
-                    value = StringUtils::prune(value.substr(0, value.find_first_not_of("0123456789")));
-                } else if (StringUtils::to_lower_case(value).find("mph") != std::string::npos) {
-                    value = StringUtils::prune(value.substr(0, value.find_first_not_of("0123456789")));
-                    conversion = KM_PER_MILE;
-                }
-                try {
-                    myCurrentEdge->myMaxSpeed = StringUtils::toDouble(value) * conversion;
-                } catch (...) {
-                    WRITE_WARNING("Value of key '" + key + "' is not numeric ('" + value + "') in edge '" +
-                                  toString(myCurrentEdge->id) + "'.");
-                }
-            }
+            myCurrentEdge->myMaxSpeed = interpretSpeed(key, value);
+        } else if (key == "maxspeed:backward" && myCurrentEdge->myMaxSpeedBackward == MAXSPEED_UNGIVEN) {
+            myCurrentEdge->myMaxSpeedBackward = interpretSpeed(key, value);
         } else if (key == "junction") {
             if ((value == "roundabout") && (myCurrentEdge->myIsOneWay.empty())) {
                 myCurrentEdge->myIsOneWay = "yes";
@@ -1123,6 +1114,30 @@ NIImporter_OpenStreetMap::EdgesHandler::myStartElement(int element,
     }
 }
 
+
+double
+NIImporter_OpenStreetMap::EdgesHandler::interpretSpeed(const std::string& key, std::string value) {
+    if (mySpeedMap.find(value) != mySpeedMap.end()) {
+        return mySpeedMap[value];
+    } else {
+        double conversion = 1; // OSM default is km/h
+        if (StringUtils::to_lower_case(value).find("km/h") != std::string::npos) {
+            value = StringUtils::prune(value.substr(0, value.find_first_not_of("0123456789")));
+        } else if (StringUtils::to_lower_case(value).find("mph") != std::string::npos) {
+            value = StringUtils::prune(value.substr(0, value.find_first_not_of("0123456789")));
+            conversion = KM_PER_MILE;
+        }
+        try {
+            return StringUtils::toDouble(value) * conversion;
+        } catch (...) {
+            WRITE_WARNING("Value of key '" + key + "' is not numeric ('" + value + "') in edge '" +
+                          toString(myCurrentEdge->id) + "'.");
+            return MAXSPEED_UNGIVEN;
+        }
+    }
+}
+
+
 void
 NIImporter_OpenStreetMap::EdgesHandler::myEndElement(int element) {
     myParentElements.pop_back();
@@ -1146,8 +1161,7 @@ NIImporter_OpenStreetMap::RelationHandler::RelationHandler(
     const std::map<long long int, Edge*>& osmEdges, NBPTStopCont* nbptStopCont,
     const std::map<long long int, Edge*>& platformShapes,
     NBPTLineCont* nbptLineCont,
-    const OptionsCont& oc)
-    :
+    const OptionsCont& oc) :
     SUMOSAXHandler("osm - file"),
     myOSMNodes(osmNodes),
     myOSMEdges(osmEdges),
@@ -1236,6 +1250,10 @@ NIImporter_OpenStreetMap::RelationHandler::myStartElement(int element,
                     myPlatforms.push_back(platform);
                 }
             } else if (memberType == "node") {
+                if (!myIsStopArea) {
+                    // for routes, a mix of stop and platform members is permitted
+                    myStops.push_back(ref);
+                }
                 NIIPTPlatform platform;
                 platform.isWay = false;
                 platform.ref = ref;
@@ -1246,6 +1264,8 @@ NIImporter_OpenStreetMap::RelationHandler::myStartElement(int element,
             std::string memberType = attrs.get<std::string>(SUMO_ATTR_TYPE, nullptr, ok);
             if (memberType == "way") {
                 myWays.push_back(ref);
+            } else if (memberType == "node") {
+                myStops.push_back(ref);
             }
         }
         return;
@@ -1407,7 +1427,7 @@ NIImporter_OpenStreetMap::RelationHandler::myEndElement(int element) {
                 }
                 ptStop->setIsMultipleStopPositions(myStops.size() > 1);
             }
-        } else if (myPTRouteType != "" && myIsRoute && OptionsCont::getOptions().isSet("ptline-output") && myStops.size() > 1) {
+        } else if (myPTRouteType != "" && myIsRoute && OptionsCont::getOptions().isSet("ptline-output")) {
             NBPTLine* ptLine = new NBPTLine(toString(myCurrentRelation), myName, myPTRouteType, myRef, myInterval, myNightService, interpretTransportType(myPTRouteType));
             ptLine->setMyNumOfStops((int)myStops.size());
             for (long long ref : myStops) {
@@ -1522,6 +1542,7 @@ NIImporter_OpenStreetMap::RelationHandler::findEdgeRef(long long int wayRef,
     }
     return result;
 }
+
 
 void
 NIImporter_OpenStreetMap::reconstructLayerElevation(const double layerElevation, NBNetBuilder& nb) {
@@ -1844,15 +1865,13 @@ NIImporter_OpenStreetMap::extendRailwayDistances(Edge* e, NBTypeCont& tc) {
         std::vector<NIOSMNode*> nodes;
         std::vector<double> usablePositions;
         std::vector<int> usableIndex;
-        int i = 0;
         for (long long int n : e->myCurrentNodes) {
             NIOSMNode* node = myOSMNodes[n];
             node->positionMeters = interpretDistance(node);
             if (node->positionMeters != std::numeric_limits<double>::max()) {
                 usablePositions.push_back(node->positionMeters);
-                usableIndex.push_back(i);
+                usableIndex.push_back((int)nodes.size());
             }
-            i++;
             nodes.push_back(node);
         }
         if (usablePositions.size() == 0) {
@@ -1921,24 +1940,27 @@ NIImporter_OpenStreetMap::interpretDistance(NIOSMNode* node) {
 SUMOVehicleClass
 NIImporter_OpenStreetMap::interpretTransportType(const std::string& type, NIOSMNode* toSet) {
     SUMOVehicleClass result = SVC_IGNORING;
-    std::string stop = type;
     if (type == "train") {
         result = SVC_RAIL;
     } else if (type == "subway" || type == "light_rail") {
         result = SVC_RAIL_URBAN;
-        stop = "train";
-    } else if (type == "bus") {
-        result = SVC_BUS;
-    } else if (type == "tram") {
-        result = SVC_TRAM;
+    } else if (SumoVehicleClassStrings.hasString(type)) {
+        result = SumoVehicleClassStrings.get(type);
+    }
+    std::string stop = "";
+    if (result == SVC_TRAM) {
+        stop = ".tram";
+    } else if (result == SVC_BUS) {
+        stop = ".bus";
+    } else if (isRailway(result)) {
+        stop = ".train";
     }
     if (toSet != nullptr && result != SVC_IGNORING) {
         toSet->permissions |= result;
-        toSet->ptStopLength = OptionsCont::getOptions().getFloat("osm.stop-output.length." + stop);
+        toSet->ptStopLength = OptionsCont::getOptions().getFloat("osm.stop-output.length" + stop);
     }
     return result;
 }
 
 
 /****************************************************************************/
-

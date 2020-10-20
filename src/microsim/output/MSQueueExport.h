@@ -17,13 +17,7 @@
 ///
 // Export the queueing length in front of a junction (very experimental!)
 /****************************************************************************/
-#ifndef MSQueueExport_h
-#define MSQueueExport_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/SUMOTime.h>
@@ -77,10 +71,3 @@ private:
     static void writeLane(OutputDevice& of, const MSLane& lane);
 
 };
-
-
-
-#endif
-
-/****************************************************************************/
-

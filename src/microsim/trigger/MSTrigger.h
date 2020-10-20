@@ -18,13 +18,7 @@
 ///
 // An abstract device that changes the state of the micro simulation
 /****************************************************************************/
-#ifndef MSTrigger_h
-#define MSTrigger_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <set>
@@ -65,9 +59,3 @@ private:
     static std::set<MSTrigger*> myInstances;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

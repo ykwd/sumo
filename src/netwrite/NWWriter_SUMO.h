@@ -20,13 +20,7 @@
 ///
 // Exporter writing networks using the SUMO format
 /****************************************************************************/
-#ifndef NWWriter_SUMO_h
-#define NWWriter_SUMO_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -185,7 +179,7 @@ private:
     static void writeInternalConnection(OutputDevice& into,
                                         const std::string& from, const std::string& to,
                                         int fromLane, int toLane, const std::string& via,
-                                        LinkDirection dir = LINKDIR_STRAIGHT,
+                                        LinkDirection dir = LinkDirection::STRAIGHT,
                                         const std::string& tlID = "",
                                         int linkIndex = NBConnection::InvalidTlIndex);
 
@@ -208,9 +202,3 @@ private:
     static std::string getOppositeInternalID(const NBEdgeCont& ec, const NBEdge* from, const NBEdge::Connection& con, double& oppositeLength);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

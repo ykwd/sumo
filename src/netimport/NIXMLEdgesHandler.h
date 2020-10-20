@@ -20,13 +20,7 @@
 ///
 // Importer for network edges stored in XML
 /****************************************************************************/
-#ifndef NIXMLEdgesHandler_h
-#define NIXMLEdgesHandler_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/SUMOVehicleClass.h>
@@ -300,9 +294,3 @@ private:
     NIXMLEdgesHandler& operator=(const NIXMLEdgesHandler& s);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

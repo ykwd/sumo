@@ -19,11 +19,6 @@
 ///
 // A MSVehicle extended by some values for usage within the gui
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/gui/globjects/GLIncludes.h>
@@ -68,6 +63,7 @@ GUIMEVehicle::getParameterWindow(GUIMainWindow& app,
     // add items
     ret->mkItem("edge [id]", true, new FunctionBindingString<GUIMEVehicle>(this, &GUIMEVehicle::getEdgeID));
     ret->mkItem("segment [#]", true,  new FunctionBinding<GUIMEVehicle, int>(this, &GUIMEVehicle::getSegmentIndex));
+    ret->mkItem("queue [#]", true,  new FunctionBinding<GUIMEVehicle, int>(this, &GUIMEVehicle::getQueIndex));
     ret->mkItem("position [m]", true, new FunctionBinding<GUIMEVehicle, double>(this, &MEVehicle::getPositionOnLane));
     ret->mkItem("speed [m/s]", true, new FunctionBinding<GUIMEVehicle, double>(this, &MEVehicle::getSpeed));
     ret->mkItem("angle [degree]", true, new FunctionBinding<GUIMEVehicle, double>(this, &GUIBaseVehicle::getNaviDegree));
@@ -84,6 +80,8 @@ GUIMEVehicle::getParameterWindow(GUIMainWindow& app,
     //            new FunctionBinding<GUIMEVehicle, double>(this, &GUIMEVehicle::getLastLaneChangeOffset));
     ret->mkItem("desired depart [s]", false, time2string(getParameter().depart));
     ret->mkItem("depart delay [s]", false, time2string(getDepartDelay()));
+    ret->mkItem("odometer [m]", true,
+                new FunctionBinding<GUIMEVehicle, double>(this, &MSBaseVehicle::getOdometer));
     if (getParameter().repetitionNumber < std::numeric_limits<int>::max()) {
         ret->mkItem("remaining [#]", false, (int) getParameter().repetitionNumber - getParameter().repetitionsDone);
     }
@@ -213,13 +211,17 @@ GUIMEVehicle::getColorValue(const GUIVisualizationSettings& /* s */, int activeS
 
 
 void
-GUIMEVehicle::drawRouteHelper(const GUIVisualizationSettings& s, const MSRoute& r, bool future, const RGBColor& /*col*/) const {
+GUIMEVehicle::drawRouteHelper(const GUIVisualizationSettings& s, const MSRoute& r, bool future, bool noLoop, const RGBColor& /*col*/) const {
     const double exaggeration = s.vehicleSize.getExaggeration(s, this);
-    MSRouteIterator i = future ? myCurrEdge : r.begin();
+    MSRouteIterator start = future ? myCurrEdge : r.begin();
+    MSRouteIterator i = start;
     for (; i != r.end(); ++i) {
         const GUILane* lane = static_cast<GUILane*>((*i)->getLanes()[0]);
         GLHelper::drawBoxLines(lane->getShape(), lane->getShapeRotations(), lane->getShapeLengths(), 1.0);
         GLHelper::drawBoxLines(lane->getShape(), lane->getShapeRotations(), lane->getShapeLengths(), exaggeration);
+        if (noLoop && i != start && (*i) == (*start)) {
+            break;
+        }
     }
 }
 
@@ -251,7 +253,7 @@ GUIMEVehicle::getEdgeID() const {
 
 int
 GUIMEVehicle::getSegmentIndex() const {
-    return getSegment()->getIndex();
+    return getSegment() != nullptr ? getSegment()->getIndex() : -1;
 }
 
 
@@ -259,5 +261,6 @@ void
 GUIMEVehicle::selectBlockingFoes() const {
     // @todo possibly we could compute something reasonable here
 }
-/****************************************************************************/
 
+
+/****************************************************************************/

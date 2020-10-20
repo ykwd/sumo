@@ -19,11 +19,6 @@
 ///
 // The class responsible for building and deletion of vehicles
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include "MSVehicleControl.h"
@@ -33,11 +28,11 @@
 #include "MSNet.h"
 #include "MSRouteHandler.h"
 #include <microsim/devices/MSVehicleDevice.h>
+#include <microsim/devices/MSDevice_Tripinfo.h>
 #include <utils/common/FileHelpers.h>
 #include <utils/common/Named.h>
 #include <utils/common/RGBColor.h>
 #include <utils/vehicle/SUMOVTypeParameter.h>
-#include <utils/iodevices/BinaryInputDevice.h>
 #include <utils/iodevices/OutputDevice.h>
 #include <utils/options/OptionsCont.h>
 #include <utils/router/IntermodalRouter.h>
@@ -59,12 +54,14 @@ MSVehicleControl::MSVehicleControl() :
     myTeleportsYield(0),
     myTeleportsWrongLane(0),
     myEmergencyStops(0),
+    myStoppedVehicles(0),
     myTotalDepartureDelay(0),
     myTotalTravelTime(0),
     myDefaultVTypeMayBeDeleted(true),
     myDefaultPedTypeMayBeDeleted(true),
     myDefaultContainerTypeMayBeDeleted(true),
     myDefaultBikeTypeMayBeDeleted(true),
+    myDefaultTaxiTypeMayBeDeleted(true),
     myWaitingForPerson(0),
     myWaitingForContainer(0),
     myMaxSpeedFactor(1),
@@ -81,6 +78,10 @@ MSVehicleControl::MSVehicleControl() :
     defBikeType.parametersSet |= VTYPEPARS_VEHICLECLASS_SET;
     myVTypeDict[DEFAULT_BIKETYPE_ID] = MSVehicleType::build(defBikeType);
 
+    SUMOVTypeParameter defTaxiType(DEFAULT_TAXITYPE_ID, SVC_TAXI);
+    defTaxiType.parametersSet |= VTYPEPARS_VEHICLECLASS_SET;
+    myVTypeDict[DEFAULT_TAXITYPE_ID] = MSVehicleType::build(defTaxiType);
+
     SUMOVTypeParameter defContainerType(DEFAULT_CONTAINERTYPE_ID, SVC_IGNORING);
     // ISO Container TEU (cannot set this based on vClass)
     defContainerType.length = 6.1;
@@ -94,21 +95,7 @@ MSVehicleControl::MSVehicleControl() :
 
 
 MSVehicleControl::~MSVehicleControl() {
-    // delete vehicles
-    for (VehicleDictType::iterator i = myVehicleDict.begin(); i != myVehicleDict.end(); ++i) {
-        delete (*i).second;
-    }
-    myVehicleDict.clear();
-    // delete vehicle type distributions
-    for (VTypeDistDictType::iterator i = myVTypeDistDict.begin(); i != myVTypeDistDict.end(); ++i) {
-        delete (*i).second;
-    }
-    myVTypeDistDict.clear();
-    // delete vehicle types
-    for (VTypeDictType::iterator i = myVTypeDict.begin(); i != myVTypeDict.end(); ++i) {
-        delete (*i).second;
-    }
-    myVTypeDict.clear();
+    clearState();
 }
 
 
@@ -116,16 +103,23 @@ SUMOVehicle*
 MSVehicleControl::buildVehicle(SUMOVehicleParameter* defs,
                                const MSRoute* route, MSVehicleType* type,
                                const bool ignoreStopErrors, const bool fromRouteFile) {
-    myLoadedVehNo++;
     MSVehicle* built = new MSVehicle(defs, route, type, type->computeChosenSpeedDeviation(fromRouteFile ? MSRouteHandler::getParsingRNG() : nullptr));
+    initVehicle(built, ignoreStopErrors);
+    return built;
+}
+
+
+void
+MSVehicleControl::initVehicle(MSBaseVehicle* built, const bool ignoreStopErrors) {
+    myLoadedVehNo++;
     try {
+        built->initDevices();
         built->addStops(ignoreStopErrors);
     } catch (ProcessError&) {
         delete built;
         throw;
     }
     MSNet::getInstance()->informVehicleStateListener(built, MSNet::VEHICLE_STATE_BUILT);
-    return built;
 }
 
 
@@ -149,7 +143,7 @@ MSVehicleControl::isPendingRemoval(SUMOVehicle* veh) {
 
 void
 MSVehicleControl::removePending() {
-    OutputDevice* tripinfoOut = OptionsCont::getOptions().isSet("tripinfo-output") ? &OutputDevice::getDeviceByOption("tripinfo-output") : nullptr;
+    OutputDevice* const tripinfoOut = OptionsCont::getOptions().isSet("tripinfo-output") ? &OutputDevice::getDeviceByOption("tripinfo-output") : nullptr;
 #ifdef HAVE_FOX
     std::vector<SUMOVehicle*>& vehs = myPendingRemovals.getContainer();
 #else
@@ -160,10 +154,12 @@ MSVehicleControl::removePending() {
         myTotalTravelTime += STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep() - veh->getDeparture());
         myRunningVehNo--;
         MSNet::getInstance()->informVehicleStateListener(veh, MSNet::VEHICLE_STATE_ARRIVED);
+        // vehicle is equipped with tripinfo device (not all vehicles are)
+        const bool hasTripinfo = veh->getDevice(typeid(MSDevice_Tripinfo)) != nullptr;
         for (MSVehicleDevice* const dev : veh->getDevices()) {
-            dev->generateOutput(tripinfoOut);
+            dev->generateOutput(hasTripinfo ? tripinfoOut : nullptr);
         }
-        if (tripinfoOut != nullptr) {
+        if (tripinfoOut != nullptr && hasTripinfo) {
             // close tag after tripinfo (possibly including emissions from another device) have been written
             tripinfoOut->closeTag();
         }
@@ -212,8 +208,24 @@ MSVehicleControl::saveState(OutputDevice& out) {
     out.writeAttr(SUMO_ATTR_DEPART, myTotalDepartureDelay);
     out.writeAttr(SUMO_ATTR_TIME, myTotalTravelTime).closeTag();
     // save vehicle types
-    for (VTypeDictType::iterator it = myVTypeDict.begin(); it != myVTypeDict.end(); ++it) {
-        it->second->getParameter().write(out);
+    VTypeDictType vTypes = myVTypeDict;
+    if (myDefaultVTypeMayBeDeleted) {
+        vTypes.erase(DEFAULT_VTYPE_ID);
+    }
+    if (myDefaultPedTypeMayBeDeleted) {
+        vTypes.erase(DEFAULT_PEDTYPE_ID);
+    }
+    if (myDefaultContainerTypeMayBeDeleted) {
+        vTypes.erase(DEFAULT_CONTAINERTYPE_ID);
+    }
+    if (myDefaultBikeTypeMayBeDeleted) {
+        vTypes.erase(DEFAULT_BIKETYPE_ID);
+    }
+    if (myDefaultTaxiTypeMayBeDeleted) {
+        vTypes.erase(DEFAULT_TAXITYPE_ID);
+    }
+    for (const auto& item : vTypes) {
+        item.second->getParameter().write(out);
     }
     for (VTypeDistDictType::iterator it = myVTypeDistDict.begin(); it != myVTypeDistDict.end(); ++it) {
         out.openTag(SUMO_TAG_VTYPE_DISTRIBUTION).writeAttr(SUMO_ATTR_ID, it->first);
@@ -224,6 +236,30 @@ MSVehicleControl::saveState(OutputDevice& out) {
     for (VehicleDictType::iterator it = myVehicleDict.begin(); it != myVehicleDict.end(); ++it) {
         (*it).second->saveState(out);
     }
+}
+
+
+void
+MSVehicleControl::clearState() {
+    for (VehicleDictType::iterator i = myVehicleDict.begin(); i != myVehicleDict.end(); ++i) {
+        delete (*i).second;
+    }
+    myVehicleDict.clear();
+    // delete vehicle type distributions
+    for (VTypeDistDictType::iterator i = myVTypeDistDict.begin(); i != myVTypeDistDict.end(); ++i) {
+        delete (*i).second;
+    }
+    myVTypeDistDict.clear();
+    // delete vehicle types
+    for (VTypeDictType::iterator i = myVTypeDict.begin(); i != myVTypeDict.end(); ++i) {
+        delete (*i).second;
+    }
+    myVTypeDict.clear();
+    myDefaultVTypeMayBeDeleted = true;
+    myDefaultPedTypeMayBeDeleted = true;
+    myDefaultContainerTypeMayBeDeleted = true;
+    myDefaultBikeTypeMayBeDeleted = true;
+    myDefaultTaxiTypeMayBeDeleted = true;
 }
 
 
@@ -310,6 +346,14 @@ MSVehicleControl::checkVType(const std::string& id) {
             delete myVTypeDict[id];
             myVTypeDict.erase(myVTypeDict.find(id));
             myDefaultBikeTypeMayBeDeleted = false;
+        } else {
+            return false;
+        }
+    } else if (id == DEFAULT_TAXITYPE_ID) {
+        if (myDefaultTaxiTypeMayBeDeleted) {
+            delete myVTypeDict[id];
+            myVTypeDict.erase(myVTypeDict.find(id));
+            myDefaultTaxiTypeMayBeDeleted = false;
         } else {
             return false;
         }
@@ -468,18 +512,21 @@ MSVehicleControl::getVehicleMeanSpeeds() const {
 
 
 int
-MSVehicleControl::getQuota(double frac) const {
+MSVehicleControl::getQuota(double frac, int loaded) const {
     frac = frac < 0 ? myScale : frac;
     if (frac < 0 || frac == 1.) {
         return 1;
     }
-    // the vehicle in question has already been loaded, hence  the '-1'
-    const int loaded = frac > 1. ? (int)(myLoadedVehNo / frac) : myLoadedVehNo - 1;
+    const int origLoaded = (loaded < 1
+                            // the vehicle in question has already been loaded, hence  the '-1'
+                            ? frac > 1. ? (int)(myLoadedVehNo / frac) : myLoadedVehNo - 1
+                            // given transportable number reflects only previously loaded
+                            : frac > 1. ? (int)(loaded / frac) : loaded);
     const int base = (int)frac;
     const int resolution = 1000;
     const int intFrac = (int)floor((frac - base) * resolution + 0.5);
     // apply % twice to avoid integer overflow
-    if (((loaded % resolution) * intFrac) % resolution < intFrac) {
+    if (((origLoaded % resolution) * intFrac) % resolution < intFrac) {
         return base + 1;
     }
     return base;

@@ -19,14 +19,7 @@
 ///
 // Functions for an easier usage of files
 /****************************************************************************/
-#ifndef FileHelpers_h
-#define FileHelpers_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-
+#pragma once
 #include <cassert>
 #include <fstream>
 #include <string>
@@ -308,7 +301,3 @@ void FileHelpers::readEdgeVector(std::istream& in, std::vector<const E*>& edges,
         }
     }
 }
-#endif
-
-/****************************************************************************/
-

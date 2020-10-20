@@ -21,13 +21,7 @@
 ///
 // Importer for networks stored in OpenStreetMap format
 /****************************************************************************/
-#ifndef NIImporter_OpenStreetMap_h
-#define NIImporter_OpenStreetMap_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -160,11 +154,12 @@ protected:
 
     /** @brief An internal definition of a loaded edge
      */
-    struct Edge : public Parameterised {
-
-        explicit Edge(long long int _id)
-            :
-            id(_id), myNoLanes(-1), myNoLanesForward(0), myMaxSpeed(MAXSPEED_UNGIVEN),
+    class Edge : public Parameterised {
+    public:
+        explicit Edge(long long int _id) :
+            id(_id), myNoLanes(-1), myNoLanesForward(0),
+            myMaxSpeed(MAXSPEED_UNGIVEN),
+            myMaxSpeedBackward(MAXSPEED_UNGIVEN),
             myCyclewayType(WAY_UNKNOWN), // building of extra lane depends on bikelaneWidth of loaded typemap
             myBuswayType(WAY_NONE), // buslanes are always built when declared
             mySidewalkType(WAY_UNKNOWN), // building of extra lanes depends on sidewalkWidth of loaded typemap
@@ -176,6 +171,7 @@ protected:
             myCurrentIsElectrified(false)
         { }
 
+        virtual ~Edge() {}
 
         /// @brief The edge's id
         const long long int id;
@@ -189,6 +185,8 @@ protected:
         int myNoLanesForward;
         /// @brief maximum speed in km/h, or MAXSPEED_UNGIVEN
         double myMaxSpeed;
+        /// @brief maximum speed in km/h, or MAXSPEED_UNGIVEN
+        double myMaxSpeedBackward;
         /// @brief The type, stored in "highway" key
         std::string myHighWayType;
         /// @brief Information whether this is an one-way road
@@ -217,8 +215,6 @@ protected:
     private:
         /// invalidated assignment operator
         Edge& operator=(const Edge& s) = delete;
-
-
     };
 
 
@@ -259,6 +255,9 @@ private:
 
     /** @brief the map from OSM way ids to platform shapes */
     std::map<long long int, Edge*> myPlatformShapes;
+
+    /** @brief the map from stop_area relations to member node */
+    std::map<long long int, std::set<long long int> > myStopAreas;
 
     /// @brief The compounds types that do not contain known types
     std::set<std::string> myUnusableTypes;
@@ -445,6 +444,7 @@ protected:
         void myEndElement(int element) override;
         //@}
 
+        double interpretSpeed(const std::string& key, std::string value);
 
     private:
         /// @brief The previously parsed nodes
@@ -497,7 +497,6 @@ protected:
 
         /// @brief Destructor
         ~RelationHandler() override;
-
 
     protected:
         /// @name inherited from GenericSAXHandler
@@ -632,9 +631,3 @@ protected:
     };
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

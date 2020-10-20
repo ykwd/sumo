@@ -19,14 +19,7 @@
 ///
 // A RT-tree for efficient storing of SUMO's Named objects
 /****************************************************************************/
-#ifndef NamedRTree_h
-#define NamedRTree_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-
+#pragma once
 #include <set>
 #include <foreign/rtree/RTree.h>
 #include <utils/common/Named.h>
@@ -121,8 +114,3 @@ public:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/

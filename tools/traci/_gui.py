@@ -17,17 +17,10 @@
 # @date    2011-03-09
 
 from __future__ import absolute_import
-import struct
 from .domain import Domain
-from .storage import Storage
 from . import constants as tc
 
-_RETURN_VALUE_FUNC = {tc.VAR_VIEW_ZOOM: Storage.readDouble,
-                      tc.VAR_VIEW_OFFSET: lambda result: result.read("!dd"),
-                      tc.VAR_VIEW_SCHEMA: Storage.readString,
-                      tc.VAR_VIEW_BOUNDARY: Storage.readShape,
-                      tc.VAR_HAS_VIEW: lambda result: bool(result.read("!i")[0]),
-                      tc.VAR_TRACK_VEHICLE: Storage.readString}
+_RETURN_VALUE_FUNC = {tc.VAR_HAS_VIEW: lambda result: bool(result.read("!i")[0])}
 
 
 class GuiDomain(Domain):
@@ -72,26 +65,21 @@ class GuiDomain(Domain):
 
         Set the current zoom factor for the given view.
         """
-        self._connection._sendDoubleCmd(
-            tc.CMD_SET_GUI_VARIABLE, tc.VAR_VIEW_ZOOM, viewID, zoom)
+        self._setCmd(tc.VAR_VIEW_ZOOM, viewID, "d", zoom)
 
     def setOffset(self, viewID, x, y):
         """setOffset(string, double, double) -> None
 
         Set the current offset for the given view.
         """
-        self._connection._beginMessage(
-            tc.CMD_SET_GUI_VARIABLE, tc.VAR_VIEW_OFFSET, viewID, 1 + 8 + 8)
-        self._connection._string += struct.pack("!Bdd", tc.POSITION_2D, x, y)
-        self._connection._sendExact()
+        self._setCmd(tc.VAR_VIEW_OFFSET, viewID, "o", [x, y])
 
     def setSchema(self, viewID, schemeName):
         """setSchema(string, string) -> None
 
         Set the current coloring scheme for the given view.
         """
-        self._connection._sendStringCmd(
-            tc.CMD_SET_GUI_VARIABLE, tc.VAR_VIEW_SCHEMA, viewID, schemeName)
+        self._setCmd(tc.VAR_VIEW_SCHEMA, viewID, "s", schemeName)
 
     def setBoundary(self, viewID, xmin, ymin, xmax, ymax):
         """setBoundary(string, double, double, double, double) -> None
@@ -99,10 +87,7 @@ class GuiDomain(Domain):
         aspect ratio than the given boundary, the view is expanded along one
         axis to meet the window aspect ratio and contain the given boundary.
         """
-        self._connection._beginMessage(
-            tc.CMD_SET_GUI_VARIABLE, tc.VAR_VIEW_BOUNDARY, viewID, 1 + 1 + 8 + 8 + 8 + 8)
-        self._connection._string += struct.pack("!BBdddd", tc.TYPE_POLYGON, 2, xmin, ymin, xmax, ymax)
-        self._connection._sendExact()
+        self._setCmd(tc.VAR_VIEW_BOUNDARY, viewID, "p", [[xmin, ymin], [xmax, ymax]])
 
     def screenshot(self, viewID, filename, width=-1, height=-1):
         """screenshot(string, string, int, int) -> None
@@ -113,20 +98,14 @@ class GuiDomain(Domain):
         include ps, svg and pdf, on linux probably gif, png and jpg as well.
         Width and height of the image can be given as optional parameters.
         """
-        self._connection._beginMessage(
-            tc.CMD_SET_GUI_VARIABLE, tc.VAR_SCREENSHOT, viewID, 1 + 4 + 1 + 4 + len(filename) + 1 + 4 + 1 + 4)
-        self._connection._string += struct.pack("!Bi", tc.TYPE_COMPOUND, 3)
-        self._connection._packString(filename)
-        self._connection._string += struct.pack("!BiBi", tc.TYPE_INTEGER, width, tc.TYPE_INTEGER, height)
-        self._connection._sendExact()
+        self._setCmd(tc.VAR_SCREENSHOT, viewID, "tsii", 3, filename, width, height)
 
     def trackVehicle(self, viewID, vehID):
         """trackVehicle(string, string) -> None
 
         Start visually tracking the given vehicle on the given view.
         """
-        self._connection._sendStringCmd(
-            tc.CMD_SET_GUI_VARIABLE, tc.VAR_TRACK_VEHICLE, viewID, vehID)
+        self._setCmd(tc.VAR_TRACK_VEHICLE, viewID, "s", vehID)
 
     def hasView(self, viewID=DEFAULT_VIEW):
         """hasView(string): -> bool
@@ -141,3 +120,21 @@ class GuiDomain(Domain):
         Returns the id of the currently tracked vehicle
         """
         return self._getUniversal(tc.VAR_TRACK_VEHICLE, viewID)
+
+    def track(self, objID, viewID=DEFAULT_VIEW):
+        """track(string, string) -> None
+        Start visually tracking the given vehicle or person on the given view.
+        """
+        self._setCmd(tc.VAR_TRACK_VEHICLE, viewID, "s", objID)
+
+    def isSelected(self, objID, objType="vehicle"):
+        """isSelected(string, string) -> int
+        Return 1 if the object of the given type and id is select, 0 otherwise
+        """
+        return self._getUniversal(tc.VAR_SELECT, objID, "s", objType)
+
+    def toggleSelection(self, objID, objType="vehicle"):
+        """toggleSelection(string, string) -> int
+        Toggle selection status for the object of the given type and id
+        """
+        self._setCmd(tc.VAR_SELECT, objID, "s", objType)

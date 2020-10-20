@@ -19,11 +19,6 @@
 ///
 // Main for DUAROUTER
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #ifdef HAVE_VERSION_H
@@ -102,9 +97,10 @@ computeRoutes(RONet& net, ROLoader& loader, OptionsCont& oc) {
     SUMOAbstractRouter<ROEdge, ROVehicle>* router;
     const std::string measure = oc.getString("weight-attribute");
     const std::string routingAlgorithm = oc.getString("routing-algorithm");
+    const double priorityFactor = oc.getFloat("weights.priority-factor");
     const SUMOTime begin = string2time(oc.getString("begin"));
     const SUMOTime end = string2time(oc.getString("end"));
-    if (measure == "traveltime") {
+    if (measure == "traveltime" && priorityFactor == 0) {
         if (routingAlgorithm == "dijkstra") {
             router = new DijkstraRouter<ROEdge, ROVehicle>(ROEdge::getAllEdges(), oc.getBool("ignore-errors"), ttFunction, nullptr, false, nullptr, net.hasPermissions(), oc.isSet("restriction-params"));
         } else if (routingAlgorithm == "astar") {
@@ -148,7 +144,13 @@ computeRoutes(RONet& net, ROLoader& loader, OptionsCont& oc) {
         }
     } else {
         DijkstraRouter<ROEdge, ROVehicle>::Operation op;
-        if (measure == "CO") {
+        if (measure == "traveltime") {
+            if (ROEdge::initPriorityFactor(priorityFactor)) {
+                op = &ROEdge::getTravelTimeStaticPriorityFactor;
+            } else {
+                op = &ROEdge::getTravelTimeStatic;
+            }
+        } else if (measure == "CO") {
             op = &ROEdge::getEmissionEffort<PollutantsInterface::CO>;
         } else if (measure == "CO2") {
             op = &ROEdge::getEmissionEffort<PollutantsInterface::CO2>;
@@ -165,7 +167,10 @@ computeRoutes(RONet& net, ROLoader& loader, OptionsCont& oc) {
         } else if (measure == "noise") {
             op = &ROEdge::getNoiseEffort;
         } else {
-            throw ProcessError("Unknown measure (weight attribute '" + measure + "')!");
+            op = &ROEdge::getStoredEffort;
+        }
+        if (measure != "traveltime" && !net.hasLoadedEffort()) {
+            WRITE_WARNING("No weight data was loaded for attribute '" + measure + "'.");
         }
         router = new DijkstraRouter<ROEdge, ROVehicle>(
             ROEdge::getAllEdges(), oc.getBool("ignore-errors"), op, ttFunction, false, nullptr, net.hasPermissions(), oc.isSet("restriction-params"));
@@ -178,12 +183,33 @@ computeRoutes(RONet& net, ROLoader& loader, OptionsCont& oc) {
             carWalk |= ROIntermodalRouter::Network::PT_STOPS;
         } else if (opt == "allJunctions") {
             carWalk |= ROIntermodalRouter::Network::ALL_JUNCTIONS;
-        } else if (opt == "taxi") {
-            carWalk |= ROIntermodalRouter::Network::ALL_JUNCTIONS_TAXI;
         }
     }
+    for (const std::string& opt : oc.getStringVector("persontrip.transfer.taxi-walk")) {
+        if (opt == "ptStops") {
+            carWalk |= ROIntermodalRouter::Network::TAXI_DROPOFF_PT;
+        } else if (opt == "allJunctions") {
+            carWalk |= ROIntermodalRouter::Network::TAXI_DROPOFF_ANYWHERE;
+        }
+    }
+    for (const std::string& opt : oc.getStringVector("persontrip.transfer.walk-taxi")) {
+        if (opt == "ptStops") {
+            carWalk |= ROIntermodalRouter::Network::TAXI_PICKUP_PT;
+        } else if (opt == "allJunctions") {
+            carWalk |= ROIntermodalRouter::Network::TAXI_PICKUP_ANYWHERE;
+        }
+    }
+    double taxiWait = STEPS2TIME(string2time(OptionsCont::getOptions().getString("persontrip.taxi.waiting-time")));
+
+    RailwayRouter<ROEdge, ROVehicle>* railRouter = nullptr;
+    if (net.hasBidiEdges()) {
+        railRouter = new RailwayRouter<ROEdge, ROVehicle>(ROEdge::getAllEdges(), true, ttFunction, nullptr, false, net.hasPermissions(),
+                oc.isSet("restriction-params"),
+                oc.getFloat("railway.max-train-length"));
+    }
     RORouterProvider provider(router, new PedestrianRouter<ROEdge, ROLane, RONode, ROVehicle>(),
-                              new ROIntermodalRouter(RONet::adaptIntermodalRouter, carWalk, routingAlgorithm));
+                              new ROIntermodalRouter(RONet::adaptIntermodalRouter, carWalk, taxiWait, routingAlgorithm),
+                              railRouter);
     // process route definitions
     try {
         net.openOutput(oc);
@@ -218,7 +244,8 @@ main(int argc, char** argv) {
             SystemFrame::close();
             return 0;
         }
-        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"));
+        SystemFrame::checkOptions();
+        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"), oc.getString("xml-validation.routes"));
 #ifdef HAVE_FOX
         if (oc.getInt("routing-threads") > 1) {
             // make the output aware of threading
@@ -226,7 +253,7 @@ main(int argc, char** argv) {
         }
 #endif
         MsgHandler::initOutputOptions();
-        if (!(RODUAFrame::checkOptions() && SystemFrame::checkOptions())) {
+        if (!RODUAFrame::checkOptions()) {
             throw ProcessError();
         }
         RandHelper::initRandGlobal();
@@ -274,6 +301,4 @@ main(int argc, char** argv) {
 }
 
 
-
 /****************************************************************************/
-

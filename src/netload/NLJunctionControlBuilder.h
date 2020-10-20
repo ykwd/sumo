@@ -19,13 +19,7 @@
 ///
 // Builder of microsim-junctions and tls
 /****************************************************************************/
-#ifndef NLJunctionControlBuilder_h
-#define NLJunctionControlBuilder_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -105,7 +99,8 @@ public:
                       const Position pos,
                       const PositionVector& shape,
                       const std::vector<MSLane*>& incomingLanes,
-                      const std::vector<MSLane*>& internalLanes);
+                      const std::vector<MSLane*>& internalLanes,
+                      const std::string& name);
 
 
     /** @brief Closes (ends) the processing of the current junction
@@ -386,6 +381,8 @@ protected:
     /// @brief The shape of the current junction
     PositionVector myShape;
 
+    /// @brief the name of the current junction
+    std::string myActiveName;
 
     /// @brief The container for information which junctions shall be initialised using which values
     std::vector<MSTrafficLightLogic*> myLogics2PostLoadInit;
@@ -422,9 +419,3 @@ private:
     bool myNetIsLoaded;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

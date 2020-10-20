@@ -19,13 +19,7 @@
 ///
 // Writes route distributions at a certain edge
 /****************************************************************************/
-#ifndef MSRouteProbe_h
-#define MSRouteProbe_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -127,7 +121,14 @@ public:
     void writeXMLDetectorProlog(OutputDevice& dev) const;
     /// @}
 
-    const MSRoute* getRoute() const;
+    /* @brief sample a route from the routeDistribution
+     * @param[in] last Retrieve route from the previous (complete) collection interval
+     */
+    const MSRoute* sampleRoute(bool last = true) const;
+
+    const MSEdge* getEdge() {
+        return myEdge;
+    }
 
 private:
     /// @brief The previous distribution of routes (probability->route)
@@ -135,6 +136,9 @@ private:
 
     /// @brief The current distribution of routes (probability->route)
     std::pair<std::string, RandomDistributor<const MSRoute*>*> myCurrentRouteDistribution;
+
+    /// @brief the edge of this route probe
+    const MSEdge* myEdge;
 
 
 private:
@@ -146,8 +150,3 @@ private:
 
 
 };
-
-#endif
-
-/****************************************************************************/
-

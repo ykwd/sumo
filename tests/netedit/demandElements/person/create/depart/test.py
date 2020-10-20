@@ -35,14 +35,14 @@ netedit.supermodeDemand()
 netedit.personMode()
 
 # change person plan
-netedit.changePersonPlan("walks", "walkEdges")
+netedit.changePersonPlan("walks", "walk: edges")
 
 # set invalid depart
 netedit.changeDefaultValue(8, "dummyDepart")
 
 # try to create person
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 180, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 180, 55)
 
 # press enter to create route
 netedit.typeEnter()
@@ -51,8 +51,8 @@ netedit.typeEnter()
 netedit.changeDefaultValue(8, "-12")
 
 # try to create person
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 180, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 180, 55)
 
 # press enter to create route
 netedit.typeEnter()
@@ -61,8 +61,8 @@ netedit.typeEnter()
 netedit.changeDefaultValue(8, "30")
 
 # try to create person
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 180, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 180, 55)
 
 # press enter to create route
 netedit.typeEnter()
@@ -71,8 +71,8 @@ netedit.typeEnter()
 netedit.changeDefaultValue(8, "20")
 
 # try to create person
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 180, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 180, 55)
 
 # press enter to create route
 netedit.typeEnter()

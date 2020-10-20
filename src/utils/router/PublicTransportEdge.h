@@ -17,13 +17,7 @@
 ///
 // The PublicTransportEdge is a special intermodal edge connecting the stop edges with scheduled traffic
 /****************************************************************************/
-#ifndef PublicTransportEdge_h
-#define PublicTransportEdge_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "IntermodalEdge.h"
@@ -161,8 +155,3 @@ private:
     const IntermodalEdge<E, L, N, V>* const myEntryStop;
 
 };
-
-
-#endif
-
-/****************************************************************************/

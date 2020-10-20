@@ -19,13 +19,7 @@
 ///
 // A junction with right-of-way - rules
 /****************************************************************************/
-#ifndef MSRightOfWayJunction_h
-#define MSRightOfWayJunction_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSLogicJunction.h"
@@ -64,6 +58,7 @@ public:
      */
     MSRightOfWayJunction(const std::string& id, SumoXMLNodeType type, const Position& position,
                          const PositionVector& shape,
+                         const std::string& name,
                          std::vector<MSLane*> incoming,
                          std::vector<MSLane*> internal,
                          MSJunctionLogic* logic);
@@ -103,9 +98,3 @@ private:
     MSRightOfWayJunction& operator=(const MSRightOfWayJunction&);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

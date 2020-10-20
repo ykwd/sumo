@@ -15,3 +15,14 @@ ticket2769
 
 # invalid edgedata when vehicles are jammed completely
 ticket5722
+
+# invalid edgedata when vehicles are teleporting accross edge
+ticket5723
+
+# invalid edgedata on short segments
+ticket5723b
+
+# invalid jam on short edge
+ticket7035
+
+ticket7491

@@ -18,13 +18,7 @@
 ///
 // A dialog to change the viewport
 /****************************************************************************/
-#ifndef GUIDialog_EditViewport_h
-#define GUIDialog_EditViewport_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <fx.h>
@@ -149,9 +143,3 @@ private:
     /// @brief Cancel button
     FXButton* myCancelButton;
 };
-
-
-#endif
-
-/****************************************************************************/
-

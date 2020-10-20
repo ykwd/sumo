@@ -21,11 +21,6 @@
 ///
 // Main for OD2TRIPS
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #ifdef HAVE_VERSION_H
@@ -111,6 +106,9 @@ fillOptions() {
 
     oc.doRegister("persontrips", new Option_Bool(false));
     oc.addDescription("persontrips", "Output", "Writes persontrips instead of vehicles");
+
+    oc.doRegister("persontrips.modes", new Option_StringVector());
+    oc.addDescription("persontrips.modes", "Output", "Add modes attribute to personTrips");
 
     oc.doRegister("ignore-vehicle-type", new Option_Bool(false));
     oc.addSynonyme("ignore-vehicle-type", "no-vtype", true);
@@ -252,7 +250,7 @@ main(int argc, char** argv) {
             SystemFrame::close();
             return 0;
         }
-        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"));
+        XMLSubSys::setValidation(oc.getString("xml-validation"), "never", "never");
         MsgHandler::initOutputOptions();
         if (!checkOptions()) {
             throw ProcessError();
@@ -283,6 +281,7 @@ main(int argc, char** argv) {
         if (oc.isSet("timeline")) {
             matrix.applyCurve(matrix.parseTimeLine(oc.getStringVector("timeline"), oc.getBool("timeline.day-in-hours")));
         }
+        const std::string modes = toString(oc.getStringVector("persontrips.modes"));
         // write
         bool haveOutput = false;
         if (OutputDevice::createDeviceByOption("output-file", "routes", "routes_file.xsd")) {
@@ -292,7 +291,7 @@ main(int argc, char** argv) {
                          oc.getBool("ignore-vehicle-type"),
                          oc.getString("prefix"), !oc.getBool("no-step-log"),
                          oc.getBool("pedestrians"),
-                         oc.getBool("persontrips"));
+                         oc.getBool("persontrips"), modes);
             haveOutput = true;
         }
         if (OutputDevice::createDeviceByOption("flow-output", "routes", "routes_file.xsd")) {
@@ -300,7 +299,7 @@ main(int argc, char** argv) {
                               OutputDevice::getDeviceByOption("flow-output"),
                               oc.getBool("ignore-vehicle-type"), oc.getString("prefix"),
                               oc.getBool("flow-output.probability"), oc.getBool("pedestrians"),
-                              oc.getBool("persontrips"));
+                              oc.getBool("persontrips"), modes);
             haveOutput = true;
         }
         if (!haveOutput) {
@@ -334,6 +333,4 @@ main(int argc, char** argv) {
 }
 
 
-
 /****************************************************************************/
-

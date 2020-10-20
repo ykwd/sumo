@@ -22,11 +22,6 @@
 ///
 // Builds trigger objects for microsim
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <string>
@@ -311,11 +306,11 @@ NLTriggerBuilder::parseAndBuildOverheadWireSection(MSNet& net, const SUMOSAXAttr
             }
 
             if (neigboringOvrhdSegmentTractionSubstation == substation && !(*it)->isInternal()) {
-                connection = MSLinkContHelper::getInternalFollowingLane(lane, *it);
+                connection = lane->getInternalFollowingLane(*it);
                 if (connection != nullptr) {
                     //is connection forbidden?
-                    if (!(substation->isForbidden(connection) || substation->isForbidden(MSLinkContHelper::getInternalFollowingLane(lane, connection)) || substation->isForbidden(MSLinkContHelper::getInternalFollowingLane(connection, *it)))) {
-                        buildInnerOverheadWireSegments(net, connection, MSLinkContHelper::getInternalFollowingLane(lane, connection), MSLinkContHelper::getInternalFollowingLane(connection, *it));
+                    if (!(substation->isForbidden(connection) || substation->isForbidden(lane->getInternalFollowingLane(connection)) || substation->isForbidden(connection->getInternalFollowingLane(*it)))) {
+                        buildInnerOverheadWireSegments(net, connection, lane->getInternalFollowingLane(connection), connection->getInternalFollowingLane(*it));
                     }
                 }
             }
@@ -336,11 +331,11 @@ NLTriggerBuilder::parseAndBuildOverheadWireSection(MSNet& net, const SUMOSAXAttr
             }
 
             if (neigboringOvrhdSegmentTractionSubstation == substation && !(*it)->isInternal()) {
-                connection = MSLinkContHelper::getInternalFollowingLane((*it), lane);
+                connection = (*it)->getInternalFollowingLane(lane);
                 if (connection != nullptr) {
                     //is connection forbidden?
-                    if (!(substation->isForbidden(connection) || substation->isForbidden(MSLinkContHelper::getInternalFollowingLane((*it), connection)) || substation->isForbidden(MSLinkContHelper::getInternalFollowingLane(connection, lane)))) {
-                        buildInnerOverheadWireSegments(net, connection, MSLinkContHelper::getInternalFollowingLane((*it), connection), MSLinkContHelper::getInternalFollowingLane(connection, lane));
+                    if (!(substation->isForbidden(connection) || substation->isForbidden((*it)->getInternalFollowingLane(connection)) || substation->isForbidden(connection->getInternalFollowingLane(lane)))) {
+                        buildInnerOverheadWireSegments(net, connection, (*it)->getInternalFollowingLane(connection), connection->getInternalFollowingLane(lane));
                     }
                 }
             }
@@ -502,8 +497,9 @@ NLTriggerBuilder::parseAndBuildStoppingPlace(MSNet& net, const SUMOSAXAttributes
     const std::vector<std::string>& lines = attrs.getOptStringVector(SUMO_ATTR_LINES, id.c_str(), ok, false);
     const int defaultCapacity = MAX2(MSStoppingPlace::getPersonsAbreast(topos - frompos) * 3, 6);
     const int personCapacity = attrs.getOpt<int>(SUMO_ATTR_PERSON_CAPACITY, id.c_str(), ok, defaultCapacity);
+    const double parkingLength = attrs.getOpt<double>(SUMO_ATTR_PARKING_LENGTH, id.c_str(), ok, 0);
     // build the bus stop
-    buildStoppingPlace(net, id, lines, lane, frompos, topos, element, ptStopName, personCapacity);
+    buildStoppingPlace(net, id, lines, lane, frompos, topos, element, ptStopName, personCapacity, parkingLength);
 }
 
 
@@ -623,6 +619,8 @@ NLTriggerBuilder::parseAndBuildCalibrator(MSNet& net, const SUMOSAXAttributes& a
     std::string file = getFileName(attrs, base, true);
     std::string outfile = attrs.getOpt<std::string>(SUMO_ATTR_OUTPUT, id.c_str(), ok, "");
     std::string routeProbe = attrs.getOpt<std::string>(SUMO_ATTR_ROUTEPROBE, id.c_str(), ok, "");
+    // differing defaults for backward compatibility, values are dimensionless
+    double invalidJamThreshold = attrs.getOpt<double>(SUMO_ATTR_JAM_DIST_THRESHOLD, id.c_str(), ok, MSGlobals::gUseMesoSim ? 0.8 : 0.5);
     MSRouteProbe* probe = nullptr;
     if (routeProbe != "") {
         probe = dynamic_cast<MSRouteProbe*>(net.getDetectorControl().getTypedDetectors(SUMO_TAG_ROUTEPROBE).get(routeProbe));
@@ -636,12 +634,12 @@ NLTriggerBuilder::parseAndBuildCalibrator(MSNet& net, const SUMOSAXAttributes& a
                           + "' defined for lane '" + lane->getID()
                           + "' will collect data for all lanes of edge '" + edge->getID() + "'.");
         }
-        METriggeredCalibrator* trigger = buildMECalibrator(net, id, edge, pos, file, outfile, freq, probe, vTypes);
+        METriggeredCalibrator* trigger = buildMECalibrator(net, id, edge, pos, file, outfile, freq, probe, invalidJamThreshold, vTypes);
         if (file == "") {
             trigger->registerParent(SUMO_TAG_CALIBRATOR, myHandler);
         }
     } else {
-        MSCalibrator* trigger = buildCalibrator(net, id, edge, lane, pos, file, outfile, freq, probe, vTypes);
+        MSCalibrator* trigger = buildCalibrator(net, id, edge, lane, pos, file, outfile, freq, probe, invalidJamThreshold, vTypes);
         if (file == "") {
             trigger->registerParent(SUMO_TAG_CALIBRATOR, myHandler);
         }
@@ -710,8 +708,9 @@ NLTriggerBuilder::buildMECalibrator(MSNet& /*net*/, const std::string& id,
                                     const std::string& outfile,
                                     const SUMOTime freq,
                                     MSRouteProbe* probe,
+                                    const double invalidJamThreshold,
                                     const std::string& vTypes) {
-    return new METriggeredCalibrator(id, edge, pos, file, outfile, freq, MSGlobals::gMesoNet->getSegmentForEdge(*edge, pos)->getLength(), probe, vTypes);
+    return new METriggeredCalibrator(id, edge, pos, file, outfile, freq, MSGlobals::gMesoNet->getSegmentForEdge(*edge, pos)->getLength(), probe, invalidJamThreshold, vTypes);
 }
 
 
@@ -724,8 +723,9 @@ NLTriggerBuilder::buildCalibrator(MSNet& /*net*/, const std::string& id,
                                   const std::string& outfile,
                                   const SUMOTime freq,
                                   const MSRouteProbe* probe,
+                                  const double invalidJamThreshold,
                                   const std::string& vTypes) {
-    return new MSCalibrator(id, edge, lane, pos, file, outfile, freq, edge->getLength(), probe, vTypes);
+    return new MSCalibrator(id, edge, lane, pos, file, outfile, freq, edge->getLength(), probe, invalidJamThreshold, vTypes);
 }
 
 
@@ -741,8 +741,8 @@ NLTriggerBuilder::buildRerouter(MSNet&, const std::string& id,
 
 void
 NLTriggerBuilder::buildStoppingPlace(MSNet& net, std::string id, std::vector<std::string> lines, MSLane* lane,
-                                     double frompos, double topos, const SumoXMLTag element, std::string ptStopName, int personCapacity) {
-    myCurrentStop = new MSStoppingPlace(id, lines, *lane, frompos, topos, ptStopName, personCapacity);
+                                     double frompos, double topos, const SumoXMLTag element, std::string ptStopName, int personCapacity, double parkingLength) {
+    myCurrentStop = new MSStoppingPlace(id, lines, *lane, frompos, topos, ptStopName, personCapacity, parkingLength);
     if (!net.addStoppingPlace(element, myCurrentStop)) {
         delete myCurrentStop;
         myCurrentStop = nullptr;
@@ -931,5 +931,6 @@ MSStoppingPlace*
 NLTriggerBuilder::getCurrentStop() {
     return myParkingArea == nullptr ? myCurrentStop : myParkingArea;
 }
+
 
 /****************************************************************************/

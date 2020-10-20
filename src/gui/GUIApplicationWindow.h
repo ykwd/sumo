@@ -20,13 +20,7 @@
 ///
 // The main window of the SUMO-gui.
 /****************************************************************************/
-#ifndef GUIApplicationWindow_h
-#define GUIApplicationWindow_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -100,7 +94,7 @@ public:
 
     void setStatusBarText(const std::string& text);
 
-    void addRecentFile(const FX::FXString& f, const bool isNet);
+    void addRecentFile(const FX::FXString& f);
 
     FXGLCanvas* getBuildGLCanvas() const;
     SUMOTime getCurrentSimTime() const;
@@ -193,6 +187,9 @@ public:
 
     /// @brief Shows the about dialog
     long onCmdAbout(FXObject*, FXSelector, void*);
+
+    /// @brief Shows the Hall of Fame dialog
+    long onCmdHallOfFame(FXObject*, FXSelector, void*);
 
     /// @brief Called on "play"
     long onCmdStart(FXObject*, FXSelector, void*);
@@ -304,7 +301,7 @@ protected:
 
 private:
     /** starts to load a simulation */
-    void loadConfigOrNet(const std::string& file, bool isNet);
+    void loadConfigOrNet(const std::string& file);
 
     /** this method closes all windows and deletes the current simulation */
     void closeAllWindows();
@@ -403,11 +400,8 @@ protected:
     /// @brief io-event with the run-thread
     FXEX::FXThreadEvent myRunThreadEvent;
 
-    /// @brief List of recent config files
-    FXRecentFiles myRecentConfigs;
-
-    /// @brief List of recent nets
-    FXRecentFiles myRecentNets;
+    /// @brief List of recent files
+    FXRecentFiles myRecentFiles;
 
     /// @brief Input file pattern
     std::string myConfigPattern;
@@ -452,9 +446,3 @@ protected:
     ////}
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -33,7 +33,7 @@ sumoCmd = [sumoBinary,
            '--no-step-log',
            '--begin', '0',
            # '-S', '-Q',
-           ]
+           ] + sys.argv[1:]
 
 
 vehID = "v1"
@@ -41,7 +41,7 @@ traci.start(sumoCmd)
 sr = traci.simulationStep(1.)
 traci.vehicle.subscribeContext(vehID, tc.CMD_GET_VEHICLE_VARIABLE,
                                dist=50,
-                               varIDs=(tc.VAR_SPEED,))
+                               varIDs=(tc.VAR_SPEED, tc.VAR_EMISSIONCLASS))
 sr = traci.simulationStep()
 for vehID, response in sr:
     print("t=%s subscriptionResult=%s" % (traci.simulation.getTime(),

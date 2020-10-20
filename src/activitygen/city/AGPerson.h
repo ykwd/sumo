@@ -21,13 +21,7 @@
 ///
 // Parent object of every person, contains age and any natural characteristic
 /****************************************************************************/
-#ifndef AGPERSON_H
-#define AGPERSON_H
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 
@@ -77,7 +71,3 @@ protected:
      */
     virtual ~AGPerson();
 };
-
-#endif /* AGPerson */
-
-/****************************************************************************/

@@ -19,13 +19,7 @@
 ///
 // Parser and container for routes during their loading
 /****************************************************************************/
-#ifndef RORouteHandler_h
-#define RORouteHandler_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -106,6 +100,9 @@ protected:
 
     /// @brief opens a flow for reading
     void openFlow(const SUMOSAXAttributes& attrs);
+
+    /// @brief opens a route flow for reading
+    void openRouteFlow(const SUMOSAXAttributes& attrs);
 
     /// @brief opens a trip for reading
     void openTrip(const SUMOSAXAttributes& attrs);
@@ -202,6 +199,10 @@ protected:
     /// @brief The current route
     ConstROEdgeVector myActiveRoute;
 
+    /// @brief number of repetitions of the active route
+    int myActiveRouteRepeat;
+    SUMOTime myActiveRoutePeriod;
+
     /// @brief The plan of the current person
     ROPerson* myActivePerson;
 
@@ -249,9 +250,3 @@ private:
     /// @brief Invalidated assignment operator
     RORouteHandler& operator=(const RORouteHandler& s) = delete;
 };
-
-
-#endif
-
-/****************************************************************************/
-

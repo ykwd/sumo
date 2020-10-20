@@ -18,13 +18,7 @@
 ///
 // Noise data collector for edges/lanes
 /****************************************************************************/
-#ifndef MSMeanData_Harmonoise_h
-#define MSMeanData_Harmonoise_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -96,7 +90,7 @@ public:
          * @param[in] length The length of the object for which the data was collected
          * @exception IOError If an error on writing occurs (!!! not yet implemented)
          */
-        void write(OutputDevice& dev, const SUMOTime period,
+        void write(OutputDevice& dev, long long int attributeMask, const SUMOTime period,
                    const double numLanes, const double defaultTravelTime,
                    const int numVehicles = -1) const;
 
@@ -145,7 +139,8 @@ public:
                           const bool printDefaults, const bool withInternal,
                           const bool trackVehicles,
                           const double minSamples, const double maxTravelTime,
-                          const std::string& vTypes);
+                          const std::string& vTypes,
+                          const std::string& writeAttributes);
 
 
     /// @brief Destructor
@@ -172,9 +167,3 @@ private:
     MSMeanData_Harmonoise& operator=(const MSMeanData_Harmonoise&);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -18,13 +18,7 @@
 ///
 // The application-settings dialog
 /****************************************************************************/
-#ifndef GUIDialog_AppSettings_h
-#define GUIDialog_AppSettings_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <fx.h>
@@ -88,9 +82,3 @@ protected:
     FOX_CONSTRUCTOR(GUIDialog_AppSettings)
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

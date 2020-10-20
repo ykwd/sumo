@@ -20,13 +20,7 @@
 ///
 // Base of value-generating classes (detectors)
 /****************************************************************************/
-#ifndef MSDetectorFileOutput_h
-#define MSDetectorFileOutput_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -167,9 +161,16 @@ public:
         return !myVehicleTypes.empty();
     }
 
+    const std::set<std::string>& getVehicleTypes() const {
+        return myVehicleTypes;
+    }
+
     inline bool detectPersons() const {
         return myDetectPersons != 0;
     }
+
+    /** @brief Remove all vehicles before quick-loading state */
+    virtual void clearState() {};
 
 protected:
     /// @brief The vehicle types to look for (empty means all)
@@ -187,9 +188,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

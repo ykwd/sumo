@@ -18,7 +18,7 @@ will produce 4 [plain-XML network](../Networks/PlainXML.md) files
 - diff.con.xml
 - diff.tll.xml
 
-These files contain groups of xml elemens (i.e. nodes) that have been
+These files contain groups of xml elements (i.e. nodes) that have been
 delete, created or modified and can be used to investigate differences
 between the two networks *A* and *B*. Furthermore these files be used to
 maintain change-sets for making repeatable modifications:
@@ -37,14 +37,14 @@ A typical use case for *netdiff.py* is this:
 1.  [Import a network from
     OSM](../Networks/Import/OpenStreetMap.md) (call this
     *A.net.xml*)
-2.  make some modifications with [NETEDIT](../NETEDIT.md) (save
+2.  make some modifications with [netedit](../netedit.md) (save
     this under the new name *B.net.xml*)
 3.  use *netdiff.py* to create the *diff*-files
 4.  At a later date, re-import the OSM network (with a newer OSM file, a
-    new version of [NETCONVERT](../NETCONVERT.md) or different
+    new version of [netconvert](../netconvert.md) or different
     options)
 5.  re-apply the *diff*-files to avoid repeating manual corrections with
-    [NETEDIT](../NETEDIT.md)
+    [netedit](../netedit.md)
 
 ![](../images/mergeA.png)
 ![](../images/mergeB.png)
@@ -82,7 +82,7 @@ reachable from a particular edge
 ```
 
 This will create a file called *selection.txt* which can be loaded in
-[SUMO-GUI](../SUMO-GUI.md) to visualize the portion of the network
+[sumo-gui](../sumo-gui.md) to visualize the portion of the network
 reachable from <edge_id\>. To visualize the selection you must load the
 file using the menus **Edit-\>Edit chosen**. Then you need to enable
 edge coloring by selection status in the view settings dialog
@@ -110,10 +110,10 @@ Use the option **--help** for the latest version information.
 # netextract.py
 
 This tool extracts nodes and edges from a given network for their reuse
-in NETCONVERT.
+in netconvert.
 
 !!! note
-    NETCONVERT is able to import *.net.xml* files and export [plain xml files](../Networks/PlainXML.md) which makes this tool obsolete. It is retained for educational purposes as it demonstrates working with a sumo network from python.
+    netconvert is able to import *.net.xml* files and export [plain xml files](../Networks/PlainXML.md) which makes this tool obsolete. It is retained for educational purposes as it demonstrates working with a sumo network from python.
 
 # xmledges_applyOffset.py and xmlnodes_applyOffset.py
 
@@ -150,3 +150,27 @@ xmlconnections_mapEdges.py <CONNECTIONS>
 - <OLD_EDGE_ID\>: Id of an edge as used within <CONNECTIONS\>
 - <NEW_EDGE_ID\>: Id of the edge as to use instead
 - <CONNECTIONS\>: The connections file to change
+
+# net2kml.py
+
+converts '.net.xml' road geometries to [KML](https://en.wikipedia.org/wiki/Keyhole_Markup_Language) format.
+
+```
+<SUMO_HOME>/tools/net/net2kml.py -n your.net.xml -o output.kml
+```
+
+By default, normal edge geometries will be exported. This can be changed with options
+- **--lanes**: write lane geometries
+- **--internal**: write junction-internal edges or lanes
+
+# net2geojson.py
+
+converts '.net.xml' road geometries to [GeoJSON](https://en.wikipedia.org/wiki/GeoJSON) format.
+
+```
+<SUMO_HOME>/tools/net/net2geojson.py -n your.net.xml -o output.geojson
+```
+
+By default, normal edge geometries will be exported. This can be changed with options
+- **--lanes**: write lane geometries
+- **--internal**: write junction-internal edges or lanes

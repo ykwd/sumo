@@ -20,11 +20,6 @@
 ///
 // A netgen-representation of a node
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <algorithm>
@@ -73,21 +68,21 @@ NGNode::buildNBNode(NBNetBuilder& nb, const Position& perturb) const {
     GeoConvHelper::getProcessing().x2cartesian(pos);
     // the center will have no logic!
     if (myAmCenter) {
-        return new NBNode(myID, pos, NODETYPE_NOJUNCTION);
+        return new NBNode(myID, pos, SumoXMLNodeType::NOJUNCTION);
     }
     NBNode* node = nullptr;
     std::string typeS = OptionsCont::getOptions().isSet("default-junction-type") ?
                         OptionsCont::getOptions().getString("default-junction-type") : "";
 
     if (SUMOXMLDefinitions::NodeTypes.hasString(typeS)) {
-        SumoXMLNodeType type = SUMOXMLDefinitions::NodeTypes.get(typeS);
+        const SumoXMLNodeType type = SUMOXMLDefinitions::NodeTypes.get(typeS);
         node = new NBNode(myID, pos, type);
 
         // check whether it is a traffic light junction
         if (NBNode::isTrafficLight(type)) {
-            TrafficLightType type = SUMOXMLDefinitions::TrafficLightTypes.get(
-                                        OptionsCont::getOptions().getString("tls.default-type"));
-            NBTrafficLightDefinition* tlDef = new NBOwnTLDef(myID, node, 0, type);
+            const TrafficLightType tlType = SUMOXMLDefinitions::TrafficLightTypes.get(
+                                                OptionsCont::getOptions().getString("tls.default-type"));
+            NBTrafficLightDefinition* tlDef = new NBOwnTLDef(myID, node, 0, tlType);
             if (!nb.getTLLogicCont().insert(tlDef)) {
                 // actually, nothing should fail here
                 delete tlDef;
@@ -95,11 +90,11 @@ NGNode::buildNBNode(NBNetBuilder& nb, const Position& perturb) const {
             }
         }
     } else {
-        // otherwise netbuild may guess NODETYPE_TRAFFIC_LIGHT without actually building one
-        node = new NBNode(myID, pos, NODETYPE_PRIORITY);
+        // otherwise netbuild may guess SumoXMLNodeType::TRAFFIC_LIGHT without actually building one
+        node = new NBNode(myID, pos, SumoXMLNodeType::PRIORITY);
     }
     if (myAmFringe) {
-        node->setFringeType(FRINGE_TYPE_OUTER);
+        node->setFringeType(FringeType::OUTER);
     }
 
     return node;
@@ -130,4 +125,3 @@ NGNode::connected(NGNode* node) const {
 
 
 /****************************************************************************/
-

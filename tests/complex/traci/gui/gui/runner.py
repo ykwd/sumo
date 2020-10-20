@@ -29,7 +29,8 @@ import traci  # noqa
 import sumolib  # noqa
 
 traci.start([sumolib.checkBinary('sumo-gui')] +
-            "-S -Q -c sumo.sumocfg --window-size 500,500 --window-pos 50,50".split())
+            "-S -Q -c sumo.sumocfg --window-size 500,500 --window-pos 50,50".split(),
+            stdout=sys.stdout)
 for step in range(3):
     print("step", step)
     traci.simulationStep()
@@ -38,12 +39,22 @@ print("hasGUI", traci.hasGUI())
 print("views", traci.gui.getIDList())
 viewID = traci.gui.DEFAULT_VIEW
 print("examining", viewID)
-print("zoom", traci.gui.getZoom(viewID))
-print("offset", traci.gui.getOffset(viewID))
-print("schema", traci.gui.getSchema(viewID))
+print("set zoom (80.0)")
+traci.gui.setZoom(viewID, 80.0)
+print("get zoom", traci.gui.getZoom(viewID))
+print("set offset (400.0, 400.0)")
+traci.gui.setOffset(viewID, 400.0, 400.0)
+print("get offset", traci.gui.getOffset(viewID))
+print("set schema ('real world')")
+traci.gui.setSchema(viewID, "real world")
+print("get schema", traci.gui.getSchema(viewID))
+traci.gui.setSchema(viewID, "standard")  # reset schema to retain original screenshot
 print("visible boundary", traci.gui.getBoundary(viewID))
 print("has view", viewID, traci.gui.hasView(viewID))
 print("has view 'foo'", traci.gui.hasView("foo"))
+print("track vehicle 'horiz'")
+traci.gui.trackVehicle(viewID, "horiz")
+print("get tracked vehicle", traci.gui.getTrackedVehicle(viewID))
 
 traci.gui.subscribe(viewID)
 print(traci.gui.getSubscriptionResults(viewID))
@@ -54,5 +65,11 @@ for step in range(3, 6):
 traci.gui.setBoundary(viewID, 0, 0, 500, 500)
 traci.gui.screenshot(viewID, "out.png", 500, 500)
 traci.gui.screenshot(viewID, "test.blub")
+print("veh selected:", traci.gui.isSelected("horiz"))
+print("edge selected:", traci.gui.isSelected("2fi", "edge"))
+traci.gui.toggleSelection("horiz")
+traci.gui.toggleSelection("2fi", "edge")
+print("veh selected:", traci.gui.isSelected("horiz"))
+print("edge selected:", traci.gui.isSelected("2fi", "edge"))
 traci.simulationStep()
 traci.close()

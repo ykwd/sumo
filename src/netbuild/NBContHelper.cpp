@@ -19,11 +19,6 @@
 ///
 // Some methods for traversing lists of edges
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <vector>
@@ -144,8 +139,8 @@ NBContHelper::relative_outgoing_edge_sorter::operator()(const NBEdge* e1, const 
     assert(e1 != nullptr && e2 != nullptr);
     double relAngle1 = NBHelpers::normRelAngle(myAngle, e1->getStartAngle());
     double relAngle2 = NBHelpers::normRelAngle(myAngle, e2->getStartAngle());
-    const double length1 = e1->getGeometry().length();
-    const double length2 = e2->getGeometry().length();
+    const double length1 = e1->getGeometry().length2D();
+    const double length2 = e2->getGeometry().length2D();
 
     double lookAhead = 2 * NBEdge::ANGLE_LOOKAHEAD;
     while (fabs(relAngle1 - relAngle2) < 3.0) {
@@ -163,6 +158,10 @@ NBContHelper::relative_outgoing_edge_sorter::operator()(const NBEdge* e1, const 
         }
         lookAhead *= 2;
     }
+    if (fabs(relAngle1 - relAngle2) < NUMERICAL_EPS) {
+        // need to break ties for windows debug version, numerical id may be -1 for both
+        return e1->getID() > e2->getID();
+    }
     return relAngle1 > relAngle2;
 }
 
@@ -175,8 +174,8 @@ NBContHelper::relative_incoming_edge_sorter::operator()(const NBEdge* e1, const 
     assert(e1 != nullptr && e2 != nullptr);
     double relAngle1 = NBHelpers::normRelAngle(myAngle, e1->getEndAngle());
     double relAngle2 = NBHelpers::normRelAngle(myAngle, e2->getEndAngle());
-    const double length1 = e1->getGeometry().length();
-    const double length2 = e2->getGeometry().length();
+    const double length1 = e1->getGeometry().length2D();
+    const double length2 = e2->getGeometry().length2D();
 
     double lookAhead = 2 * NBEdge::ANGLE_LOOKAHEAD;
     while (fabs(relAngle1 - relAngle2) < 3.0) {
@@ -193,6 +192,10 @@ NBContHelper::relative_incoming_edge_sorter::operator()(const NBEdge* e1, const 
             break;
         }
         lookAhead *= 2;
+    }
+    if (fabs(relAngle1 - relAngle2) < NUMERICAL_EPS) {
+        // need to break ties for windows debug version, numerical id may be -1 for both
+        return e1->getID() > e2->getID();
     }
     return relAngle1 > relAngle2;
 }
@@ -270,12 +273,7 @@ NBContHelper::edge_by_angle_to_nodeShapeCentroid_sorter::operator()(const NBEdge
                 }
             }
             // break ties to ensure strictly weak ordering
-            if (e1->getFromNode() == myNode) {
-                return relative_outgoing_edge_sorter(angle1)(e1, e2);
-            } else {
-                // @note relative_incoming_edge_sorter sorts connections in ccw order but we need cw ordering here
-                return !relative_incoming_edge_sorter(angle1)(e1, e2);
-            }
+            return e1->getID() < e2->getID();
         } else {
             // sort incoming before outgoing, no need to break ties here
             return e1->getToNode() == myNode;
@@ -284,5 +282,5 @@ NBContHelper::edge_by_angle_to_nodeShapeCentroid_sorter::operator()(const NBEdge
     return angle1 < angle2;
 }
 
-/****************************************************************************/
 
+/****************************************************************************/

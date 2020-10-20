@@ -20,11 +20,6 @@
 ///
 // Importer for edge connections stored in XML
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <string>
@@ -69,7 +64,7 @@ NIXMLConnectionsHandler::~NIXMLConnectionsHandler() {}
 void
 NIXMLConnectionsHandler::myStartElement(int element,
                                         const SUMOSAXAttributes& attrs) {
-    if (element == SUMO_TAG_DELETE) {
+    if (element == SUMO_TAG_DEL) {
         bool ok = true;
         std::string from = attrs.get<std::string>(SUMO_ATTR_FROM, nullptr, ok);
         std::string to = attrs.get<std::string>(SUMO_ATTR_TO, nullptr, ok);
@@ -136,6 +131,19 @@ NIXMLConnectionsHandler::myStartElement(int element,
         } else {
             fromEdge->addEdge2EdgeConnection(toEdge);
             fromEdge->getToNode()->invalidateTLS(myTLLogicCont, true, false);
+            if (attrs.hasAttribute(SUMO_ATTR_PASS)
+                    || attrs.hasAttribute(SUMO_ATTR_KEEP_CLEAR)
+                    || attrs.hasAttribute(SUMO_ATTR_CONTPOS)
+                    || attrs.hasAttribute(SUMO_ATTR_VISIBILITY_DISTANCE)
+                    || attrs.hasAttribute(SUMO_ATTR_SPEED)
+                    || attrs.hasAttribute(SUMO_ATTR_LENGTH)
+                    || attrs.hasAttribute(SUMO_ATTR_UNCONTROLLED)
+                    || attrs.hasAttribute(SUMO_ATTR_SHAPE)
+                    || attrs.hasAttribute(SUMO_ATTR_ALLOW)
+                    || attrs.hasAttribute(SUMO_ATTR_DISALLOW)) {
+                WRITE_ERROR("No additional connection attributes are permitted in connection from edge '" + fromEdge->getID() + "' unless '"
+                            + toString(SUMO_ATTR_FROM_LANE) + "' and '" + toString(SUMO_ATTR_TO_LANE) + "' are set.");
+            }
         }
     }
     if (element == SUMO_TAG_PROHIBITION) {
@@ -222,7 +230,7 @@ NIXMLConnectionsHandler::parseLaneBound(const SUMOSAXAttributes& attrs, NBEdge* 
                                        " in connection from '%' to '%'.", toLane, from->getID(), to->getID());
             return;
         }
-        if (from->hasConnectionTo(to, toLane) && from->getToNode()->getType() != NODETYPE_ZIPPER) {
+        if (from->hasConnectionTo(to, toLane) && from->getToNode()->getType() != SumoXMLNodeType::ZIPPER) {
             WRITE_WARNINGF("Target lane '%' is already connected from '%'.", to->getLaneID(toLane), from->getID());
         }
 
@@ -240,10 +248,14 @@ NIXMLConnectionsHandler::parseLaneBound(const SUMOSAXAttributes& attrs, NBEdge* 
             }
         }
         const bool mayDefinitelyPass = attrs.getOpt<bool>(SUMO_ATTR_PASS, nullptr, ok, defaultCon.mayDefinitelyPass);
-        const bool keepClear = attrs.getOpt<bool>(SUMO_ATTR_KEEP_CLEAR, nullptr, ok, defaultCon.keepClear);
+        KeepClear keepClear = defaultCon.keepClear;
+        if (attrs.hasAttribute(SUMO_ATTR_KEEP_CLEAR)) {
+            keepClear = attrs.get<bool>(SUMO_ATTR_KEEP_CLEAR, nullptr, ok) ? KEEPCLEAR_TRUE : KEEPCLEAR_FALSE;
+        }
         const double contPos = attrs.getOpt<double>(SUMO_ATTR_CONTPOS, nullptr, ok, defaultCon.contPos);
         const double visibility = attrs.getOpt<double>(SUMO_ATTR_VISIBILITY_DISTANCE, nullptr, ok, defaultCon.visibility);
         const double speed = attrs.getOpt<double>(SUMO_ATTR_SPEED, nullptr, ok, defaultCon.speed);
+        const double length = attrs.getOpt<double>(SUMO_ATTR_LENGTH, nullptr, ok, defaultCon.customLength);
         const bool uncontrolled = attrs.getOpt<bool>(SUMO_ATTR_UNCONTROLLED, nullptr, ok, defaultCon.uncontrolled);
         PositionVector customShape = attrs.getOpt<PositionVector>(SUMO_ATTR_SHAPE, nullptr, ok, defaultCon.customShape);
         std::string allow = attrs.getOpt<std::string>(SUMO_ATTR_ALLOW, nullptr, ok, "");
@@ -261,13 +273,13 @@ NIXMLConnectionsHandler::parseLaneBound(const SUMOSAXAttributes& attrs, NBEdge* 
         if (!ok) {
             return;
         }
-        if (!from->addLane2LaneConnection(fromLane, to, toLane, NBEdge::L2L_USER, true, mayDefinitelyPass,
-                                          keepClear, contPos, visibility, speed, customShape, uncontrolled, permissions)) {
+        if (!from->addLane2LaneConnection(fromLane, to, toLane, NBEdge::Lane2LaneInfoType::USER, true, mayDefinitelyPass,
+                                          keepClear, contPos, visibility, speed, length, customShape, uncontrolled, permissions)) {
             if (OptionsCont::getOptions().getBool("show-errors.connections-first-try")) {
                 WRITE_WARNINGF("Could not set loaded connection from lane '%' to lane '%'.", from->getLaneID(fromLane), to->getLaneID(toLane));
             }
             // set as to be re-applied after network processing
-            myEdgeCont.addPostProcessConnection(from->getID(), fromLane, to->getID(), toLane, mayDefinitelyPass, keepClear, contPos, visibility, speed, customShape, uncontrolled, false, permissions);
+            myEdgeCont.addPostProcessConnection(from->getID(), fromLane, to->getID(), toLane, mayDefinitelyPass, keepClear, contPos, visibility, speed, length, customShape, uncontrolled, false, permissions);
         }
     } catch (NumberFormatException&) {
         myErrorMsgHandler->inform("At least one of the defined lanes was not numeric");
@@ -459,5 +471,5 @@ NIXMLConnectionsHandler::addWalkingArea(const SUMOSAXAttributes& attrs) {
     node->addWalkingAreaShape(edges, customShape);
 }
 
-/****************************************************************************/
 
+/****************************************************************************/

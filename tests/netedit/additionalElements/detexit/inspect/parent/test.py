@@ -38,38 +38,38 @@ netedit.additionalMode()
 netedit.changeElement("e3Detector")
 
 # create E3
-netedit.leftClick(referencePosition, 250, 100)
+netedit.leftClick(referencePosition, 240, 86)
 
 # create second E3
-netedit.leftClick(referencePosition, 400, 100)
+netedit.leftClick(referencePosition, 400, 86)
 
 # select Entry detector
 netedit.changeElement("detExit")
 
 # Create Entry detector for both E3s
-netedit.leftClick(referencePosition, 250, 100)
+netedit.leftClick(referencePosition, 240, 86)
 netedit.leftClick(referencePosition, 180, 240)
-netedit.leftClick(referencePosition, 400, 100)
+netedit.leftClick(referencePosition, 400, 86)
 netedit.leftClick(referencePosition, 180, 300)
 
 # Create Exit detector for both E3s
 netedit.changeElement("detEntry")
-netedit.leftClick(referencePosition, 250, 100)
+netedit.leftClick(referencePosition, 240, 86)
 netedit.leftClick(referencePosition, 400, 240)
-netedit.leftClick(referencePosition, 400, 100)
+netedit.leftClick(referencePosition, 400, 86)
 netedit.leftClick(referencePosition, 400, 300)
 
 # go to inspect mode
 netedit.inspectMode()
 
 # inspect Entry
-netedit.leftClick(referencePosition, 200, 240)
+netedit.leftClick(referencePosition, 186, 240)
 
 # Change Netedit parameter 1 with a non valid value (Invalid E3 ID)
-netedit.modifyAttribute(6, "invalidE3", True)
+netedit.modifyAttribute(7, "invalidE3", True)
 
 # Change Netedit parameter 2 with a non valid value (Invalid E3 ID)
-netedit.modifyAttribute(6, "e3Detector_1", True)
+netedit.modifyAttribute(7, "e3Detector_1", True)
 
 # Check undos and redos
 netedit.undo(referencePosition, 7)

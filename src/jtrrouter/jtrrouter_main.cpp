@@ -19,11 +19,6 @@
 ///
 // Main for JTRROUTER
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #ifdef HAVE_VERSION_H
@@ -162,7 +157,7 @@ computeRoutes(RONet& net, ROLoader& loader, OptionsCont& oc) {
                                           oc.getBool("discount-sources"));
     RORouteDef::setUsingJTRR();
     RORouterProvider provider(router, new PedestrianRouter<ROEdge, ROLane, RONode, ROVehicle>(),
-                              new ROIntermodalRouter(RONet::adaptIntermodalRouter, 0, "dijkstra"));
+                              new ROIntermodalRouter(RONet::adaptIntermodalRouter, 0, 0, "dijkstra"), nullptr);
     loader.processRoutes(string2time(oc.getString("begin")), string2time(oc.getString("end")),
                          string2time(oc.getString("route-steps")), net, provider);
     net.cleanup();
@@ -190,9 +185,10 @@ main(int argc, char** argv) {
             SystemFrame::close();
             return 0;
         }
-        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"));
+        SystemFrame::checkOptions();
+        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"), oc.getString("xml-validation.routes"));
         MsgHandler::initOutputOptions();
-        if (!(ROJTRFrame::checkOptions() && SystemFrame::checkOptions())) {
+        if (!ROJTRFrame::checkOptions()) {
             throw ProcessError();
         }
         RandHelper::initRandGlobal();

@@ -38,7 +38,7 @@ netedit.changeElement("parkingArea")
 netedit.changeDefaultValue(11, "reference center")
 
 # create parkingArea in mode "reference center"
-netedit.leftClick(referencePosition, 250, 165)
+netedit.leftClick(referencePosition, 250, 170)
 
 # go to inspect mode
 netedit.inspectMode()
@@ -47,7 +47,7 @@ netedit.inspectMode()
 netedit.leftClick(referencePosition, 250, 200)
 
 # Change parameter 5 with a different value
-netedit.modifyBoolAttribute(14, True)
+netedit.modifyBoolAttribute(15, True)
 
 # Check undos and redos
 netedit.undo(referencePosition, 2)

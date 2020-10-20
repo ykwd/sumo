@@ -19,13 +19,7 @@
 ///
 // A MSNet extended by some values for usage within the gui
 /****************************************************************************/
-#ifndef GUINet_h
-#define GUINet_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -263,11 +257,11 @@ public:
 
     /** Returns the gl-id of the traffic light that controls the given link
      * valid only if the link is controlled by a tls */
-    int getLinkTLID(MSLink* link) const;
+    int getLinkTLID(const MSLink* const link) const;
 
     /** Returns the index of the link within the junction that controls the given link;
      * Returns -1 if the link is not controlled by a tls */
-    int getLinkTLIndex(MSLink* link) const;
+    int getLinkTLIndex(const MSLink* const link) const;
 
 
     /// @name locator-methods
@@ -374,7 +368,7 @@ protected:
     std::vector<GUICalibrator*> myCalibratorWrapper;
 
     /// @brief Definition of a link-to-logic-id map
-    typedef std::map<MSLink*, std::string> Links2LogicMap;
+    typedef std::map<const MSLink*, std::string> Links2LogicMap;
     /// @brief The link-to-logic-id map
     Links2LogicMap myLinks2Logic;
 
@@ -424,6 +418,7 @@ protected:
          * @see SAXWeightsHandler::EdgeFloatTimeLineRetriever::addEdgeWeight
          */
         void addEdgeWeight(const std::string& id, double val, double beg, double end) const;
+        void addEdgeRelWeight(const std::string& from, const std::string& to, double val, double beg, double end) const;
 
     private:
         /// @brief The storage that  edges shall be added to
@@ -436,9 +431,3 @@ private:
     mutable FXMutex myLock;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

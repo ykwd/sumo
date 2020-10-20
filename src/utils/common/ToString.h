@@ -20,14 +20,7 @@
 ///
 // -------------------
 /****************************************************************************/
-#ifndef ToString_h
-#define ToString_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-
+#pragma once
 #include <sstream>
 #include <string>
 #include <iomanip>
@@ -149,6 +142,13 @@ template <>
 inline std::string toString<TrafficLightType>(const TrafficLightType& type, std::streamsize accuracy) {
     UNUSED_PARAMETER(accuracy);
     return SUMOXMLDefinitions::TrafficLightTypes.getString(type);
+}
+
+
+template <>
+inline std::string toString<TrafficLightLayout>(const TrafficLightLayout& layout, std::streamsize accuracy) {
+    UNUSED_PARAMETER(accuracy);
+    return SUMOXMLDefinitions::TrafficLightLayouts.getString(layout);
 }
 
 
@@ -367,9 +367,3 @@ template <>
 inline std::string toString(const std::map<std::string, std::string>& v, std::streamsize) {
     return joinToString(v, ", ", ":");
 }
-
-
-#endif
-
-/****************************************************************************/
-

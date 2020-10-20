@@ -20,15 +20,10 @@
 ///
 // A point-of-interest (2D)
 /****************************************************************************/
-#ifndef PointOfInterest_h
-#define PointOfInterest_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
+#include <utils/common/FileHelpers.h>
 #include <utils/common/Parameterised.h>
 #include <utils/common/StringUtils.h>
 #include <utils/geom/GeoConvHelper.h>
@@ -195,9 +190,3 @@ protected:
     double myHalfImgHeight;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

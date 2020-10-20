@@ -18,11 +18,6 @@
 ///
 // Redirector for mean data output (net->edgecontrol)
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <microsim/MSLane.h>
@@ -89,18 +84,19 @@ MSMeanData_Harmonoise::MSLaneMeanDataValues::notifyMoveInternal(const SUMOTraffi
 
 
 void
-MSMeanData_Harmonoise::MSLaneMeanDataValues::write(OutputDevice& dev, const SUMOTime period,
+MSMeanData_Harmonoise::MSLaneMeanDataValues::write(OutputDevice& dev, long long int attributeMask, const SUMOTime period,
         const double /*numLanes*/, const double defaultTravelTime, const int /*numVehicles*/) const {
-    dev.writeAttr("noise", (meanNTemp != 0 ? (double)(10. * log10(meanNTemp * TS / STEPS2TIME(period))) : (double) 0.));
+    const double noise = meanNTemp != 0 ? (double)(10. * log10(meanNTemp * TS / STEPS2TIME(period))) : (double) 0.;
+    checkWriteAttribute(dev, attributeMask, SUMO_ATTR_NOISE, noise);
     if (sampleSeconds > myParent->myMinSamples) {
         double traveltime = myParent->myMaxTravelTime;
         if (travelledDistance > 0.f) {
             traveltime = MIN2(traveltime, myLaneLength * sampleSeconds / travelledDistance);
         }
-        dev.writeAttr("traveltime", traveltime);
+        checkWriteAttribute(dev, attributeMask, SUMO_ATTR_TRAVELTIME, traveltime);
     } else if (defaultTravelTime >= 0.) {
         // @todo default value for noise
-        dev.writeAttr("traveltime", defaultTravelTime);
+        checkWriteAttribute(dev, attributeMask, SUMO_ATTR_TRAVELTIME, defaultTravelTime);
     }
     dev.closeTag();
 }
@@ -116,9 +112,10 @@ MSMeanData_Harmonoise::MSMeanData_Harmonoise(const std::string& id,
         const bool printDefaults, const bool withInternal,
         const bool trackVehicles,
         const double maxTravelTime, const double minSamples,
-        const std::string& vTypes)
-    : MSMeanData(id, dumpBegin, dumpEnd, useLanes, withEmpty, printDefaults,
-                 withInternal, trackVehicles, 0, maxTravelTime, minSamples, vTypes) {
+        const std::string& vTypes,
+        const std::string& writeAttributes) :
+    MSMeanData(id, dumpBegin, dumpEnd, useLanes, withEmpty, printDefaults,
+               withInternal, trackVehicles, 0, maxTravelTime, minSamples, vTypes, writeAttributes) {
 }
 
 
@@ -144,4 +141,3 @@ MSMeanData_Harmonoise::detectorUpdate(const SUMOTime step) {
 
 
 /****************************************************************************/
-

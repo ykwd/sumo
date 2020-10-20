@@ -17,16 +17,12 @@
 ///
 // Auxiliar class for GNEFrame Moduls (only for attributes edition)
 /****************************************************************************/
-#ifndef GNEFrameAttributesModuls_h
-#define GNEFrameAttributesModuls_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
-#include <netedit/GNEAttributeCarrier.h>
+#include <netedit/elements/GNEAttributeCarrier.h>
 #include <netedit/GNEViewNetHelper.h>
+#include <utils/common/Parameterised.h>
 
 // ===========================================================================
 // class declaration
@@ -60,13 +56,13 @@ public:
 
     public:
         /// @brief constructor
-        AttributesCreatorRow(AttributesCreator* AttributesCreatorParent, const GNEAttributeCarrier::AttributeProperties& attrProperties);
+        AttributesCreatorRow(AttributesCreator* AttributesCreatorParent, const GNEAttributeProperties& attrProperties);
 
         /// @brief destroy AttributesCreatorRow (but don't delete)
         void destroy();
 
         /// @brief return Attr
-        const GNEAttributeCarrier::AttributeProperties& getAttrProperties() const;
+        const GNEAttributeProperties& getAttrProperties() const;
 
         /// @brief return value
         std::string getValue() const;
@@ -124,7 +120,7 @@ public:
         AttributesCreator* myAttributesCreatorParent = nullptr;
 
         /// @brief attribute properties
-        const GNEAttributeCarrier::AttributeProperties myAttrProperties;
+        const GNEAttributeProperties myAttrProperties;
 
         /// @brief string which indicates the reason due current value is invalid
         std::string myInvalidValue;
@@ -164,10 +160,10 @@ public:
         ~AttributesCreator();
 
         /**@brief show AttributesCreator modul
-         * @param tagProperties GNEAttributeCarrier::TagProperties which contain all attributes
+         * @param tagProperties GNETagProperties which contain all attributes
          * @param hiddenAttributes list of attributes contained in tagProperties but not shown
          */
-        void showAttributesCreatorModul(const GNEAttributeCarrier::TagProperties& tagProperties, const std::vector<SumoXMLAttr>& hiddenAttributes);
+        void showAttributesCreatorModul(const GNETagProperties& tagProperties, const std::vector<SumoXMLAttr>& hiddenAttributes);
 
         /// @brief hide group box
         void hideAttributesCreatorModul();
@@ -179,7 +175,7 @@ public:
         std::map<SumoXMLAttr, std::string> getAttributesAndValues(bool includeAll) const;
 
         /// @brief get current edited Tag Properties
-        GNEAttributeCarrier::TagProperties getCurrentTagProperties() const;
+        GNETagProperties getCurrentTagProperties() const;
 
         /// @brief check if parameters of attributes are valid
         bool areValuesValid() const;
@@ -207,7 +203,7 @@ public:
         AttributesCreatorFlow* myAttributesCreatorFlow = nullptr;
 
         /// @brief current edited Tag Properties
-        GNEAttributeCarrier::TagProperties myTagProperties;
+        GNETagProperties myTagProperties;
 
         /// @brief vector with the AttributesCreatorRow
         std::vector<AttributesCreatorRow*> myAttributesCreatorRows;
@@ -232,7 +228,7 @@ public:
         ~AttributesCreatorFlow();
 
         /// @brief show AttributesCreatorFlow modul
-        void showAttributesCreatorFlowModul();
+        void showAttributesCreatorFlowModul(const bool persons);
 
         /// @brief hide group box
         void hideAttributesCreatorFlowModul();
@@ -309,7 +305,7 @@ public:
 
     public:
         /// @brief constructor
-        AttributesEditorRow(AttributesEditor* attributeEditorParent, const GNEAttributeCarrier::AttributeProperties& ACAttr, const std::string& value, bool attributeEnabled);
+        AttributesEditorRow(AttributesEditor* attributeEditorParent, const GNEAttributeProperties& ACAttr, const std::string& value, bool attributeEnabled);
 
         /// @brief destroy AttributesCreatorRow (but don't delete)
         void destroy();
@@ -344,7 +340,7 @@ public:
         AttributesEditor* myAttributesEditorParent = nullptr;
 
         /// @brief current AC Attribute
-        const GNEAttributeCarrier::AttributeProperties myACAttr;
+        const GNEAttributeProperties myACAttr;
 
         /// @brief flag to check if input element contains multiple values
         const bool myMultiple;
@@ -384,7 +380,7 @@ public:
         AttributesEditor(GNEFrame* inspectorFrameParent);
 
         /// @brief show attributes of multiple ACs
-        void showAttributeEditorModul(const std::vector<GNEAttributeCarrier*>& ACs, bool includeExtended, bool forceAttributeEnabled);
+        void showAttributeEditorModul(bool includeExtended, bool forceAttributeEnabled);
 
         /// @brief hide attribute editor
         void hideAttributesEditorModul();
@@ -394,12 +390,6 @@ public:
 
         /// @brief pointer to GNEFrame parent
         GNEFrame* getFrameParent() const;
-
-        /// @brief get current edited ACs
-        const std::vector<GNEAttributeCarrier*>& getEditedACs() const;
-
-        /// @brief remove edited ACs
-        void removeEditedAC(GNEAttributeCarrier* AC);
 
         /// @name FOX-callbacks
         /// @{
@@ -422,9 +412,6 @@ public:
 
         /// @brief button for help
         FXButton* myHelpButton = nullptr;
-
-        /// @brief the multi-selection currently being inspected
-        std::vector<GNEAttributeCarrier*> myEditedACs;
 
         /// @brief flag used to mark if current edited ACs are bein edited including extended attribute
         bool myIncludeExtended;
@@ -566,11 +553,8 @@ public:
         /// @brief destructor
         ~ParametersEditor();
 
-        /// @brief show netedit attributes editor (used for edit parameters of an existent AC)
-        void showParametersEditor(GNEAttributeCarrier* AC);
-
-        /// @brief show netedit attributes editor (used for edit parameters of an existent list of AC)
-        void showParametersEditor(std::vector<GNEAttributeCarrier*> ACs);
+        /// @brief show netedit attributes editor
+        void showParametersEditor();
 
         /// @brief hide netedit attributes editor
         void hideParametersEditor();
@@ -593,6 +577,9 @@ public:
         /// @brief pointer to frame parent
         GNEFrame* getFrameParent() const;
 
+        /// @brief get current parameter type
+        Parameterised::ParameterisedAttrType getAttrType() const;
+
         /// @name FOX-callbacks
         /// @{
         /// @brief Called when user clicks over add parameter
@@ -609,11 +596,8 @@ public:
         /// @brief pointer to frame parent
         GNEFrame* myFrameParent = nullptr;
 
-        /// @brief edited Attribute Carrier
-        GNEAttributeCarrier* myAC = nullptr;
-
-        /// @brief list of edited ACs
-        std::vector<GNEAttributeCarrier*> myACs;
+        /// @brief flag for parameters type
+        Parameterised::ParameterisedAttrType myAttrType;
 
         /// @brief pointer to current map of parameters
         std::map<std::string, std::string> myParameters;
@@ -727,7 +711,7 @@ public:
         ~NeteditAttributes();
 
         /// @brief show Netedit attributes modul
-        void showNeteditAttributesModul(const GNEAttributeCarrier::TagProperties& tagValue);
+        void showNeteditAttributesModul(const GNETagProperties& tagValue);
 
         /// @brief hide Netedit attributes modul
         void hideNeteditAttributesModul();
@@ -807,9 +791,10 @@ public:
         /// @brief actual additional reference point selected in the match Box
         AdditionalReferencePoint myActualAdditionalReferencePoint;
     };
+
+    /// @brief return true if AC can be edited in the current supermode
+    static bool isSupermodeValid(const GNEViewNet* viewNet, const GNEAttributeCarrier* AC);
+
+    /// @brief return true if give ACAttr can be edited in the current supermode
+    static bool isSupermodeValid(const GNEViewNet* viewNet, const GNEAttributeProperties& ACAttr);
 };
-
-
-#endif
-
-/****************************************************************************/

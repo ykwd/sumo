@@ -17,17 +17,12 @@
 ///
 // The main mesocopic simulation loop
 /****************************************************************************/
-#ifndef MELoop_h
-#define MELoop_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
 #include <map>
+#include <utils/common/SUMOTime.h>
 
 
 // ===========================================================================
@@ -38,7 +33,6 @@ class MEVehicle;
 class MSEdge;
 class MSLink;
 class MSVehicleControl;
-class BinaryInputDevice;
 class OptionsCont;
 
 
@@ -78,7 +72,7 @@ public:
     void removeLeaderCar(MEVehicle* v);
 
     /** @brief remove the given car and clean up the relevant data structures */
-    void vaporizeCar(MEVehicle* v);
+    void vaporizeCar(MEVehicle* v, MSMoveReminder::Notification reason);
 
     /** @brief Compute number of segments per edge (best value stay close to the configured segment length) */
     static int numSegmentsFor(const double length, const double slength);
@@ -101,7 +95,8 @@ public:
      * this handles combinations of the following cases:
      * (ending / continuing route) and (leaving segment / finishing teleport)
      */
-    bool changeSegment(MEVehicle* veh, SUMOTime leaveTime, MESegment* const toSegment, const bool ignoreLink = false);
+    SUMOTime changeSegment(MEVehicle* veh, SUMOTime leaveTime, MESegment* const toSegment,
+                           MSMoveReminder::Notification reason, const bool ignoreLink = false) const;
 
     /** @brief registers vehicle with the given link
      *
@@ -110,6 +105,8 @@ public:
      */
     static void setApproaching(MEVehicle* veh, MSLink* link);
 
+    /** @brief Remove all vehicles before quick-loading state */
+    void clearState();
 
 private:
     /** @brief Check whether the vehicle may move
@@ -164,9 +161,3 @@ private:
     /// @brief Invalidated assignment operator.
     MELoop& operator=(const MELoop&);
 };
-
-
-#endif
-
-/****************************************************************************/
-

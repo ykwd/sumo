@@ -21,11 +21,6 @@
 ///
 // The handler for SUMO-Networks
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <string>
@@ -177,7 +172,7 @@ RONetHandler::parseEdge(const SUMOSAXAttributes& attrs) {
     std::string to;
     int priority;
     myCurrentEdge = nullptr;
-    if (func == EDGEFUNC_INTERNAL || func == EDGEFUNC_CROSSING || func == EDGEFUNC_WALKINGAREA) {
+    if (func == SumoXMLEdgeFunc::INTERNAL || func == SumoXMLEdgeFunc::CROSSING || func == SumoXMLEdgeFunc::WALKINGAREA) {
         assert(myCurrentName[0] == ':');
         const std::string junctionID = myCurrentName.substr(1, myCurrentName.rfind('_') - 1);
         from = junctionID;
@@ -212,6 +207,10 @@ RONetHandler::parseEdge(const SUMOSAXAttributes& attrs) {
     if (myNet.addEdge(myCurrentEdge)) {
         fromNode->addOutgoing(myCurrentEdge);
         toNode->addIncoming(myCurrentEdge);
+        const std::string bidi = attrs.getOpt<std::string>(SUMO_ATTR_BIDI, myCurrentName.c_str(), ok, "");
+        if (bidi != "") {
+            myBidiEdges[myCurrentEdge] = bidi;
+        }
     } else {
         myCurrentEdge = nullptr;
     }
@@ -263,7 +262,7 @@ RONetHandler::parseJunction(const SUMOSAXAttributes& attrs) {
     bool ok = true;
     // get the id, report an error if not given or empty...
     std::string id = attrs.get<std::string>(SUMO_ATTR_ID, nullptr, ok);
-    if (attrs.getNodeType(ok) == NODETYPE_INTERNAL) {
+    if (attrs.getNodeType(ok) == SumoXMLNodeType::INTERNAL) {
         return;
     }
     myUnseenNodeIDs.erase(id);
@@ -416,5 +415,6 @@ RONetHandler::setLocation(const SUMOSAXAttributes& attrs) {
         GeoConvHelper::init(proj, networkOffset, origBoundary, convBoundary);
     }
 }
+
 
 /****************************************************************************/

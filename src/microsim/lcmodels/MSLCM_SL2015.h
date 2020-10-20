@@ -18,13 +18,7 @@
 ///
 // A lane change model for heterogeneous traffic (based on sub-lanes)
 /****************************************************************************/
-#ifndef MSLCM_SL2015_h
-#define MSLCM_SL2015_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSAbstractLaneChangeModel.h"
@@ -134,7 +128,7 @@ public:
 
     /// @brief decides the next lateral speed depending on the remaining lane change distance to be covered
     ///        and updates maneuverDist according to lateral safety constraints.
-    double computeSpeedLat(double latDist, double& maneuverDist);
+    double computeSpeedLat(double latDist, double& maneuverDist) const;
 
 protected:
 
@@ -250,7 +244,7 @@ protected:
     static CLeaderDist getSlowest(const MSLeaderDistanceInfo& ldi);
 
     /// @brief restrict latDist to permissible speed and determine blocking state depending on that distance
-    int checkBlocking(const MSLane& neighLane, double& latDist, double& maneuverDist, int laneOffset,
+    int checkBlocking(const MSLane& neighLane, double& latDist, double maneuverDist, int laneOffset,
                       const MSLeaderDistanceInfo& leaders,
                       const MSLeaderDistanceInfo& followers,
                       const MSLeaderDistanceInfo& blockers,
@@ -288,7 +282,7 @@ protected:
                              double currentDist,
                              double neighDist,
                              double laDist,
-                             int roundaboutEdgesAhead,
+                             double roundaboutBonus,
                              double latLaneDist,
                              double& latDist
                             );
@@ -438,9 +432,3 @@ protected:
     //@}
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -19,13 +19,7 @@
 ///
 // missing_desc
 /****************************************************************************/
-#ifndef RODFDetectorFlow_h
-#define RODFDetectorFlow_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/SUMOTime.h>
@@ -99,9 +93,3 @@ private:
     RODFDetectorFlows& operator=(const RODFDetectorFlows& src);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

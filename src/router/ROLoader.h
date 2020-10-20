@@ -20,13 +20,7 @@
 ///
 // Loader for networks and route imports
 /****************************************************************************/
-#ifndef ROLoader_h
-#define ROLoader_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/SUMOTime.h>
@@ -197,9 +191,3 @@ private:
     /// @brief Invalidated assignment operator
     ROLoader& operator=(const ROLoader& src);
 };
-
-
-#endif
-
-/****************************************************************************/
-

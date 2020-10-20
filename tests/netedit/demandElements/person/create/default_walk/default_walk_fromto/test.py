@@ -35,11 +35,11 @@ netedit.supermodeDemand()
 netedit.personMode()
 
 # change person plan
-netedit.changePersonPlan("walks", "walkFromTo")
+netedit.changePersonPlan("walks", "walk: edge->edge")
 
 # create route using three edges
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 180, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 180, 55)
 
 # press enter to create route
 netedit.typeEnter()

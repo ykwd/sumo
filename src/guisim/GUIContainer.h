@@ -18,13 +18,7 @@
 ///
 // A MSVehicle extended by some values for usage within the gui
 /****************************************************************************/
-#ifndef GUIContainer_h
-#define GUIContainer_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -207,9 +201,3 @@ private:
     void drawAction_drawAsImage(const GUIVisualizationSettings& s) const;
     /// @}
 };
-
-
-#endif
-
-/****************************************************************************/
-

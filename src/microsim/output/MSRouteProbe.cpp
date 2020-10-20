@@ -20,11 +20,6 @@
 ///
 // Writes route distributions at a certain edge
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <string>
@@ -45,7 +40,8 @@
 // ===========================================================================
 MSRouteProbe::MSRouteProbe(const std::string& id, const MSEdge* edge, const std::string& distID, const std::string& lastID,
                            const std::string& vTypes) :
-    MSDetectorFileOutput(id, vTypes), MSMoveReminder(id) {
+    MSDetectorFileOutput(id, vTypes), MSMoveReminder(id),
+    myEdge(edge) {
     myCurrentRouteDistribution = std::make_pair(distID, MSRoute::distDictionary(distID));
     if (myCurrentRouteDistribution.second == 0) {
         myCurrentRouteDistribution.second = new RandomDistributor<const MSRoute*>();
@@ -125,8 +121,8 @@ MSRouteProbe::writeXMLDetectorProlog(OutputDevice& dev) const {
 
 
 const MSRoute*
-MSRouteProbe::getRoute() const {
-    if (myLastRouteDistribution.second == 0) {
+MSRouteProbe::sampleRoute(bool last) const {
+    if (myLastRouteDistribution.second == 0 || !last) {
         if (myCurrentRouteDistribution.second->getOverallProb() > 0) {
             return myCurrentRouteDistribution.second->get();
         }

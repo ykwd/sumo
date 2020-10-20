@@ -17,13 +17,7 @@
 ///
 // Helper for Shortcuts
 /****************************************************************************/
-#ifndef GUIShortcutsSubSys_h
-#define GUIShortcutsSubSys_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <fx.h>
@@ -56,9 +50,3 @@ private:
     // @brief parse GUIShortcut to int with two modifiers
     static int parseKey(GUIShortcut key, GUIShortcutModifier firstModifier, GUIShortcutModifier secondModifier);
 };
-
-
-#endif
-
-/****************************************************************************/
-

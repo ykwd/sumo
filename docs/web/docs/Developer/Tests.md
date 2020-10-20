@@ -18,13 +18,13 @@ files you are comparing the current outputs to *are* right - you have to
 prepare them once and update/verify them again every time the expected
 results change.
 
-At the moment all our \[Developer/Nightly_Build tests run each night\]
+At the moment all our tests run [each night](Nightly_Build.md)
 with the results on this [summary webpage](https://sumo.dlr.de/daily/).
 
 # Setup
 
-We use [TextTest](http://texttest.org/) as our testing environment which
-is Python based and currently available for Python 2 only. To install
+We use [TextTest](http://texttest.org/) 4.x as our testing environment which
+is Python based and currently available for Python 2 and 3. To install
 it, you can open a terminal / Windows console and type:
 
 ```
@@ -36,7 +36,9 @@ to follow the [TextTest installation
 instructions](http://texttest.org/index.php?page=documentation_trunk&n=install_texttest)
 and the additional info here.
 
-## Windows Setup
+## Windows Setup (outdated)
+
+!!! note The Window Setup section should be updated, because we can now also use Python 3.x with TextTest 4.x
 
 You will need the following software (at least for a setup with GUI)
 
@@ -56,31 +58,37 @@ compatible diff tool if you like)
 Visual guide:
 
 ![](../images/TestInstall1.png "Python path shouldn't include whitespaces")
+
 Python path shouldn't include whitespaces
 
 ![](../images/TestInstall2.png "Python requieres a full installation")
+
 Python requieres a full installation
 
 ![](../images/TestInstall3.png "PyGTK must be installed in the same folder of Python")
+
 PyGTK must be installed in the same folder of Python
 
-
 ![](../images/TestInstall6.png "TkDiff path shouldn't include whitespaces")
+
 TkDiff path shouldn't include whitespaces
 
-![](../images/TestInstall4.png "Check that python works typing "Python" in CMD.")
-Check that python works typing "Python" in CMD.
+![](../images/TestInstall4.png "Check that python works typing `Python` in CMD.")
 
+Check that python works typing `Python` in `cmd`.
 Type "quit()" to exit
-![](../images/TestInstall5.png "Type *pip install texttest* to install TextTest automatically from Python repository")
-Type *pip install texttest* to install TextTest automatically from Python repository
 
+![](../images/TestInstall5.png "Type `pip install texttest` to install TextTest automatically from Python repository")
 
-![](../images/TestInstall7.png "Every value of environment variable "PATH" must be separated with ";"")
-Every value of environment variable "PATH" must be separated with ";"
+Type `pip install texttest` to install TextTest automatically from Python repository
 
-![](../images/TestInstall8.png "If Installation was successfully, this window will appear after execution of "runAllTests.bat"")
-If Installation was successfully, this window will appear after execution of "runAllTests.bat"
+![](../images/TestInstall7.png "Every value of environment variable `PATH` must be separated with `;`")
+
+Every value of environment variable `PATH` must be separated with `;`
+
+![](../images/TestInstall8.png "If Installation was successfully, this window will appear after execution of `runAllTests.bat`")
+
+If Installation was successfully, this window will appear after execution of `runAllTests.bat`
 
 ## Linux setup
 
@@ -89,15 +97,18 @@ probably everything included. With openSUSE 10.2 you need python-gtk and
 python-cairo as well as tkdiff before installing TextTest. If you don't
 need the GUI you can probably even skip these.
 
-## MacOS setup
+## macOS setup
 
-1.  Follow the steps
-    [here](https://texttest.readthedocs.io/en/latest/installation.html#mac)
-2.  If you have multiple python versions (2.x/3.x) installed (see
-    [here](https://docs.brew.sh/Homebrew-and-Python)), make sure that
-    your `pip` points to version 2.x
-3.  Install TextTest via pip:
-    `pip install texttest`
+You can easily install all TextTest 4.x and all of its dependencies on a recent macOS with Homebrew.  
+
+1. Make sure to have python 3.x installed:
+   `brew install python`
+2. Install all dependencies for TextTest 4.x:
+   `brew install pycairo PyGObject pygobject3 gtk+3 adwaita-icon-theme`
+3. Install TextTest via pip:
+   `pip3 install texttest`
+
+You can find more information about the general installation process and the system requirements of TextTest [here](https://texttest.readthedocs.io/en/latest/installation.html#mac). 
 
 ## Customize configuration
 
@@ -113,11 +124,11 @@ to collapse the static test suites on program start. E.g.:
 
 # Running the Tests
 
-Within the  {{SUMO}}*/tests* - folder you can find batch-files which start
-[TextTest](http://texttest.org/) with our test suites. "runAllTests.bat"
+Within the  `$SUMO_HOME/tests` folder you can find batch files for Windows and shell files for Linux & macOS which start
+[TextTest](http://texttest.org/) with our test suites. `runAllTests.bat` (Windows) or `runTests.sh` (Linux, macOS)
 starts TextTest for testing all applications located in the folder,
-"runNetconvertTests.bat" will only show tests for NETCONVERT,
-"runDuarouterTests.bat" only those for DUAROUTER etc.
+`runNetconvertTests.bat` (Windows) will only show tests for netconvert,
+`runDuarouterTests.bat`(Windows) only those for duarouter etc.
 
 # Adding a Test to an existing Application
 
@@ -259,8 +270,8 @@ Our TextTest tests can be grouped into the categories described below
 ## Application Tests
 
 These tests are for the executable files in the *bin* folder such as
-[NETCONVERT](../NETCONVERT.md), [DUAROUTER](../DUAROUTER.md)
-and [SUMO](../SUMO.md). They work by running their application once
+[netconvert](../netconvert.md), [duarouter](../duarouter.md)
+and [sumo](../sumo.md). They work by running their application once
 with a predefined set of input files and compare against expected output
 files. The tests for sumo run once with the GUI version and once without
 GUI..
@@ -287,7 +298,7 @@ the traci python client (runner.py is a traci script in this case).
 
 ## Interactive GUI Tests
 
-These tests are currently only active for [NETEDIT](../NETEDIT.md)
+These tests are currently only active for [netedit](../netedit.md)
 and are described in more detail on the page
 [Developer/GUI_Testing](../Developer/GUI_Testing.md).
 
@@ -301,3 +312,6 @@ on Linux). On Windows you will need to add it by copying the existing
 python.exe in your python3 installation to python3.exe (in the same
 directory) and adding that directory to the end of your PATH (if it is
 not already there).
+
+# Running tests outside TextTest
+Different methods to extract TextTest tests (offline and online) are explained [here](../Tutorials.md#using_examples_from_the_test_suite).

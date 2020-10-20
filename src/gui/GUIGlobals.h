@@ -19,13 +19,7 @@
 ///
 // Some global variables (yep)
 /****************************************************************************/
-#ifndef GUIGlobals_h
-#define GUIGlobals_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -56,8 +50,3 @@ public:
     /// the aggregation period for tracker windows in seconds
     static double gTrackerInterval;
 };
-
-#endif
-
-/****************************************************************************/
-

@@ -19,13 +19,7 @@
 ///
 // Abstract in-vehicle device
 /****************************************************************************/
-#ifndef MSDevice_h
-#define MSDevice_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -114,11 +108,12 @@ public:
     virtual ~MSDevice() { }
 
 
-    /** @brief Called on writing tripinfo output
+    /** @brief Called on vehicle deletion to extend tripinfo and other outputs
      *
-     * The device may write some statistics into the tripinfo output. It
-     *  is assumed that the written information is a valid xml-snipplet, which
-     *  will be embedded within the vehicle's information.
+     * The device may write some statistics into the tripinfo output and may
+     *  choose to finalize its own outputs. It is assumed that the
+     *  information written to tripinfoOut is a valid xml-snipplet, which
+     *  will be embedded within the vehicle's tripinfo information.
      *
      * The device should use the openTag / closeTag methods of the OutputDevice
      *  for correct indentation.
@@ -134,7 +129,6 @@ public:
      * @param[in] out The OutputDevice to write the information into
      */
     virtual void saveState(OutputDevice& out) const;
-
 
     /** @brief Loads the state of the device from the given description
      *
@@ -153,6 +147,9 @@ public:
         UNUSED_PARAMETER(value);
         throw InvalidArgument("Setting parameter '" + key + "' is not supported for device of type '" + deviceName() + "'");
     }
+
+    /// @brief called to update state for parking vehicles
+    virtual void notifyParking() {}
 
 protected:
     /// @name Helper methods for device assignment
@@ -213,9 +210,9 @@ MSDevice::equippedByDefaultAssignmentOptions(const OptionsCont& oc, const std::s
         numberGiven = true;
         haveByNumber = MSNet::getInstance()->getVehicleControl().getQuota(oc.getFloat(prefix + ".probability")) == 1;
     } else {
-        if (oc.exists(prefix + ".probability") && oc.getFloat(prefix + ".probability") >= 0) {
+        if (oc.exists(prefix + ".probability") && oc.getFloat(prefix + ".probability") >= 0.) {
             numberGiven = true;
-            haveByNumber = RandHelper::rand(&myEquipmentRNG) <= oc.getFloat(prefix + ".probability");
+            haveByNumber = RandHelper::rand(&myEquipmentRNG) < oc.getFloat(prefix + ".probability");
         }
     }
     // assignment by name
@@ -256,8 +253,3 @@ MSDevice::equippedByDefaultAssignmentOptions(const OptionsCont& oc, const std::s
         return !nameGiven && outputOptionSet;
     }
 }
-
-
-#endif
-
-/****************************************************************************/

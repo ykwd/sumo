@@ -19,13 +19,7 @@
 ///
 // Calculators for route costs and probabilities
 /****************************************************************************/
-#ifndef GawronCalculator_h
-#define GawronCalculator_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -115,7 +109,3 @@ private:
     GawronCalculator& operator=(const GawronCalculator& s);
 
 };
-#endif
-
-/****************************************************************************/
-

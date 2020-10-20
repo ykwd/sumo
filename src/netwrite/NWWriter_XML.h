@@ -19,13 +19,7 @@
 ///
 // Exporter writing networks using XML (native input) format
 /****************************************************************************/
-#ifndef NWWriter_XML_h
-#define NWWriter_XML_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -121,9 +115,3 @@ private:
 
     static void writeShape(OutputDevice& out, const GeoConvHelper& gch, PositionVector shape, SumoXMLAttr attr, bool useGeo, bool geoAccuracy);
 };
-
-
-#endif
-
-/****************************************************************************/
-

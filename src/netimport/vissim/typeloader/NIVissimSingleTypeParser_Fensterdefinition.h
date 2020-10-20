@@ -17,13 +17,7 @@
 ///
 //
 /****************************************************************************/
-#ifndef NIVissimSingleTypeParser_Fensterdefinition_h
-#define NIVissimSingleTypeParser_Fensterdefinition_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <iostream>
@@ -50,9 +44,3 @@ public:
     bool parse(std::istream& from);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

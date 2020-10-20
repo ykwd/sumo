@@ -18,13 +18,7 @@
 ///
 // The Battery parameters for the vehicle
 /****************************************************************************/
-#ifndef MSDevice_Battery_h
-#define MSDevice_Battery_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <microsim/devices/MSVehicleDevice.h>
@@ -93,6 +87,9 @@ public:
 
     /// @brief try to set the given parameter for this device. Throw exception for unsupported key
     void setParameter(const std::string& key, const std::string& value);
+
+    /// @brief called to update state for parking vehicles
+    void notifyParking();
 
 private:
     /** @brief Constructor
@@ -221,5 +218,4 @@ private:
     MSDevice_Battery& operator=(const MSDevice_Battery&);
 };
 
-#endif
 

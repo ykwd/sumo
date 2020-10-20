@@ -20,11 +20,6 @@
 ///
 // A vehicle as used by router
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <string>
@@ -128,7 +123,7 @@ ROVehicle:: getDepartEdge() const {
 void
 ROVehicle::computeRoute(const RORouterProvider& provider,
                         const bool removeLoops, MsgHandler* errorHandler) {
-    SUMOAbstractRouter<ROEdge, ROVehicle>& router = provider.getVehicleRouter();
+    SUMOAbstractRouter<ROEdge, ROVehicle>& router = provider.getVehicleRouter(getVClass());
     std::string noRouteMsg = "The vehicle '" + getID() + "' has no valid route.";
     RORouteDef* const routeDef = getRouteDefinition();
     // check if the route definition is valid
@@ -148,10 +143,10 @@ ROVehicle::computeRoute(const RORouterProvider& provider,
     }
     // check whether we have to evaluate the route for not containing loops
     if (removeLoops) {
-        const ROEdge* requiredStart = (getParameter().departPosProcedure == DEPART_POS_GIVEN
-                                       || getParameter().departLaneProcedure == DEPART_LANE_GIVEN ? current->getEdgeVector().front() : 0);
-        const ROEdge* requiredEnd = (getParameter().arrivalPosProcedure == ARRIVAL_POS_GIVEN
-                                     || getParameter().arrivalLaneProcedure == ARRIVAL_LANE_GIVEN ? current->getEdgeVector().back() : 0);
+        const ROEdge* requiredStart = (getParameter().departPosProcedure == DepartPosDefinition::GIVEN
+                                       || getParameter().departLaneProcedure == DepartLaneDefinition::GIVEN ? current->getEdgeVector().front() : 0);
+        const ROEdge* requiredEnd = (getParameter().arrivalPosProcedure == ArrivalPosDefinition::GIVEN
+                                     || getParameter().arrivalLaneProcedure == ArrivalLaneDefinition::GIVEN ? current->getEdgeVector().back() : 0);
         current->recheckForLoops(getMandatoryEdges(requiredStart, requiredEnd));
         // check whether the route is still valid
         if (current->size() == 0) {
@@ -320,4 +315,3 @@ ROVehicle::saveAsXML(OutputDevice& os, OutputDevice* const typeos, bool asAltern
 
 
 /****************************************************************************/
-

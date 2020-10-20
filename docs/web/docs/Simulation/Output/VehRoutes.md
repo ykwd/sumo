@@ -19,7 +19,7 @@ new information.
 
 This output is enabled for a simulation using the option **--vehroute-output** {{DT_FILE}} or **--vehroutes** {{DT_FILE}}. Further
 options affecting this output are listed at
-[SUMO\#Output](../../SUMO.md#output).
+[SUMO\#Output](../../sumo.md#output).
 
 ## Generated Output
 
@@ -71,3 +71,15 @@ probability field is only given to make the file directly usable as
 input to the simulation which lets the vehicle travel its final route.
 For proper simulation input the file should be also sorted by departure
 time. This can be accomplished by also setting option **--vehroute-output.sorted**.
+
+## Output only for selected vehicles or vehicle types
+By default all vehicles will generated vehroute-output. By [assigning a vehroute device](../../Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#devices) to selected vehicles or types, this can be changed.
+
+Example:
+Setting SUMO-option **--device.vehroute.probability false** will disable the device for all vehicles by default.
+The following definition overrides this default end enables the device for busses:
+```
+<vType id="bus">
+  <param key="has.vehroute.device" value="true"/>
+</vType>
+```

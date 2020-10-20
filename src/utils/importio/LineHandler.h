@@ -18,13 +18,7 @@
 ///
 // Interface definition for a class which retrieves lines from a LineHandler
 /****************************************************************************/
-#ifndef LineHandler_h
-#define LineHandler_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -65,9 +59,3 @@ public:
     virtual bool report(const std::string& result) = 0;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

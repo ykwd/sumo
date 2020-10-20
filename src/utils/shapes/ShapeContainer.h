@@ -19,13 +19,7 @@
 ///
 // Storage for geometrical objects, sorted by the layers they are in
 /****************************************************************************/
-#ifndef ShapeContainer_h
-#define ShapeContainer_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -223,9 +217,3 @@ private:
     std::map<const std::string, ParametrisedWrappingCommand<ShapeContainer, PolygonDynamics*>*> myPolygonUpdateCommands;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

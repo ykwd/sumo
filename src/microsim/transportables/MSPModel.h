@@ -18,10 +18,6 @@
 // The pedestrian following model (prototype)
 /****************************************************************************/
 #pragma once
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <string>
@@ -59,6 +55,14 @@ public:
 
     /// @brief register the given person as a pedestrian
     virtual MSTransportableStateAdapter* add(MSTransportable* transportable, MSStageMoving* stage, SUMOTime now) = 0;
+
+    /// @brief load the state of the given transportable
+    virtual MSTransportableStateAdapter* loadState(MSTransportable* transportable, MSStageMoving* stage, std::istringstream& state) {
+        UNUSED_PARAMETER(transportable);
+        UNUSED_PARAMETER(stage);
+        UNUSED_PARAMETER(state);
+        return nullptr;
+    }
 
     /// @brief remove the specified person from the pedestrian simulation
     virtual void remove(MSTransportableStateAdapter* state) = 0;
@@ -116,6 +120,9 @@ public:
     /// @brief whether movements on intersections are modelled
     virtual bool usingInternalLanes() = 0;
 
+    /// @brief return the number of active objects
+    virtual int getActiveNumber() = 0;
+
 };
 
 
@@ -161,6 +168,17 @@ public:
     /// @brief whether the transportable is jammed
     virtual bool isJammed() const {
         return false;
+    }
+
+    /// @brief whether the transportable is jammed
+    virtual const MSLane* getLane() const {
+        return nullptr;
+    }
+
+    /** @brief Saves the current state into the given stream
+     */
+    virtual void saveState(std::ostringstream& out) {
+        UNUSED_PARAMETER(out);
     }
 
 };

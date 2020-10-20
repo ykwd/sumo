@@ -18,18 +18,28 @@
 # @date    2011-03-15
 
 from __future__ import absolute_import
-import struct
 import warnings
 from . import constants as tc
 from .domain import Domain
-from .storage import Storage
 from .exceptions import FatalTraCIError
 
 
 class Stage(object):
 
-    def __init__(self, type, vType, line, destStop, edges, travelTime, cost, length, intended,
-                 depart, departPos, arrivalPos, description):
+    def __init__(self,
+                 type=tc.INVALID_INT_VALUE,
+                 vType="",
+                 line="",
+                 destStop="",
+                 edges=[],
+                 travelTime=tc.INVALID_DOUBLE_VALUE,
+                 cost=tc.INVALID_DOUBLE_VALUE,
+                 length=tc.INVALID_DOUBLE_VALUE,
+                 intended="",
+                 depart=tc.INVALID_DOUBLE_VALUE,
+                 departPos=tc.INVALID_DOUBLE_VALUE,
+                 arrivalPos=tc.INVALID_DOUBLE_VALUE,
+                 description=""):
         self.type = type
         self.vType = vType
         self.line = line
@@ -48,7 +58,10 @@ class Stage(object):
         if getattr(self, attrname) == default:
             return ""
         else:
-            return "%s=%s" % (attrname, getattr(self, attrname))
+            val = getattr(self, attrname)
+            if val == tc.INVALID_DOUBLE_VALUE:
+                val = "INVALID"
+            return "%s=%s" % (attrname, val)
 
     def __repr__(self):
         return "Stage(%s)" % ', '.join([v for v in [
@@ -88,71 +101,15 @@ def _readStage(result):
                  length, intended, depart, departPos, arrivalPos, description)
 
 
-def _stageSize(stage):
-    size = 1 + 4  # compound
-    size += 1 + 4  # stage type
-    size += 1 + 4 + len(stage.vType)  # vType
-    size += 1 + 4 + len(stage.line)  # line
-    size += 1 + 4 + len(stage.destStop)  # destStop
-    size += 1 + 4 + sum(map(len, stage.edges)) + 4 * len(stage.edges)  # edges
-    size += 1 + 8  # travelTime
-    size += 1 + 8  # cost
-    size += 1 + 8  # length
-    size += 1 + 4 + len(stage.intended)  # intended
-    size += 1 + 8  # depart
-    size += 1 + 8  # departPos
-    size += 1 + 8  # arrivalPos
-    size += 1 + 4 + len(stage.description)
-    return size
+def _writeStage(stage):
+    format = "tisssldddsddds"
+    values = [13, stage.type, stage.vType, stage.line, stage.destStop, stage.edges,
+              stage.travelTime, stage.cost, stage.length, stage.intended,
+              stage.depart, stage.departPos, stage.arrivalPos, stage.description]
+    return format, values
 
 
-def _writeStage(stage, connection):
-    connection._string += struct.pack("!Bi", tc.TYPE_COMPOUND, 13)
-    connection._string += struct.pack("!Bi", tc.TYPE_INTEGER, stage.type)
-    connection._packString(stage.vType)
-    connection._packString(stage.line)
-    connection._packString(stage.destStop)
-    connection._packStringList(stage.edges)
-    connection._string += struct.pack("!Bd", tc.TYPE_DOUBLE, stage.travelTime)
-    connection._string += struct.pack("!Bd", tc.TYPE_DOUBLE, stage.cost)
-    connection._string += struct.pack("!Bd", tc.TYPE_DOUBLE, stage.length)
-    connection._packString(stage.intended)
-    connection._string += struct.pack("!Bd", tc.TYPE_DOUBLE, stage.depart)
-    connection._string += struct.pack("!Bd", tc.TYPE_DOUBLE, stage.departPos)
-    connection._string += struct.pack("!Bd", tc.TYPE_DOUBLE, stage.arrivalPos)
-    connection._packString(stage.description)
-
-
-_RETURN_VALUE_FUNC = {tc.VAR_TIME: Storage.readDouble,
-                      tc.VAR_TIME_STEP: Storage.readInt,
-                      tc.VAR_LOADED_VEHICLES_NUMBER: Storage.readInt,
-                      tc.VAR_LOADED_VEHICLES_IDS: Storage.readStringList,
-                      tc.VAR_DEPARTED_VEHICLES_NUMBER: Storage.readInt,
-                      tc.VAR_DEPARTED_VEHICLES_IDS: Storage.readStringList,
-                      tc.VAR_ARRIVED_VEHICLES_NUMBER: Storage.readInt,
-                      tc.VAR_ARRIVED_VEHICLES_IDS: Storage.readStringList,
-                      tc.VAR_PARKING_STARTING_VEHICLES_NUMBER: Storage.readInt,
-                      tc.VAR_PARKING_STARTING_VEHICLES_IDS: Storage.readStringList,
-                      tc.VAR_PARKING_ENDING_VEHICLES_NUMBER: Storage.readInt,
-                      tc.VAR_PARKING_ENDING_VEHICLES_IDS: Storage.readStringList,
-                      tc.VAR_STOP_STARTING_VEHICLES_NUMBER: Storage.readInt,
-                      tc.VAR_STOP_STARTING_VEHICLES_IDS: Storage.readStringList,
-                      tc.VAR_STOP_ENDING_VEHICLES_NUMBER: Storage.readInt,
-                      tc.VAR_STOP_ENDING_VEHICLES_IDS: Storage.readStringList,
-                      tc.VAR_COLLIDING_VEHICLES_NUMBER: Storage.readInt,
-                      tc.VAR_COLLIDING_VEHICLES_IDS: Storage.readStringList,
-                      tc.VAR_EMERGENCYSTOPPING_VEHICLES_NUMBER: Storage.readInt,
-                      tc.VAR_EMERGENCYSTOPPING_VEHICLES_IDS: Storage.readStringList,
-                      tc.VAR_MIN_EXPECTED_VEHICLES: Storage.readInt,
-                      tc.VAR_BUS_STOP_ID_LIST: Storage.readStringList,
-                      tc.VAR_BUS_STOP_WAITING: Storage.readInt,
-                      tc.VAR_BUS_STOP_WAITING_IDS: Storage.readStringList,
-                      tc.VAR_TELEPORT_STARTING_VEHICLES_NUMBER: Storage.readInt,
-                      tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: Storage.readStringList,
-                      tc.VAR_TELEPORT_ENDING_VEHICLES_NUMBER: Storage.readInt,
-                      tc.VAR_TELEPORT_ENDING_VEHICLES_IDS: Storage.readStringList,
-                      tc.VAR_DELTA_T: Storage.readDouble,
-                      tc.VAR_NET_BOUNDING_BOX: Storage.readShape}
+_RETURN_VALUE_FUNC = {tc.FIND_ROUTE: _readStage}
 
 
 class SimulationDomain(Domain):
@@ -343,7 +300,7 @@ class SimulationDomain(Domain):
         return self._getUniversal(tc.VAR_BUS_STOP_WAITING, stopID)
 
     def getBusStopWaitingIDList(self, stopID):
-        """getBusStopWaiting() -> integer
+        """getBusStopWaiting() -> list(string)
         Get the IDs of waiting persons at the named bus stop.
         """
         return self._getUniversal(tc.VAR_BUS_STOP_WAITING_IDS, stopID)
@@ -393,52 +350,29 @@ class SimulationDomain(Domain):
         posType = tc.POSITION_2D
         if toGeo:
             posType = tc.POSITION_LON_LAT
-        self._connection._beginMessage(tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION,
-                                       "", 1 + 4 + 1 + 4 + len(edgeID) + 8 + 1 + 1 + 1)
-        self._connection._string += struct.pack("!Bi", tc.TYPE_COMPOUND, 2)
-        self._connection._packString(edgeID, tc.POSITION_ROADMAP)
-        self._connection._string += struct.pack("!dBBB",
-                                                pos, laneIndex, tc.TYPE_UBYTE, posType)
-        return self._connection._checkResult(tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION, "").read("!dd")
+        return self._getUniversal(tc.POSITION_CONVERSION, "", "trB", 2, (edgeID, pos, laneIndex), posType)
 
     def convert3D(self, edgeID, pos, laneIndex=0, toGeo=False):
         posType = tc.POSITION_3D
         if toGeo:
             posType = tc.POSITION_LON_LAT_ALT
-        self._connection._beginMessage(tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION,
-                                       "", 1 + 4 + 1 + 4 + len(edgeID) + 8 + 1 + 1 + 1)
-        self._connection._string += struct.pack("!Bi", tc.TYPE_COMPOUND, 2)
-        self._connection._packString(edgeID, tc.POSITION_ROADMAP)
-        self._connection._string += struct.pack("!dBBB",
-                                                pos, laneIndex, tc.TYPE_UBYTE, posType)
-        return self._connection._checkResult(tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION, "").read("!ddd")
+        return self._getUniversal(tc.POSITION_CONVERSION, "", "trB", 2, (edgeID, pos, laneIndex), posType)
 
     def convertRoad(self, x, y, isGeo=False, vClass="ignoring"):
-        posType = tc.POSITION_2D
+        format = "toBs"
         if isGeo:
-            posType = tc.POSITION_LON_LAT
-        self._connection._beginMessage(
-            tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION, "", 1 + 4 + 1 + 8 + 8 + 1 + 1 + 1 + 4 + len(vClass))
-        self._connection._string += struct.pack("!Bi", tc.TYPE_COMPOUND, 3)
-        self._connection._string += struct.pack("!Bdd", posType, x, y)
-        self._connection._string += struct.pack("!BB", tc.TYPE_UBYTE, tc.POSITION_ROADMAP)
-        self._connection._packString(vClass)
-        result = self._connection._checkResult(
-            tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION, "")
+            format = "tgBs"
+        result = self._getCmd(tc.POSITION_CONVERSION, "", format, 3, (x, y), tc.POSITION_ROADMAP, vClass)
+        result.read("!B")
         return result.readString(), result.readDouble(), result.read("!B")[0]
 
     def convertGeo(self, x, y, fromGeo=False):
-        fromType = tc.POSITION_2D
+        format = "toB"
         toType = tc.POSITION_LON_LAT
         if fromGeo:
-            fromType = tc.POSITION_LON_LAT
+            format = "tgB"
             toType = tc.POSITION_2D
-        self._connection._beginMessage(
-            tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION, "", 1 + 4 + 1 + 8 + 8 + 1 + 1)
-        self._connection._string += struct.pack("!Bi", tc.TYPE_COMPOUND, 2)
-        self._connection._string += struct.pack("!Bdd", fromType, x, y)
-        self._connection._string += struct.pack("!BB", tc.TYPE_UBYTE, toType)
-        return self._connection._checkResult(tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION, "").read("!dd")
+        return self._getUniversal(tc.POSITION_CONVERSION, "", format, 2, (x, y), toType)
 
     def getDistance2D(self, x1, y1, x2, y2, isGeo=False, isDriving=False):
         """getDistance2D(double, double, double, double, boolean, boolean) -> double
@@ -452,19 +386,11 @@ class SimulationDomain(Domain):
         length of the shortest route in the network is returned. Otherwise, the
         straight-line distance is returned.
         """
-        posType = tc.POSITION_2D
-        if isGeo:
-            posType = tc.POSITION_LON_LAT
+        format = "tggu" if isGeo else "toou"
         distType = tc.REQUEST_AIRDIST
         if isDriving:
             distType = tc.REQUEST_DRIVINGDIST
-        self._connection._beginMessage(
-            tc.CMD_GET_SIM_VARIABLE, tc.DISTANCE_REQUEST, "", 1 + 4 + 1 + 8 + 8 + 1 + 8 + 8 + 1)
-        self._connection._string += struct.pack("!Bi", tc.TYPE_COMPOUND, 3)
-        self._connection._string += struct.pack("!Bdd", posType, x1, y1)
-        self._connection._string += struct.pack(
-            "!BddB", posType, x2, y2, distType)
-        return self._connection._checkResult(tc.CMD_GET_SIM_VARIABLE, tc.DISTANCE_REQUEST, "").readDouble()
+        return self._getUniversal(tc.DISTANCE_REQUEST, "", format, 3, (x1, y1), (x2, y2), distType)
 
     def getDistanceRoad(self, edgeID1, pos1, edgeID2, pos2, isDriving=False):
         """getDistanceRoad(string, double, string, double, boolean) -> double
@@ -475,45 +401,19 @@ class SimulationDomain(Domain):
         distType = tc.REQUEST_AIRDIST
         if isDriving:
             distType = tc.REQUEST_DRIVINGDIST
-        self._connection._beginMessage(tc.CMD_GET_SIM_VARIABLE, tc.DISTANCE_REQUEST, "",
-                                       1 + 4 + 1 + 4 + len(edgeID1) + 8 + 1 + 1 + 4 + len(edgeID2) + 8 + 1 + 1)
-        self._connection._string += struct.pack("!Bi", tc.TYPE_COMPOUND, 3)
-        self._connection._packString(edgeID1, tc.POSITION_ROADMAP)
-        self._connection._string += struct.pack("!dB", pos1, 0)
-        self._connection._packString(edgeID2, tc.POSITION_ROADMAP)
-        self._connection._string += struct.pack("!dBB", pos2, 0, distType)
-        return self._connection._checkResult(tc.CMD_GET_SIM_VARIABLE, tc.DISTANCE_REQUEST, "").readDouble()
+        return self._getUniversal(tc.DISTANCE_REQUEST, "", "trru", 3,
+                                  (edgeID1, pos1, 0), (edgeID2, pos2, 0), distType)
 
     def findRoute(self, fromEdge, toEdge, vType="", depart=-1., routingMode=0):
-        self._connection._beginMessage(tc.CMD_GET_SIM_VARIABLE, tc.FIND_ROUTE, "",
-                                       (1 + 4 + 1 + 4 + len(fromEdge) + 1 + 4 + len(toEdge) + 1 + 4 + len(vType) +
-                                        1 + 8 + 1 + 4))
-        self._connection._string += struct.pack("!Bi", tc.TYPE_COMPOUND, 5)
-        self._connection._packString(fromEdge)
-        self._connection._packString(toEdge)
-        self._connection._packString(vType)
-        self._connection._string += struct.pack("!BdBi", tc.TYPE_DOUBLE, depart, tc.TYPE_INTEGER, routingMode)
-        return _readStage(self._connection._checkResult(tc.CMD_GET_SIM_VARIABLE, tc.FIND_ROUTE, ""))
+        return self._getUniversal(tc.FIND_ROUTE, "", "tsssdi", 5, fromEdge, toEdge, vType, depart, routingMode)
 
     def findIntermodalRoute(self, fromEdge, toEdge, modes="", depart=-1., routingMode=0, speed=-1.,
                             walkFactor=-1., departPos=0., arrivalPos=tc.INVALID_DOUBLE_VALUE, departPosLat=0.,
                             pType="", vType="", destStop=""):
-        self._connection._beginMessage(tc.CMD_GET_SIM_VARIABLE, tc.FIND_INTERMODAL_ROUTE, "",
-                                       1 + 4 + 1 + 4 + len(fromEdge) + 1 + 4 + len(toEdge) + 1 + 4 + len(modes) +
-                                       1 + 8 + 1 + 4 + 1 + 8 + 1 + 8 + 1 + 8 + 1 + 8 + 1 + 8 + 1 + 4 + len(pType) +
-                                       1 + 4 + len(vType) + 1 + 4 + len(destStop))
-        self._connection._string += struct.pack("!Bi", tc.TYPE_COMPOUND, 13)
-        self._connection._packString(fromEdge)
-        self._connection._packString(toEdge)
-        self._connection._packString(modes)
-        self._connection._string += struct.pack("!BdBi", tc.TYPE_DOUBLE, depart, tc.TYPE_INTEGER, routingMode)
-        self._connection._string += struct.pack("!BdBd", tc.TYPE_DOUBLE, speed, tc.TYPE_DOUBLE, walkFactor)
-        self._connection._string += struct.pack("!BdBd", tc.TYPE_DOUBLE, departPos, tc.TYPE_DOUBLE, arrivalPos)
-        self._connection._string += struct.pack("!Bd", tc.TYPE_DOUBLE, departPosLat)
-        self._connection._packString(pType)
-        self._connection._packString(vType)
-        self._connection._packString(destStop)
-        answer = self._connection._checkResult(tc.CMD_GET_SIM_VARIABLE, tc.FIND_INTERMODAL_ROUTE, "")
+        answer = self._getCmd(tc.FIND_INTERMODAL_ROUTE, "", "tsssdidddddsss", 13,
+                              fromEdge, toEdge, modes, depart, routingMode, speed, walkFactor,
+                              departPos, arrivalPos, departPosLat, pType, vType, destStop)
+        answer.read("!B")                   # Type
         result = []
         for _ in range(answer.readInt()):
             answer.read("!B")                   # Type
@@ -521,22 +421,16 @@ class SimulationDomain(Domain):
         return tuple(result)
 
     def clearPending(self, routeID=""):
-        self._connection._beginMessage(tc.CMD_SET_SIM_VARIABLE, tc.CMD_CLEAR_PENDING_VEHICLES, "",
-                                       1 + 4 + len(routeID))
-        self._connection._packString(routeID)
-        self._connection._sendExact()
+        self._setCmd(tc.CMD_CLEAR_PENDING_VEHICLES, "", "s", routeID)
 
     def saveState(self, fileName):
-        self._connection._beginMessage(tc.CMD_SET_SIM_VARIABLE, tc.CMD_SAVE_SIMSTATE, "",
-                                       1 + 4 + len(fileName))
-        self._connection._packString(fileName)
-        self._connection._sendExact()
+        self._setCmd(tc.CMD_SAVE_SIMSTATE, "", "s", fileName)
+
+    def loadState(self, fileName):
+        self._setCmd(tc.CMD_LOAD_SIMSTATE, "", "s", fileName)
 
     def writeMessage(self, msg):
-        self._connection._beginMessage(tc.CMD_SET_SIM_VARIABLE, tc.CMD_MESSAGE, "",
-                                       1 + 4 + len(msg))
-        self._connection._packString(msg)
-        self._connection._sendExact()
+        self._setCmd(tc.CMD_MESSAGE, "", "s", msg)
 
     def subscribe(self, varIDs=(tc.VAR_DEPARTED_VEHICLES_IDS,), begin=0, end=2**31 - 1):
         """subscribe(list(integer), double, double) -> None

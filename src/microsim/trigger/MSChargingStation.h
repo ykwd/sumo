@@ -19,12 +19,7 @@
 ///
 // Chargin Station for Electric vehicles
 /****************************************************************************/
-#ifndef MSChargingStation_h
-#define MSChargingStation_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <list>
@@ -178,4 +173,3 @@ private:
     MSChargingStation& operator=(const MSChargingStation&);
 };
 
-#endif

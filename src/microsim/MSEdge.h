@@ -21,13 +21,7 @@
 ///
 // A road/street connecting two junctions
 /****************************************************************************/
-#ifndef MSEdge_h
-#define MSEdge_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -43,6 +37,7 @@
 #include <utils/common/SUMOVehicleClass.h>
 #include <utils/geom/Boundary.h>
 #include <utils/router/ReversedEdge.h>
+#include <utils/router/RailEdge.h>
 #include <utils/vehicle/SUMOVehicle.h>
 #include <utils/vehicle/SUMOTrafficObject.h>
 #include "MSNet.h"
@@ -172,6 +167,23 @@ public:
         return *myLanes;
     }
 
+    /// @brief return total number of vehicles on this edges lanes or segments
+    int getVehicleNumber() const;
+
+    /// @brief return vehicles on this edges lanes or segments
+    std::vector<const SUMOVehicle*> getVehicles() const;
+
+    double getBruttoOccupancy() const;
+
+    /// @brief return flow based on meanSpead @note: may produced incorrect results when jammed
+    double getFlow() const;
+
+    /// @brief return accumated waiting time for all vehicles on this edges lanes or segments
+    double getWaitingSeconds() const;
+
+    /// @brief return mean occupancy on this edges lanes or segments
+    double getOccupancy() const;
+
     /** @brief Returns this edge's persons set.
      *  @brief Avoids the creation of new vector as in getSortedPersons
      *
@@ -237,17 +249,17 @@ public:
 
     /// @brief return whether this edge is an internal edge
     inline bool isNormal() const {
-        return myFunction == EDGEFUNC_NORMAL;
+        return myFunction == SumoXMLEdgeFunc::NORMAL;
     }
 
     /// @brief return whether this edge is an internal edge
     inline bool isInternal() const {
-        return myFunction == EDGEFUNC_INTERNAL;
+        return myFunction == SumoXMLEdgeFunc::INTERNAL;
     }
 
     /// @brief return whether this edge is a pedestrian crossing
     inline bool isCrossing() const {
-        return myFunction == EDGEFUNC_CROSSING;
+        return myFunction == SumoXMLEdgeFunc::CROSSING;
     }
 
 
@@ -261,11 +273,11 @@ public:
 
     /// @brief return whether this edge is walking area
     inline bool isWalkingArea() const {
-        return myFunction == EDGEFUNC_WALKINGAREA;
+        return myFunction == SumoXMLEdgeFunc::WALKINGAREA;
     }
 
     inline bool isTazConnector() const {
-        return myFunction == EDGEFUNC_CONNECTOR;
+        return myFunction == SumoXMLEdgeFunc::CONNECTOR;
     }
 
     void setOtherTazConnector(const MSEdge* edge) {
@@ -436,7 +448,7 @@ public:
 
     /// @brief returns the minimum travel time for the given vehicle
     inline double getMinimumTravelTime(const SUMOVehicle* const veh) const {
-        if (myFunction == EDGEFUNC_CONNECTOR) {
+        if (myFunction == SumoXMLEdgeFunc::CONNECTOR) {
             return 0;
         } else if (veh != 0) {
             return getLength() / getVehicleMaxSpeed(veh) + myTimePenalty;
@@ -456,6 +468,8 @@ public:
     static inline double getTravelTimeStatic(const MSEdge* const edge, const SUMOVehicle* const veh, double time) {
         return MSNet::getInstance()->getTravelTime(edge, veh, time);
     }
+
+    static double getTravelTimeAggregated(const MSEdge* const edge, const SUMOVehicle* const veh, double time);
 
     /** @brief Returns the averaged speed used by the routing device
      */
@@ -486,6 +500,8 @@ public:
      */
     bool insertVehicle(SUMOVehicle& v, SUMOTime time, const bool checkOnly = false, const bool forceCheck = false) const;
 
+    /// @brief check whether the given departSpeed is valid for this edge
+    bool validateDepartSpeed(SUMOVehicle& v) const;
 
     /** @brief Finds the emptiest lane allowing the vehicle class
      *
@@ -540,7 +556,7 @@ public:
 
 
     /** @brief Performs lane changing on this edge */
-    virtual void changeLanes(SUMOTime t);
+    void changeLanes(SUMOTime t) const;
 
 
     /// @todo extension: inner junctions are not filled
@@ -555,18 +571,23 @@ public:
 
     /// @brief Returns whether the vehicle (class) is not allowed on the edge
     inline bool prohibits(const SUMOVehicle* const vehicle) const {
-        if (vehicle == 0) {
+        if (vehicle == nullptr) {
             return false;
         }
         const SUMOVehicleClass svc = vehicle->getVClass();
         return (myCombinedPermissions & svc) != svc;
     }
 
-    /// @brief Returns whether the vehicle (class) is not allowed on the edge
+    /** @brief Returns whether this edge has restriction parameters forbidding the given vehicle to pass it
+     * The restriction mechanism is not implemented yet for the microsim, so it always returns false.
+     * @param[in] vehicle The vehicle for which the information has to be returned
+     * @return Whether the vehicle must not enter this edge
+     */
     inline bool restricts(const SUMOVehicle* const /* vehicle */) const {
         return false;
     }
 
+    /// @brief Returns the combined permissions of all lanes of this edge
     inline SVCPermissions getPermissions() const {
         return myCombinedPermissions;
     }
@@ -630,16 +651,9 @@ public:
     double getVehicleMaxSpeed(const SUMOTrafficObject* const veh) const;
 
 
-    virtual void addPerson(MSTransportable* p) const {
-        myPersons.insert(p);
-    }
+    virtual void addPerson(MSTransportable* p) const;
 
-    virtual void removePerson(MSTransportable* p) const {
-        std::set<MSTransportable*>::iterator i = myPersons.find(p);
-        if (i != myPersons.end()) {
-            myPersons.erase(i);
-        }
-    }
+    virtual void removePerson(MSTransportable* p) const;
 
     /// @brief Add a container to myContainers
     virtual void addContainer(MSTransportable* container) const {
@@ -683,6 +697,9 @@ public:
 
     /// @brief get the mean speed
     double getMeanSpeed() const;
+
+    /// @brief get the mean speed of all bicycles on this edge
+    double getMeanSpeedBike() const;
 
     /// @brief whether any lane has a minor link
     bool hasMinorLink() const;
@@ -768,6 +785,13 @@ public:
             myReversedRoutingEdge = new ReversedEdge<MSEdge, SUMOVehicle>(this);
         }
         return myReversedRoutingEdge;
+    }
+
+    RailEdge<MSEdge, SUMOVehicle>* getRailwayRoutingEdge() const {
+        if (myRailwayRoutingEdge == nullptr) {
+            myRailwayRoutingEdge = new RailEdge<MSEdge, SUMOVehicle>(this);
+        }
+        return myRailwayRoutingEdge;
     }
 
 protected:
@@ -948,6 +972,7 @@ private:
 
     /// @brief a reversed version for backward routing
     mutable ReversedEdge<MSEdge, SUMOVehicle>* myReversedRoutingEdge = nullptr;
+    mutable RailEdge<MSEdge, SUMOVehicle>* myRailwayRoutingEdge = nullptr;
 
     /// @brief Invalidated copy constructor.
     MSEdge(const MSEdge&);
@@ -959,9 +984,3 @@ private:
 
     void addToAllowed(const SVCPermissions permissions, std::shared_ptr<const std::vector<MSLane*> > allowedLanes, AllowedLanesCont& laneCont) const;
 };
-
-
-#endif
-
-/****************************************************************************/
-

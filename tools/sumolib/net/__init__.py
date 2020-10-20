@@ -170,6 +170,7 @@ class Net:
         self._rtreeLanes = None
         self._allLanes = []
         self._origIdx = None
+        self._proj = None
         self.hasWarnedAboutMissingRTree = False
         self.hasInternal = False
 
@@ -204,11 +205,11 @@ class Net:
         if type is not None and node._type is None:
             node._type = type
 
-    def addEdge(self, id, fromID, toID, prio, function, name):
+    def addEdge(self, id, fromID, toID, prio, function, name, edgeType=''):
         if id not in self._id2edge:
             fromN = self.addNode(fromID)
             toN = self.addNode(toID)
-            e = edge.Edge(id, fromN, toN, prio, function, name)
+            e = edge.Edge(id, fromN, toN, prio, function, name, edgeType)
             self._edges.append(e)
             self._id2edge[id] = e
             if function:
@@ -442,14 +443,16 @@ class Net:
             (self._ranges[1][0] - self._ranges[1][1]) ** 2)
 
     def getGeoProj(self):
-        import pyproj
-        try:
-            return pyproj.Proj(projparams=self._location["projParameter"])
-        except RuntimeError:
-            if hasattr(pyproj.datadir, 'set_data_dir'):
-                pyproj.datadir.set_data_dir('/usr/share/proj')
-                return pyproj.Proj(projparams=self._location["projParameter"])
-            raise
+        if self._proj is None:
+            import pyproj
+            try:
+                self._proj = pyproj.Proj(projparams=self._location["projParameter"])
+            except RuntimeError:
+                if hasattr(pyproj.datadir, 'set_data_dir'):
+                    pyproj.datadir.set_data_dir('/usr/share/proj')
+                    self._proj = pyproj.Proj(projparams=self._location["projParameter"])
+                raise
+        return self._proj
 
     def getLocationOffset(self):
         """ offset to be added after converting from geo-coordinates to UTM"""
@@ -483,7 +486,7 @@ class Net:
                             for p in l.getShape3D()]
             e.rebuildShape()
 
-    def getShortestPath(self, fromEdge, toEdge, maxCost=1e400, vClass=None):
+    def getShortestPath(self, fromEdge, toEdge, maxCost=1e400, vClass=None, reversalPenalty=0, includeFromToCost=True):
         """
         Finds the shortest path from fromEdge to toEdge respecting vClass, using Dijkstra's algorithm.
         It returns a pair of a tuple of edges and the cost. If no path is found the first element is None.
@@ -500,7 +503,7 @@ class Net:
                 appendix = (toEdge,) + appendix
                 appendixCost += toEdge.getLength()
                 toEdge = list(toEdge.getIncoming().keys())[0]
-        q = [(fromEdge.getLength(), fromEdge.getID(), fromEdge, ())]
+        q = [(fromEdge.getLength() if includeFromToCost else 0, fromEdge.getID(), fromEdge, ())]
         seen = set()
         dist = {fromEdge: fromEdge.getLength()}
         while q:
@@ -512,12 +515,18 @@ class Net:
             if e1 == toEdge:
                 if self.hasInternal:
                     return path + appendix, cost + appendixCost
-                return path, cost
+                if includeFromToCost:
+                    return path, cost
+                return path, cost - toEdge.getLength()
             if cost > maxCost:
                 return None, cost
+
             for e2, conn in e1.getAllowedOutgoing(vClass).items():
+                # print(cost, e1.getID(), e2.getID(), e2 in seen)
                 if e2 not in seen:
                     newCost = cost + e2.getLength()
+                    if e2 == e1.getBidi():
+                        newCost += reversalPenalty
                     if self.hasInternal:
                         minInternalCost = 1e400
                         for c in conn:
@@ -554,6 +563,7 @@ class NetReader(handler.ContentHandler):
         if self._withPedestrianConnections and not self._withInternal:
             sys.stderr.write("Warning: Option withPedestrianConnections requires withInternal\n")
             self._withInternal = True
+        self._bidiEdgeIDs = {}
 
     def startElement(self, name, attrs):
         if name == 'location':
@@ -581,11 +591,14 @@ class NetReader(handler.ContentHandler):
                 if function == 'crossing':
                     self._crossingID2edgeIDs[edgeID] = attrs.get('crossingEdges').split(' ')
 
-                self._currentEdge = self._net.addEdge(edgeID, fromNodeID, toNodeID,
-                                                      prio, function, attrs.get('name', ''))
+                self._currentEdge = self._net.addEdge(edgeID, fromNodeID, toNodeID, prio, function,
+                                                      attrs.get('name', ''), attrs.get('type', ''))
 
-                self._currentEdge.setRawShape(
-                    convertShape(attrs.get('shape', '')))
+                self._currentEdge.setRawShape(convertShape(attrs.get('shape', '')))
+
+                bidi = attrs.get('bidi', '')
+                if bidi:
+                    self._bidiEdgeIDs[edgeID] = bidi
             else:
                 if function in ['crossing', 'walkingarea']:
                     self._net._crossings_and_walkingAreas.add(attrs['id'])
@@ -726,6 +739,9 @@ class NetReader(handler.ContentHandler):
         # tl-logic is deprecated!!!
         if self._withPhases and (name == 'tlLogic' or name == 'tl-logic'):
             self._currentProgram = None
+        if name == 'net':
+            for edgeID, bidiID in self._bidiEdgeIDs.items():
+                self._net.getEdge(edgeID)._bidi = self._net.getEdge(bidiID)
 
     def endDocument(self):
         # set crossed edges of pedestrian crossings

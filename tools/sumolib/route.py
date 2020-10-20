@@ -23,6 +23,39 @@ sys.path.append(os.path.join(SUMO_HOME, 'tools'))
 from sumolib.miscutils import euclidean  # noqa
 from sumolib.geomhelper import polygonOffsetWithMinimumDistanceToPoint  # noqa
 
+try:
+    basestring
+    # Allows isinstance(foo, basestring) to work in Python 3
+except NameError:
+    basestring = str
+
+
+def getLength(net, edges):
+    """
+    Calculates the length of a route including internal edges.
+    The input network has to contain internal edges (withInternal needs to be set when parsing).
+    The list of edges can either contain edge objects or edge ids as strings.
+    If there is no connection between two consecutive edges, length 0 is assumed (no error is thrown).
+    If there are multiple connections of different length, the shortest is used.
+    """
+    if len(edges) == 0:
+        return 0
+    if isinstance(edges[0], basestring):
+        edges = [net.getEdge(e) for e in edges]
+    last = edges[0]
+    length = last.getLength()
+    for e in edges[1:]:
+        if net.hasInternal:
+            minInternalCost = 1e400
+            for c in last.getConnections(e):
+                if c.getViaLaneID() != "":
+                    minInternalCost = min(minInternalCost, net.getLane(c.getViaLaneID()).getLength())
+            if minInternalCost < 1e400:
+                length += minInternalCost
+        length += e.getLength()
+        last = e
+    return length
+
 
 def _getMinPath(paths):
     minDist = 1e400
@@ -34,7 +67,7 @@ def _getMinPath(paths):
     return minPath
 
 
-def mapTrace(trace, net, delta, verbose=False, airDistFactor=2, fillGaps=False, gapPenalty=-1, debug=False):
+def mapTrace(trace, net, delta, verbose=False, airDistFactor=2, fillGaps=0, gapPenalty=-1, debug=False):
     """
     matching a list of 2D positions to consecutive edges in a network.
     The positions are assumed to be dense (i.e. covering each edge of the route) and in the correct order.
@@ -71,10 +104,8 @@ def mapTrace(trace, net, delta, verbose=False, airDistFactor=2, fillGaps=False, 
                             if debug:
                                 print("---------- same edge")
                         else:
-                            extension, cost = net.getShortestPath(
-                                path[-1], edge, airDistFactor * advance + edge.getLength() + path[-1].getLength())
-                            if extension is not None and not fillGaps and len(extension) > 2:
-                                extension = None
+                            maxGap = min(airDistFactor * advance + edge.getLength() + path[-1].getLength(), fillGaps)
+                            extension, cost = net.getShortestPath(path[-1], edge, maxGap, includeFromToCost=False)
                             if extension is None:
                                 airLineDist = euclidean(
                                     path[-1].getToNode().getCoord(),

@@ -19,13 +19,7 @@
 ///
 // GUI-version of the transportable control for building gui persons and containers
 /****************************************************************************/
-#ifndef GUITransportableControl_h
-#define GUITransportableControl_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -68,10 +62,9 @@ public:
      * @param[fill] into The list to fill with vehicle ids
      * @todo Well, what about concurrent modifications?
      */
-    void insertPersonIDs(std::vector<GUIGlID>& into);
+    void insertIDs(std::vector<GUIGlID>& into);
+
+protected:
+
+    const bool myIsPerson;
 };
-
-
-#endif
-
-/****************************************************************************/

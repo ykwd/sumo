@@ -17,13 +17,7 @@
 ///
 // A area where vehicles can park next to the road (gui version)
 /****************************************************************************/
-#ifndef GUIParkingArea_h
-#define GUIParkingArea_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -154,8 +148,3 @@ private:
     Boundary myBoundary;
 
 };
-
-
-#endif
-
-/****************************************************************************/

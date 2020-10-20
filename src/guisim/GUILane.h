@@ -19,13 +19,7 @@
 ///
 // Representation of a lane in the micro simulation (gui-version)
 /****************************************************************************/
-#ifndef GUILane_h
-#define GUILane_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <fx.h>
@@ -303,7 +297,7 @@ private:
     void drawLinkNo(const GUIVisualizationSettings& s) const;
     void drawTLSLinkNo(const GUIVisualizationSettings& s, const GUINet& net) const;
     void drawLinkRules(const GUIVisualizationSettings& s, const GUINet& net) const;
-    void drawLinkRule(const GUIVisualizationSettings& s, const GUINet& net, MSLink* link, const PositionVector& shape, double x1, double x2) const;
+    void drawLinkRule(const GUIVisualizationSettings& s, const GUINet& net, const MSLink* link, const PositionVector& shape, double x1, double x2) const;
     void drawArrows() const;
     void drawLane2LaneConnections(double exaggeration) const;
 
@@ -368,9 +362,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

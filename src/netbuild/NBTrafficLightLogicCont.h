@@ -19,13 +19,7 @@
 ///
 // A container for traffic light definitions and built programs
 /****************************************************************************/
-#ifndef NBTrafficLightLogicCont_h
-#define NBTrafficLightLogicCont_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <map>
@@ -170,7 +164,7 @@ public:
      * @todo Recheck usage
      */
     void replaceRemoved(NBEdge* removed, int removedLane,
-                        NBEdge* by, int byLane);
+                        NBEdge* by, int byLane, bool incoming);
 
 
     /** @brief Returns the named definition
@@ -210,6 +204,9 @@ public:
      */
     void setTLControllingInformation(const NBEdgeCont& ec, const NBNodeCont& nc);
 
+    /// @brief set OpenDRIVE signal reference parameters after all link indices are known
+    void setOpenDriveSignalParameters();
+
     /// @brief Returns a list of all definitions (convenience for easier iteration)
     typedef std::vector<NBTrafficLightDefinition*> Definitions;
     Definitions getDefinitions() const;
@@ -247,9 +244,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

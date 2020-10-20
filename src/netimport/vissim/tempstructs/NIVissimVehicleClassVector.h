@@ -17,13 +17,7 @@
 ///
 // -------------------
 /****************************************************************************/
-#ifndef NIVissimVehicleClassVector_h
-#define NIVissimVehicleClassVector_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 
@@ -31,9 +25,3 @@
 #include "NIVissimVehicleClass.h"
 
 typedef std::vector<NIVissimVehicleClass*> NIVissimVehicleClassVector;
-
-
-#endif
-
-/****************************************************************************/
-

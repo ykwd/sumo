@@ -17,13 +17,7 @@
 ///
 // C++ TraCI client API implementation
 /****************************************************************************/
-#ifndef InductionLoop_h
-#define InductionLoop_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -70,6 +64,7 @@ public:
      * @return The rtree of inductive loops
      */
     static NamedRTree* getTree();
+    static void cleanup();
 
     /** @brief Saves the shape of the requested object in the given container
     *  @param id The id of the loop to retrieve
@@ -87,6 +82,7 @@ private:
 private:
     static SubscriptionResults mySubscriptionResults;
     static ContextSubscriptionResults myContextSubscriptionResults;
+    static NamedRTree* myTree;
 
 private:
     /// @brief invalidated standard constructor
@@ -94,8 +90,3 @@ private:
 
 };
 }
-
-
-#endif
-
-/****************************************************************************/

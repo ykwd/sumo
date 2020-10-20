@@ -17,13 +17,7 @@
 ///
 // Realises dumping Emission Data
 /****************************************************************************/
-#ifndef MSEmissionExport_h
-#define MSEmissionExport_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/SUMOTime.h>
@@ -71,8 +65,3 @@ private:
     MSEmissionExport& operator=(const MSEmissionExport&);
 
 };
-
-
-#endif
-
-/****************************************************************************/

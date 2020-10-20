@@ -21,10 +21,6 @@
 ///
 // A device that performs vehicle rerouting based on current edge speeds
 /****************************************************************************/
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <microsim/MSNet.h>
@@ -95,7 +91,7 @@ MSTransportableDevice_Routing::wrappedRerouteCommandExecute(SUMOTime currentTime
 
 void
 MSTransportableDevice_Routing::reroute(const SUMOTime currentTime, const bool /* onInit */) {
-    MSRoutingEngine::initEdgeWeights();
+    MSRoutingEngine::initEdgeWeights(SVC_PEDESTRIAN);
     //check whether the weights did change since the last reroute
     if (myLastRouting >= MSRoutingEngine::getLastAdaptation()) {
         return;

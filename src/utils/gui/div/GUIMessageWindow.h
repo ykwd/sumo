@@ -18,13 +18,7 @@
 ///
 // A logging window for the gui
 /****************************************************************************/
-#ifndef GUIMessageWindow_h
-#define GUIMessageWindow_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -147,9 +141,3 @@ private:
     /// @brief The instances of message retriever encapsulations
     OutputDevice* myErrorRetriever, *myDebugRetriever, *myGLDebugRetriever, *myMessageRetriever, *myWarningRetriever;
 };
-
-
-#endif
-
-/****************************************************************************/
-

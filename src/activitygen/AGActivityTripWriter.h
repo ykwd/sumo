@@ -22,13 +22,7 @@
 ///
 // Class for writing Trip objects in a SUMO-route file.
 /****************************************************************************/
-#ifndef AGACTIVITYTRIPWRITER_H
-#define AGACTIVITYTRIPWRITER_H
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 // ===========================================================================
@@ -58,8 +52,3 @@ private:
     AGActivityTripWriter& operator=(const AGActivityTripWriter&);
 
 };
-
-
-#endif
-
-/****************************************************************************/

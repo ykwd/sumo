@@ -22,12 +22,7 @@
 ///
 // Interface for lane-change models
 /****************************************************************************/
-#ifndef MSAbstractLaneChangeModel_h
-#define MSAbstractLaneChangeModel_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <microsim/MSGlobals.h>
@@ -559,7 +554,7 @@ public:
 
     /// @brief decides the next lateral speed depending on the remaining lane change distance to be covered
     ///        and updates maneuverDist according to lateral safety constraints.
-    virtual double computeSpeedLat(double latDist, double& maneuverDist);
+    virtual double computeSpeedLat(double latDist, double& maneuverDist) const;
 
     /// @brief Returns a deceleration value which is used for the estimation of the duration of a lane change.
     /// @note  Effective only for continuous lane-changing when using attributes myMaxSpeedLatFactor and myMaxSpeedLatStanding. See #3771
@@ -632,13 +627,6 @@ protected:
 
     /// @brief direction of the lane change maneuver -1 means right, 1 means left
     int myLaneChangeDirection;
-
-    /// @brief The complete lateral distance the vehicle wants to travel to finish its maneuver
-    ///        Only used by sublane model, currently.
-    double myManeuverDist;
-
-    /// @brief Maneuver distance from the previous simulation step
-    double myPreviousManeuverDist;
 
     /// @brief whether the vehicle has already moved this step
     bool myAlreadyChanged;
@@ -736,14 +724,15 @@ private:
     /// @brief whether the vehicle is driving in the opposite direction
     bool myAmOpposite;
 
+    /// @brief The complete lateral distance the vehicle wants to travel to finish its maneuver
+    ///        Only used by sublane model, currently.
+    double myManeuverDist;
+
+    /// @brief Maneuver distance from the previous simulation step
+    double myPreviousManeuverDist;
+
 
 private:
     /// @brief Invalidated assignment operator
     MSAbstractLaneChangeModel& operator=(const MSAbstractLaneChangeModel& s);
 };
-
-
-#endif
-
-/****************************************************************************/
-

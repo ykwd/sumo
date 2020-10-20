@@ -19,13 +19,7 @@
 ///
 // A device which collects info on the vehicle trip
 /****************************************************************************/
-#ifndef MSDevice_Tripinfo_h
-#define MSDevice_Tripinfo_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSVehicleDevice.h"
@@ -80,6 +74,9 @@ public:
     /// @brief get statistics for printing to stdout
     static std::string printStatistics();
 
+    /// @brief write statistic output to (xml) file
+    static void writeStatistics(OutputDevice& od);
+
     /// @brief accessors for GUINet-Parameters
     static double getAvgRouteLength();
     static double getAvgTripSpeed();
@@ -118,6 +115,14 @@ public:
      */
     bool notifyMove(SUMOTrafficObject& veh, double oldPos, double newPos, double newSpeed);
 
+    /** @brief record idling as waiting time - cf issue 2233
+     *
+     * @param[in] veh The idling vehicle.
+     * @return Always true
+     *
+     * @see MSMoveReminder::notifyIdle
+     */
+    bool notifyIdle(SUMOTrafficObject& veh);
 
     /** @brief Saves departure info on insertion
      *
@@ -195,6 +200,8 @@ protected:
 
     static void printRideStatistics(std::ostringstream& msg, const std::string& category, const std::string& modeName, const int index);
 
+    static void writeRideStatistics(OutputDevice& od, const std::string& category, const int index);
+
 private:
     /// @brief The lane the vehicle departed at
     std::string myDepartLane;
@@ -234,6 +241,9 @@ private:
 
     /// @brief The speed when arriving
     double myArrivalSpeed;
+
+    /// @brief The reason for vehicle arrival
+    MSMoveReminder::Notification myArrivalReason;
 
     /// @brief The time loss when compared to the desired and allowed speed
     SUMOTime myMesoTimeLoss;
@@ -278,9 +288,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

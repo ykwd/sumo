@@ -22,13 +22,7 @@
 ///
 // References a street of the city and defines a position in this street
 /****************************************************************************/
-#ifndef AGPOSITION_H
-#define AGPOSITION_H
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <list>
@@ -154,7 +148,3 @@ private:
      */
     Position compute2dPosition() const;
 };
-
-#endif /* AGPOSITION_H */
-
-/****************************************************************************/

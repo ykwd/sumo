@@ -18,13 +18,7 @@
 ///
 // Writes the state of the tls to a file (in each second)
 /****************************************************************************/
-#ifndef Command_SaveTLSState_h
-#define Command_SaveTLSState_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -93,9 +87,3 @@ private:
     Command_SaveTLSState& operator=(const Command_SaveTLSState&);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

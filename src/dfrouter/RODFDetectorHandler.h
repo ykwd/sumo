@@ -20,13 +20,7 @@
 ///
 // missing_desc
 /****************************************************************************/
-#ifndef RODFDetectorHandler_h
-#define RODFDetectorHandler_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -85,9 +79,3 @@ private:
     RODFDetectorHandler& operator=(const RODFDetectorHandler& src);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

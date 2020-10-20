@@ -17,13 +17,7 @@
 ///
 // Importer for static public transport information
 /****************************************************************************/
-#ifndef NIXMLPTHandler_h
-#define NIXMLPTHandler_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/SUMOVehicleClass.h>
@@ -145,11 +139,21 @@ private:
     /// @brief The currently processed line
     NBPTLine* myCurrentLine;
 
+    /// @brief The currently processed stand-alone route
+    std::string myCurrentRouteID;
+
     /// @brief the completion level of the current line
     double myCurrentCompletion;
 
     /// @brief element to receive parameters
     std::vector<Parameterised*> myLastParameterised;
+
+    /// @brief stand-alone route information
+    std::map<std::string, std::vector<NBPTStop*> >  myRouteStops;
+    std::map<std::string, EdgeVector >  myRouteEdges;
+
+    /// @brief whether the current stop should be discarded
+    bool myCurrentStopWasIgnored;
 
 private:
 
@@ -161,12 +165,23 @@ private:
     /** @brief Parses a route as port of a public transport line
      * @param[in] attrs The attributes to get the routes's values from
      */
+    void addPTLineRoute(const SUMOSAXAttributes& attrs);
+
+    /** @brief Parses a stand-alone route when parsing implicit ptlines from
+     * routes and flows
+     * @param[in] attrs The attributes to get the routes's values from
+     */
     void addRoute(const SUMOSAXAttributes& attrs);
 
     /** @brief Parses an public transport stop reference within a line element
      * @param[in] attrs The attributes to get the stops's values from
      */
     void addPTLineStop(const SUMOSAXAttributes& attrs);
+
+    /** @brief Parses an public transport stop reference within a route element
+     * @param[in] attrs The attributes to get the stops's values from
+     */
+    void addRouteStop(const SUMOSAXAttributes& attrs);
 
     /** @brief Parses an stop access definition
      * @param[in] attrs The attributes to get the access's values from
@@ -178,6 +193,11 @@ private:
      */
     void addPTLine(const SUMOSAXAttributes& attrs);
 
+    /** @brief Parses a public transport line
+     * @param[in] attrs The attributes to get the lines's values from
+     */
+    void addPTLineFromFlow(const SUMOSAXAttributes& attrs);
+
 
 private:
     /** @brief invalid copy constructor */
@@ -187,9 +207,3 @@ private:
     NIXMLPTHandler& operator=(const NIXMLPTHandler& s);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

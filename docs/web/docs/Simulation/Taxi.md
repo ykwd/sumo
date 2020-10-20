@@ -47,6 +47,16 @@ A person can also use a taxi by including it as a [personTrip](../Specification/
     </person>
 ```
 
+## Groups of Persons
+Multiple persons can travel together as a group using attribute `group` (if the taxi has sufficient capacity):
+
+    <person id="p0" depart="0.00">
+        <ride from="B2C2" to="A0B0" lines="taxi" group="g0"/>
+    </person>
+    <person id="p1" depart="0.00">
+        <ride from="B2C2" to="A0B0" lines="taxi" group="g0"/>
+    </person>
+
 # Dispatch
 The dispatch algorithm assigns taxis to waiting customers. The algorithm is
 selected using option **--device.taxi.dispatch-algorithm ALGONAME**. The following
@@ -60,6 +70,12 @@ algorithms are available
   travel time) is assigned. If the reservation date is too far in the future,
   the customer is postponed.
 
+- greedyShared: like 'greedy' but tries to pick up another passenger while delivering the first passenger to it's destination. The algorithm supports parameters **absLossThreshold** and **relLossThreshold** to configure acceptable detours.
+
+- routeExtension: like greedy but can pick up any passenger along the route and also extend the original route (within personCapacity limit).
+
+- traci: Dispatch is defered to [traci control](#traci). The algorithm only keeps track of pending reservations
+
 !!! note
     User-contributed dispatch algorithms are welcome.
 
@@ -67,7 +83,7 @@ algorithms are available
 To make a taxi stay in the simulation it receives a stop with attribute ```triggered="person"``` after servicing a customer.
 It is recommended to also define such a stop in the xml input so that the taxi can wait for the first customer.
 
-By default, taxis will remain in the simulation until all persons have left. To make them leave the simulation at an erliert time, the end time can be defined using a generic parameter in their ```vType``` or ```vehicle```-definition:
+By default, taxis will remain in the simulation until all persons have left. To make them leave the simulation at an earlier time, the end time can be defined using a generic parameter in their ```vType``` or ```vehicle```-definition:
 
 ```
     <vType id="taxi" vClass="taxi">
@@ -75,6 +91,22 @@ By default, taxis will remain in the simulation until all persons have left. To 
         <param key="device.taxi.end" value="3600"/>
     </vType>
 ```
+
+# TraCI
+To couple an external dispatch algorithm to SUMO, the following [TraCI](../TraCI.md) functions are provided:
+
+!!! note
+    To make use of these functions, the option **--device.taxi.dispatch-algorithm traci** must be set
+
+- traci.person.getTaxiReservations(onlyNew)
+- traci.vehicle.getTaxiFleet(taxiState)
+- traci.vehicle.dispatchTaxi(vehID, reservations)
+
+This set of API calls can be used to simplify writing custom dispatch algorithms by letting sumo:
+
+- manage existing reservations
+- manage the taxi fleet
+- dispatch a taxi to service one or more reservations by giving a list of reservation ids (vehicle routing and stopping is then automatic).
 
 # Outputs
 
@@ -86,4 +118,3 @@ form:
         <taxi customers="5" occupiedDistance="6748.77" occupiedTime="595.00"/>
     </tripinfo>
 ```
-

@@ -35,11 +35,11 @@ netedit.supermodeDemand()
 netedit.vehicleMode()
 
 # change vehicle
-netedit.changeElement("flow")
+netedit.changeElement("flow (from-to)")
 
 # create flow using two edges
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create route
 netedit.typeEnter()
@@ -48,7 +48,7 @@ netedit.typeEnter()
 netedit.inspectMode()
 
 # inspect vehicle
-netedit.leftClick(referencePosition, 91, 413)
+netedit.leftClick(referencePosition, 91, 392)
 
 # check parameters
 netedit.checkParameters(referencePosition, 27, True)

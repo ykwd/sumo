@@ -41,25 +41,25 @@ netedit.changeStopType("stopParkingArea")
 netedit.changeDefaultValue(12, ";;;;;;;;;;")
 
 # try to create stop
-netedit.leftClick(referencePosition, 327, 190)
+netedit.leftClick(referencePosition, 290, 145)
 
 # set invalid value
 netedit.changeDefaultValue(12, "")
 
 # try to create stop
-netedit.leftClick(referencePosition, 327, 190)
+netedit.leftClick(referencePosition, 290, 145)
 
 # set valid value
-netedit.changeDefaultValue(12, "ID1")
+netedit.changeDefaultValue(12, "dummy Act")
 
 # create stop
-netedit.leftClick(referencePosition, 327, 190)
+netedit.leftClick(referencePosition, 290, 145)
 
 # set valid value
-netedit.changeDefaultValue(12, "ID1 ID2 ID3")
+netedit.changeDefaultValue(12, "singing")
 
 # create stop
-netedit.leftClick(referencePosition, 327, 190)
+netedit.leftClick(referencePosition, 290, 145)
 
 # Check undo redo
 netedit.undo(referencePosition, 6)

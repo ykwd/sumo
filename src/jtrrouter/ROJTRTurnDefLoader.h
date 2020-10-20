@@ -19,13 +19,7 @@
 ///
 // Loader for the of turning percentages and source/sink definitions
 /****************************************************************************/
-#ifndef ROJTRTurnDefLoader_h
-#define ROJTRTurnDefLoader_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <set>
@@ -112,6 +106,10 @@ private:
      */
     void addToEdge(const SUMOSAXAttributes& attrs);
 
+    /** @brief Parses the probability to use a certain incoming-outgoing edge relation
+     * @param[in] attrs The SAX-attributes to parse the destination edge and the probability to use it from
+     */
+    void addEdgeRel(const SUMOSAXAttributes& attrs);
 
 private:
     /// @brief The network to set the information into
@@ -128,10 +126,8 @@ private:
 
     /// @brief whether upstream flows should be discounted from source flows
     bool myDiscountSources;
+
+    /// @brief whether the warning for the deprecated format has been issued
+    bool myHaveWarnedAboutDeprecatedFormat;
+
 };
-
-
-#endif
-
-/****************************************************************************/
-

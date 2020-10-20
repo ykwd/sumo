@@ -18,15 +18,9 @@
 /// @author  Jakob Erdmann
 /// @date    Sept 2002
 ///
-// Event send when the simulation has been loaded by GUILadThread
+// Event sent when the simulation has been loaded by GUILoadThread
 /****************************************************************************/
-#ifndef GUIEvent_SimulationLoaded_h
-#define GUIEvent_SimulationLoaded_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -95,9 +89,3 @@ private:
     /// @brief Invalidated assignment operator
     GUIEvent_SimulationLoaded& operator=(const GUIEvent_SimulationLoaded& s);
 };
-
-
-#endif
-
-/****************************************************************************/
-

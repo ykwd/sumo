@@ -17,12 +17,7 @@
 ///
 // The class for deterministic high level traffic light logic
 /****************************************************************************/
-#ifndef MSDeterministicHiLevelTrafficLightLogic_h
-#define MSDeterministicHiLevelTrafficLightLogic_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #define SWARM_DEBUG
@@ -121,6 +116,3 @@ protected:
 
 
 };
-
-#endif
-/****************************************************************************/

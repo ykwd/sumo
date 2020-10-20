@@ -19,9 +19,6 @@
 ///
 // A traffic lights logic which represents a tls in an off-mode
 /****************************************************************************/
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utility>
@@ -38,7 +35,7 @@
 // ===========================================================================
 MSOffTrafficLightLogic::MSOffTrafficLightLogic(MSTLLogicControl& tlcontrol,
         const std::string& id) :
-    MSTrafficLightLogic(tlcontrol, id, "off", TLTYPE_OFF, 0, std::map<std::string, std::string>()) {
+    MSTrafficLightLogic(tlcontrol, id, "off", TrafficLightType::OFF, 0, std::map<std::string, std::string>()) {
     myDefaultCycleTime = TIME2STEPS(120);
 }
 
@@ -145,6 +142,4 @@ MSOffTrafficLightLogic::getIndexFromOffset(SUMOTime) const {
 }
 
 
-
 /****************************************************************************/
-

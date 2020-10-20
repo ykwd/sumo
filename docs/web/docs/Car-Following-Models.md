@@ -6,7 +6,7 @@ permalink: /Car-Following-Models/
 # Car-Following Models
 
 This overview page collects information regarding car-following models
-in [SUMO](SUMO.md). It is still a stub and needs be expanded.
+in [sumo](sumo.md). It is still a stub and needs be expanded.
 
 ## Links
 
@@ -42,9 +42,9 @@ minimum time gap of tau between the rear bumper of their leader and
 their own front-bumper + minGap to assure the possibility to brake in
 time when their leader starts braking and they need tau seconds reaction
 time to start breaking as well. The real reaction time is fundamentally
-limited by the simulation step size ([SUMO](SUMO.md) option **--step-length** {{DT_FLOAT}}),
+limited by the simulation step size ([sumo](sumo.md) option **--step-length** {{DT_FLOAT}}),
 resp. the action step length (option **--default.action-step-length** {{DT_FLOAT}}, parameter ). For that reason a
 value of tau below this step-size may lead to collisions if the leader
-suddenly starts braking hard. If tau is larger then step-size the
+suddenly starts braking hard. If tau is larger than step-size the
 situation is safe but drivers will still react during each simulation
 step unless a custom action-step-length is used (e.g. by setting option **--default.action-step-length**).

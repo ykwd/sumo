@@ -18,13 +18,7 @@
 ///
 // A class representing a street sign
 /****************************************************************************/
-#ifndef NBSign_h
-#define NBSign_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -91,9 +85,3 @@ private:
     static StringBijection<SignType> SignTypeStrings;
     static StringBijection<SignType> SignTypeColors;
 };
-
-
-#endif
-
-/****************************************************************************/
-

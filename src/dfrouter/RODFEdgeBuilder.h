@@ -20,13 +20,7 @@
 ///
 // Interface for building instances of dfrouter-edges
 /****************************************************************************/
-#ifndef RODFEdgeBuilder_h
-#define RODFEdgeBuilder_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <router/ROAbstractEdgeBuilder.h>
@@ -79,9 +73,3 @@ public:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

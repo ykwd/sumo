@@ -20,13 +20,7 @@
 // A* Algorithm using euclidean distance heuristic.
 // Based on DijkstraRouter. For routing by effort a novel heuristic would be needed.
 /****************************************************************************/
-#ifndef AStarRouter_h
-#define AStarRouter_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <cassert>
@@ -45,7 +39,6 @@
 #include <utils/common/StringUtils.h>
 #include <utils/common/StdDefs.h>
 #include <utils/common/ToString.h>
-#include <utils/iodevices/BinaryInputDevice.h>
 #include <utils/iodevices/OutputDevice.h>
 #include "AStarLookupTable.h"
 #include "SUMOAbstractRouter.h"
@@ -56,6 +49,8 @@
 //#define ASTAR_DEBUG_QUERY_FOLLOWERS
 //#define ASTAR_DEBUG_QUERY_PERF
 //#define ASTAR_DEBUG_VISITED
+//#define ASTAR_DEBUG_COND (vehicle->getID() == "")
+//#define ASTAR_DEBUG_COND (true)
 //#define ASTAR_DEBUG_LOOKUPTABLE
 //#define ASTAR_DEBUG_LOOKUPTABLE_FROM "disabled"
 //#define ASTAR_DEBUG_UNREACHABLE
@@ -126,7 +121,8 @@ public:
     virtual ~AStarRouter() {}
 
     virtual SUMOAbstractRouter<E, V>* clone() {
-        return new AStarRouter<E, V>(myEdgeInfos, this->myErrorMsgHandler == MsgHandler::getWarningInstance(), this->myOperation, myLookupTable);
+        return new AStarRouter<E, V>(myEdgeInfos, this->myErrorMsgHandler == MsgHandler::getWarningInstance(), this->myOperation, myLookupTable,
+                                     this->myHavePermissions, this->myHaveRestrictions);
     }
 
     void init() {
@@ -162,8 +158,11 @@ public:
         double length = 0.; // dummy for the via edge cost update
         this->startQuery();
 #ifdef ASTAR_DEBUG_QUERY
-        std::cout << "DEBUG: starting search for '" << Named::getIDSecure(vehicle) << "' speed: " << MIN2(vehicle->getMaxSpeed(), myMaxSpeed * vehicle->getChosenSpeedFactor()) << " time: " << STEPS2TIME(msTime) << "\n";
+        if (ASTAR_DEBUG_COND) {
+            std::cout << "DEBUG: starting search for '" << Named::getIDSecure(vehicle) << "' speed: " << MIN2(vehicle->getMaxSpeed(), myMaxSpeed * vehicle->getChosenSpeedFactor()) << " time: " << STEPS2TIME(msTime) << "\n";
+        }
 #endif
+
         const SUMOVehicleClass vClass = vehicle == 0 ? SVC_IGNORING : vehicle->getVClass();
         if (this->myBulkMode) {
             const auto& toInfo = myEdgeInfos[to->getNumericalID()];
@@ -196,18 +195,22 @@ public:
                 buildPathFrom(minimumInfo, into);
                 this->endQuery(num_visited);
 #ifdef ASTAR_DEBUG_QUERY_PERF
-                std::cout << "visited " + toString(num_visited) + " edges (final path length=" + toString(into.size())
-                          + " time=" + toString(recomputeCosts(into, vehicle, msTime))
-                          + " edges=" + toString(into) + ")\n";
+                if (ASTAR_DEBUG_COND) {
+                    std::cout << "visited " + toString(num_visited) + " edges (final path length=" + toString(into.size())
+                              + " time=" + toString(this->recomputeCosts(into, vehicle, msTime))
+                              + " edges=" + toString(into) + ")\n";
+                }
 #endif
 #ifdef ASTAR_DEBUG_VISITED
-                OutputDevice& dev = OutputDevice::getDevice(Named::getIDSecure(vehicle) + "_" + time2string(msTime) + "_" + from->getID() + "_" + to->getID());
-                for (const auto& i : myEdgeInfos) {
-                    if (i.visited) {
-                        dev << "edge:" << i.edge->getID() << "\n";
+                if (ASTAR_DEBUG_COND) {
+                    OutputDevice& dev = OutputDevice::getDevice(Named::getIDSecure(vehicle) + "_" + toString(STEPS2TIME(msTime)));
+                    for (const auto& i : myEdgeInfos) {
+                        if (i.visited) {
+                            dev << "edge:" << i.edge->getID() << "\n";
+                        }
                     }
+                    dev.close();
                 }
-                dev.close();
 #endif
                 return true;
             }
@@ -216,15 +219,17 @@ public:
             myFound.push_back(minimumInfo);
             minimumInfo->visited = true;
 #ifdef ASTAR_DEBUG_QUERY
-            std::cout << "DEBUG: hit=" << minEdge->getID()
-                      << " TT=" << minimumInfo->effort
-                      << " EF=" << this->getEffort(minEdge, vehicle, minimumInfo->leaveTime)
-                      << " HT=" << minimumInfo->heuristicEffort
-                      << " Q(TT,HT,Edge)=";
-            for (typename std::vector<EdgeInfo*>::iterator it = myFrontierList.begin(); it != myFrontierList.end(); it++) {
-                std::cout << (*it)->effort << "," << (*it)->heuristicEffort << "," << (*it)->edge->getID() << " ";
+            if (ASTAR_DEBUG_COND) {
+                std::cout << "DEBUG: hit=" << minEdge->getID()
+                          << " TT=" << minimumInfo->effort
+                          << " EF=" << this->getEffort(minEdge, vehicle, minimumInfo->leaveTime)
+                          << " HT=" << minimumInfo->heuristicEffort
+                          << " Q(TT,HT,Edge)=";
+                for (auto edgeInfo : myFrontierList) {
+                    std::cout << edgeInfo->effort << "," << edgeInfo->heuristicEffort << "," << edgeInfo->edge->getID() << " ";
+                }
+                std::cout << "\n";
             }
-            std::cout << "\n";
 #endif
             const double effortDelta = this->getEffort(minEdge, vehicle, minimumInfo->leaveTime);
             const double leaveTime = minimumInfo->leaveTime + this->getTravelTime(minEdge, vehicle, minimumInfo->leaveTime, effortDelta);
@@ -255,9 +260,11 @@ public:
                     followerInfo->leaveTime = time;
                     followerInfo->prev = minimumInfo;
 #ifdef ASTAR_DEBUG_QUERY_FOLLOWERS
-                    std::cout << "   follower=" << followerInfo->edge->getID()
-                              << " OEF=" << (oldEffort == std::numeric_limits<double>::max() ? "inf" : toString(oldEffort))
-                              << " TT=" << effort << " HR=" << heuristic_remaining << " HT=" << followerInfo->heuristicEffort << "\n";
+                    if (ASTAR_DEBUG_COND) {
+                        std::cout << "   follower=" << followerInfo->edge->getID()
+                                  << " OEF=" << (oldEffort == std::numeric_limits<double>::max() ? "inf" : toString(oldEffort))
+                                  << " TT=" << effort << " HR=" << heuristic_remaining << " HT=" << followerInfo->heuristicEffort << "\n";
+                    }
 #endif
                     if (oldEffort == std::numeric_limits<double>::max()) {
                         myFrontierList.push_back(followerInfo);
@@ -277,7 +284,9 @@ public:
         }
         this->endQuery(num_visited);
 #ifdef ASTAR_DEBUG_QUERY_PERF
-        std::cout << "visited " + toString(num_visited) + " edges (unsuccessful path length: " + toString(into.size()) + ")\n";
+        if (ASTAR_DEBUG_COND) {
+            std::cout << "visited " + toString(num_visited) + " edges (unsuccessful path length: " + toString(into.size()) + ")\n";
+        }
 #endif
         if (!silent) {
             this->myErrorMsgHandler->informf("No connection between edge '%' and edge '%' found.", from->getID(), to->getID());
@@ -324,9 +333,3 @@ protected:
     /// @brief maximum speed in the network
     double myMaxSpeed;
 };
-
-
-#endif
-
-/****************************************************************************/
-

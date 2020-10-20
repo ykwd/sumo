@@ -32,25 +32,25 @@ neteditProcess, referencePosition = netedit.setupAndStart(neteditTestRoot)
 netedit.rebuildNetwork()
 
 # toogle select lanes
-netedit.changeEditMode('2')
+netedit.changeEditMode('4')
 
 # go to inspect mode
 netedit.inspectMode()
 
 # inspect edge
-netedit.leftClick(referencePosition, 250, 180)
+netedit.leftClick(referencePosition, 250, 165)
 
 # Change parameter 4 with a non valid value (dummy)
-netedit.modifyAttribute(6, "dummyEndOffset", False)
+netedit.modifyAttribute(6, "dummyEndOffset", True)
 
 # Change parameter 4 with a non valid value (emtpy)
-netedit.modifyAttribute(6, "", False)
+netedit.modifyAttribute(6, "", True)
 
 # Change parameter 4 with a non valid value (negative)
-netedit.modifyAttribute(6, "-3", False)
+netedit.modifyAttribute(6, "-3", True)
 
 # Change parameter 4 with a valid value
-netedit.modifyAttribute(6, "12.5", False)
+netedit.modifyAttribute(6, "12.5", True)
 
 # recompute
 netedit.rebuildNetwork()

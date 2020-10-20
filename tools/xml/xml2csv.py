@@ -24,6 +24,7 @@ from __future__ import absolute_import
 import os
 import sys
 import socket
+import gzip
 import io
 import collections
 from optparse import OptionParser
@@ -84,10 +85,12 @@ class AttrFinder(NestingHandler):
             xml.sax.parse(source, self)
 
     def addElement(self, root, name, depth):
+        # print("adding", root, name, depth)
+        if len(self.depthTags[root]) == depth:
+            self.tagDepths[name] = depth
+            self.depthTags[root].append([name])
+            return True
         if name not in self.tagDepths:
-            if len(self.depthTags[root]) == depth:
-                self.tagDepths[name] = depth
-                self.depthTags[root].append([])
             self.depthTags[root][depth].append(name)
             return True
         if name not in self.depthTags[root][depth]:
@@ -108,6 +111,7 @@ class AttrFinder(NestingHandler):
                     del attrList[attrList.index(anew)]
                 attrList.append(anew)
         for ele in currEle.children:
+            # print("attr", root.name, ele.name, depth)
             self.recursiveAttrFind(root, ele, depth + 1)
 
     def startElement(self, name, attrs):
@@ -140,18 +144,17 @@ class CSVWriter(NestingHandler):
         self.outfiles = {}
         self.rootDepth = 1 if options.split else 0
         for root in sorted(attrFinder.depthTags):
-            if len(attrFinder.depthTags) == 1:
-                if not options.output:
+            if not options.output:
+                if isinstance(options.source, str):
                     options.output = os.path.splitext(options.source)[0]
+                else:
+                    options.output = options.source.name
+            if len(attrFinder.depthTags) == 1:
                 if not options.output.isdigit() and not options.output.endswith(".csv"):
                     options.output += ".csv"
                 self.outfiles[root] = getOutStream(options.output)
             else:
-                if options.output:
-                    outfilename = options.output + "%s.csv" % root
-                else:
-                    outfilename = os.path.splitext(
-                        options.source)[0] + "%s.csv" % root
+                outfilename = options.output + "%s.csv" % root
                 self.outfiles[root] = getOutStream(outfilename)
             self.outfiles[root].write(
                 options.separator.join(map(self.quote, attrFinder.attrs[root])) + u"\n")
@@ -170,12 +173,12 @@ class CSVWriter(NestingHandler):
         NestingHandler.startElement(self, name, attrs)
         if self.depth() >= self.rootDepth:
             root = self.tagstack[self.rootDepth]
-#            print("start", name, root, self.depth(), self.attrFinder.depthTags[root][self.depth()])
+            # print("start", name, root, self.depth(), self.attrFinder.depthTags[root][self.depth()])
             if name in self.attrFinder.depthTags[root][self.depth()]:
                 for a, v in attrs.items():
                     if isinstance(a, tuple):
                         a = a[1]
-#                    print(a, dict(self.attrFinder.tagAttrs[name]))
+                    # print(a, dict(self.attrFinder.tagAttrs[name]))
                     if a in self.attrFinder.tagAttrs[name]:
                         if self.attrFinder.xsdStruc:
                             enum = self.attrFinder.xsdStruc.getEnumeration(
@@ -206,13 +209,15 @@ def getSocketStream(port, mode='rb'):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(("localhost", port))
     s.listen(1)
-    conn, addr = s.accept()
+    conn, _ = s.accept()
     return conn.makefile(mode)
 
 
 def getOutStream(output):
     if output.isdigit():
         return getSocketStream(int(output), 'wb')
+    if output.endswith(".gz"):
+        return gzip.open(output, 'wb', encoding="utf8")
     return io.open(output, 'w', encoding="utf8")
 
 
@@ -241,6 +246,8 @@ def get_options(arglist=None):
             print("a schema is mandatory for stream parsing", file=sys.stderr)
             sys.exit()
         options.source = getSocketStream(int(args[0]))
+    elif args[0].endswith(".gz"):
+        options.source = gzip.open(args[0])
     else:
         options.source = args[0]
     if options.output and options.output.isdigit() and options.split:
@@ -261,6 +268,9 @@ def main(args=None):
         tree = lxml.etree.parse(options.source, parser)
         lxml.sax.saxify(tree, handler)
     else:
+        if not options.xsd and hasattr(options.source, "name") and options.source.name.endswith(".gz"):
+            # we need to reopen the file because the AttrFinder already read and closed it
+            options.source = gzip.open(options.source.name)
         xml.sax.parse(options.source, handler)
 
 

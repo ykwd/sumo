@@ -18,13 +18,7 @@
 ///
 // -------------------
 /****************************************************************************/
-#ifndef NIVissimExtendedEdgePoint_h
-#define NIVissimExtendedEdgePoint_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -75,9 +69,3 @@ private:
     double myPosition;
     std::vector<int> myAssignedVehicles;
 };
-
-
-#endif
-
-/****************************************************************************/
-

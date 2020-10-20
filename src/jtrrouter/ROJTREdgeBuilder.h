@@ -19,13 +19,7 @@
 ///
 // Interface for building instances of jtrrouter-edges
 /****************************************************************************/
-#ifndef ROJTREdgeBuilder_h
-#define ROJTREdgeBuilder_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <router/ROAbstractEdgeBuilder.h>
@@ -78,9 +72,3 @@ public:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

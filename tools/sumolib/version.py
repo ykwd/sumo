@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Eclipse SUMO, Simulation of Urban MObility; see https://eclipse.org/sumo
 # Copyright (C) 2008-2020 German Aerospace Center (DLR) and others.
 # This program and the accompanying materials are made available under the
@@ -18,12 +17,7 @@
 # @date    2007
 
 """
-This script rebuilds "../../src/version.h", the file which
- lets the applications know the version of their build.
-It does this by parsing the SVN revision either from .svn/entries or .svn/wc.db (depending on svn
-version of the working copy).
-If the version file is newer than the svn file or the revision cannot be
-determined any exisitng vershion.h is kept
+This module contains functions to determine the current SUMO version.
 """
 from __future__ import absolute_import
 from __future__ import print_function
@@ -35,8 +29,7 @@ UNKNOWN_REVISION = "UNKNOWN"
 GITDIR = join(dirname(__file__), '..', '..', '.git')
 
 
-def _findVersion():
-    # try to find the version in the config.h
+def fromVersionHeader():
     versionFile = join(dirname(__file__), '..', '..', 'include', 'version.h')
     if not exists(versionFile):
         versionFile = join('src', 'version.h')
@@ -44,6 +37,7 @@ def _findVersion():
         version = open(versionFile).read().split()
         if len(version) > 2:
             return version[2][1:-1]
+    # try to find the version in the config.h
     configFile = join(dirname(__file__), '..', '..', 'src', 'config.h.cmake')
     if exists(configFile):
         config = open(configFile).read()
@@ -59,11 +53,11 @@ def gitDescribe(commit="HEAD", gitDir=GITDIR, padZero=True):
     if gitDir:
         command[1:1] = ["--git-dir=" + gitDir]
         if not exists(gitDir):
-            return _findVersion()
+            return fromVersionHeader()
     try:
         d = subprocess.check_output(command, universal_newlines=True).strip()
-    except subprocess.CalledProcessError:
-        return _findVersion()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return fromVersionHeader()
     if "-" in d:
         # remove the "g" in describe output
         d = d.replace("-g", "-")

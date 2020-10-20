@@ -19,11 +19,6 @@
 ///
 // Loader for the of turning percentages and source/sink definitions
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <set>
@@ -50,7 +45,8 @@ ROJTRTurnDefLoader::ROJTRTurnDefLoader(RONet& net) :
     myIntervalBegin(0), myIntervalEnd(STEPS2TIME(SUMOTime_MAX)),
     myEdge(nullptr),
     mySourcesAreSinks(OptionsCont::getOptions().getBool("sources-are-sinks")),
-    myDiscountSources(OptionsCont::getOptions().getBool("discount-sources"))
+    myDiscountSources(OptionsCont::getOptions().getBool("discount-sources")),
+    myHaveWarnedAboutDeprecatedFormat(false)
 {}
 
 
@@ -67,10 +63,18 @@ ROJTRTurnDefLoader::myStartElement(int element,
             myIntervalEnd = attrs.get<double>(SUMO_ATTR_END, nullptr, ok);
             break;
         case SUMO_TAG_FROMEDGE:
+            if (!myHaveWarnedAboutDeprecatedFormat) {
+                myHaveWarnedAboutDeprecatedFormat = true;
+                WRITE_WARNING("The turn-file format with elements " + toString(SUMO_TAG_FROMEDGE) + ", " + toString(SUMO_TAG_TOEDGE) + " is deprecated,"
+                              + " please use " + toString(SUMO_TAG_EDGEREL) + " instead.");
+            }
             beginFromEdge(attrs);
             break;
         case SUMO_TAG_TOEDGE:
             addToEdge(attrs);
+            break;
+        case SUMO_TAG_EDGEREL:
+            addEdgeRel(attrs);
             break;
         case SUMO_TAG_SINK:
             if (attrs.hasAttribute(SUMO_ATTR_EDGES)) {
@@ -98,7 +102,7 @@ ROJTRTurnDefLoader::myStartElement(int element,
                     edge->setSink();
                 }
                 if (myDiscountSources) {
-                    SUMOVehicleParameter* pars = SUMOVehicleParserHelper::parseFlowAttributes(attrs, true, 0, TIME2STEPS(3600 * 24));
+                    SUMOVehicleParameter* pars = SUMOVehicleParserHelper::parseFlowAttributes(SUMO_TAG_FLOW, attrs, true, 0, TIME2STEPS(3600 * 24));
                     int numVehs = 0;
                     if (pars->repetitionProbability > 0) {
                         numVehs = int(STEPS2TIME(pars->repetitionEnd - pars->depart) * pars->repetitionProbability);
@@ -179,6 +183,35 @@ ROJTRTurnDefLoader::addToEdge(const SUMOSAXAttributes& attrs) {
 }
 
 
+void
+ROJTRTurnDefLoader::addEdgeRel(const SUMOSAXAttributes& attrs) {
+    bool ok = true;
+    // get the id, report an error if not given or empty...
+    std::string fromID = attrs.get<std::string>(SUMO_ATTR_FROM, nullptr, ok);
+    std::string toID = attrs.get<std::string>(SUMO_ATTR_TO, nullptr, ok);
+    double probability = attrs.get<double>(
+                             attrs.hasAttribute(SUMO_ATTR_COUNT) && !attrs.hasAttribute(SUMO_ATTR_PROB) ? SUMO_ATTR_COUNT : SUMO_ATTR_PROB,
+                             (fromID + "->" + toID).c_str(), ok);
+    if (!ok) {
+        return;
+    }
+    //
+    ROJTREdge* from = static_cast<ROJTREdge*>(myNet.getEdge(fromID));
+    if (from == nullptr) {
+        WRITE_ERROR("The edge '" + fromID + "' is not known.");
+        return;
+    }
+    ROJTREdge* to = static_cast<ROJTREdge*>(myNet.getEdge(toID));
+    if (to == nullptr) {
+        WRITE_ERROR("The edge '" + toID + "' is not known.");
+        return;
+    }
+    if (probability < 0) {
+        WRITE_ERROR("'probability' must be positive (in edgeRelation from '" + fromID + "' to '" + toID + "'.");
+    } else {
+        from->addFollowerProbability(to, myIntervalBegin, myIntervalEnd, probability);
+    }
+}
+
 
 /****************************************************************************/
-

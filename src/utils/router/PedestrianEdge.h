@@ -19,13 +19,7 @@
 ///
 // The pedestrian accessible edges for the Intermodal Router
 /****************************************************************************/
-#ifndef PedestrianEdge_h
-#define PedestrianEdge_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #define TL_RED_PENALTY 20
@@ -108,8 +102,3 @@ private:
     const double myStartPos;
 
 };
-
-
-#endif
-
-/****************************************************************************/

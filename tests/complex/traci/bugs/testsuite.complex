@@ -1,6 +1,9 @@
 # trafficlight.setCompleteRedYellowGreenDefinition
 ticket1010
 
+# Defect vehicle after loading a state in which it is added but not inserted
+ticket1433
+
 # distance calculation from/to internal edges
 ticket2321
 
@@ -105,3 +108,6 @@ ticket5990
 
 # handle invalid departSpeed without crashing
 ticket6626
+
+# update rtree when adding/removing polygons and POIs
+ticket7057

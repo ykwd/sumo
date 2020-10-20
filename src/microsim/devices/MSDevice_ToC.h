@@ -20,13 +20,7 @@
 // The ToC Device controls the transition of control between automated and manual driving.
 //
 /****************************************************************************/
-#ifndef MSDevice_ToC_h
-#define MSDevice_ToC_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <random>
@@ -321,6 +315,9 @@ private:
     /// @brief Storage for events to be written to the output
     std::queue<std::pair<std::string, double> > myEventLanes;
 
+    /// @brief Storage for events to be written to the output
+    std::queue<std::pair<double, double>> myEventXY;
+
     /// @brief LC mode overridden during MRM, stored for restoration
     int myPreviousLCMode;
 
@@ -391,9 +388,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

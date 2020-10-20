@@ -19,13 +19,7 @@
 ///
 // Perfoms network import
 /****************************************************************************/
-#ifndef NITypeLoader_h
-#define NITypeLoader_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -55,9 +49,3 @@ public:
     static bool load(SUMOSAXHandler* handler, const std::vector<std::string>& files,
                      const std::string& type, const bool stringParse = false);
 };
-
-
-#endif
-
-/****************************************************************************/
-

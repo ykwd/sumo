@@ -17,26 +17,10 @@
 ///
 // A network change in which the attribute of some object is modified
 /****************************************************************************/
-#ifndef GNEChange_EnableAttribute_h
-#define GNEChange_EnableAttribute_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "GNEChange.h"
-
-// ===========================================================================
-// class declarations
-// ===========================================================================
-class GNEAttributeCarrier;
-class GNENetElement;
-class GNEAdditional;
-class GNEDemandElement;
-class GNEShape;
-class GNENet;
 
 // ===========================================================================
 // class definitions
@@ -51,11 +35,10 @@ class GNEChange_EnableAttribute : public GNEChange {
 public:
     /**@brief Constructor
      * @param[in] ac The attribute-carrier to be modified
-     * @param[in] net Net in which AC is saved
      * @param[in] originalAttributes original set of attributes
      * @param[in] newAttributes new set of attributes
      */
-    GNEChange_EnableAttribute(GNEAttributeCarrier* ac, GNENet* net, const int originalAttributes, const int newAttributes);
+    GNEChange_EnableAttribute(GNEAttributeCarrier* ac, const int originalAttributes, const int newAttributes);
 
     /// @brief Destructor
     ~GNEChange_EnableAttribute();
@@ -87,6 +70,3 @@ private:
     /// @brief original attributes
     const int myNewAttributes;
 };
-
-#endif
-/****************************************************************************/

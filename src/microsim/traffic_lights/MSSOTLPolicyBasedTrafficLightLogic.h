@@ -19,12 +19,7 @@
 // The class for SOTL Policy-based logics
 /****************************************************************************/
 
-#ifndef MSSOTLPOLICYBASEDTRAFFICLIGHTLOGIC_H_
-#define MSSOTLPOLICYBASEDTRAFFICLIGHTLOGIC_H_
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 //#define SWARM_DEBUG
@@ -110,4 +105,3 @@ private:
     MSSOTLPolicy* myPolicy;
 };
 
-#endif /* MSSOTLPOLICYBASEDTRAFFICLIGHTLOGIC_H_ */

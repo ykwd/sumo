@@ -18,13 +18,7 @@
 ///
 // A device which collects vehicular emissions
 /****************************************************************************/
-#ifndef MSDevice_Emissions_h
-#define MSDevice_Emissions_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <set>
@@ -62,7 +56,7 @@ class MSDevice_Emissions : public MSVehicleDevice {
 public:
     /** @brief Inserts MSDevice_Emissions-options
      */
-    static void insertOptions();
+    static void insertOptions(OptionsCont& oc);
 
 
     /** @brief Build devices for the given vehicle, if needed
@@ -99,6 +93,18 @@ public:
         * @see PollutantsInterface
         */
     bool notifyMove(SUMOTrafficObject& veh, double oldPos, double newPos, double newSpeed);
+
+    /** @brief Computes idling emission values and adds them to the emission sums
+        *
+        * Idling implied by zero velocity, acceleration and slope
+        *
+        * @param[in] veh The vehicle
+        *
+        * @see MSMoveReminder::notifyMove
+        * @see PollutantsInterface
+        */
+    bool notifyIdle(SUMOTrafficObject& veh);
+
     /// @}
 
     /// @brief return the name for this type of device
@@ -154,9 +160,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

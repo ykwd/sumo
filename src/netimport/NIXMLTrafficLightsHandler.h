@@ -17,13 +17,7 @@
 ///
 // Importer for traffic lights stored in XML
 /****************************************************************************/
-#ifndef NIXMLTrafficLightsHandler_h
-#define NIXMLTrafficLightsHandler_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/xml/SUMOSAXHandler.h>
@@ -131,9 +125,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

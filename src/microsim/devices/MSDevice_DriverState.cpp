@@ -22,10 +22,6 @@
 /// @see microsim/MSDriverState.h
 ///
 /****************************************************************************/
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/common/StringUtils.h>
@@ -232,8 +228,6 @@ MSDevice_DriverState::getParameter(const std::string& key) const {
         return toString(myDriverState->getErrorTimeScale());
     } else if (key == "errorNoiseIntensity") {
         return toString(myDriverState->getErrorNoiseIntensity());
-    } else if (key == "errorNoiseIntensity") {
-        return toString(myDriverState->getErrorNoiseIntensity());
     } else if (key == "minAwareness") {
         return toString(myDriverState->getMinAwareness());
     } else if (key == "initialAwareness") {
@@ -301,4 +295,3 @@ MSDevice_DriverState::setParameter(const std::string& key, const std::string& va
 
 
 /****************************************************************************/
-

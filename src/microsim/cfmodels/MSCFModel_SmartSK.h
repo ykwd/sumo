@@ -19,12 +19,7 @@
 ///
 // A smarter SK
 /****************************************************************************/
-#ifndef MSCFModel_SmartSK_h
-#define MSCFModel_SmartSK_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSCFModel.h"
@@ -197,5 +192,4 @@ protected:
 
 };
 
-#endif /* MSCFModel_SmartSK_H */
 

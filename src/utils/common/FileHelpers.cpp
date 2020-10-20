@@ -18,15 +18,10 @@
 ///
 // Functions for an easier usage of files
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <string>
-#ifdef _MSC_VER
+#ifdef WIN32
 // this is how fox does it in xincs.h
 #include <io.h>
 #define access _access
@@ -221,5 +216,5 @@ FileHelpers::writeTime(std::ostream& strm, SUMOTime value) {
     return strm;
 }
 
-/****************************************************************************/
 
+/****************************************************************************/

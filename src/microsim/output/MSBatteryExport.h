@@ -19,13 +19,7 @@
 ///
 // Realises dumping Battery Data
 /****************************************************************************/
-#ifndef MSBatteryExport_h
-#define MSBatteryExport_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/SUMOTime.h>
@@ -73,5 +67,4 @@ private:
 };
 
 
-#endif
 

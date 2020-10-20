@@ -19,11 +19,6 @@
 ///
 // Sets and checks options for netbuild
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <string>
@@ -60,6 +55,9 @@ NBFrame::fillOptions(bool forNetgen) {
     oc.addSynonyme("default.lanewidth", "lanewidth", true);
     oc.addDescription("default.lanewidth", "Building Defaults", "The default width of lanes");
 
+    oc.doRegister("default.spreadtype", new Option_String("right"));
+    oc.addDescription("default.spreadtype", "Building Defaults", "The default method for computing lane shapes from edge shapes");
+
     oc.doRegister("default.speed", 'S', new Option_Float((double) 13.89));
     oc.addSynonyme("default.speed", "speed", true);
     oc.addDescription("default.speed", "Building Defaults", "The default speed on an edge (in m/s)");
@@ -89,6 +87,9 @@ NBFrame::fillOptions(bool forNetgen) {
     oc.doRegister("default.junctions.radius", new Option_Float(4));
     oc.addDescription("default.junctions.radius", "Building Defaults", "The default turning radius of intersections");
 
+    oc.doRegister("default.connection-length", new Option_Float((double) NBEdge::UNSPECIFIED_LOADED_LENGTH));
+    oc.addDescription("default.connection-length", "Building Defaults", "The default length when overriding connection lengths");
+
     oc.doRegister("default.right-of-way", new Option_String("default"));
     oc.addDescription("default.right-of-way", "Building Defaults", "The default algorithm for computing right of way rules ('default', 'edgePriority')");
 
@@ -110,7 +111,7 @@ NBFrame::fillOptions(bool forNetgen) {
 
     /// @todo not working for netgen
     oc.doRegister("reserved-ids", new Option_FileName());
-    oc.addDescription("reserved-ids", "Processing", "Ensures that generated ids do not included any of the typed IDs from FILE (SUMO-GUI selection file format)");
+    oc.addDescription("reserved-ids", "Processing", "Ensures that generated ids do not included any of the typed IDs from FILE (sumo-gui selection file format)");
 
     if (!forNetgen) {
         oc.doRegister("dismiss-vclasses", new Option_Bool(false));
@@ -153,7 +154,7 @@ NBFrame::fillOptions(bool forNetgen) {
 
         oc.doRegister("geometry.remove.keep-edges.input-file", new Option_FileName());
         oc.addDescription("geometry.remove.keep-edges.input-file", "Processing",
-                          "Ensure that the edges in FILE are not modified (Each id on a single line. Selection files from SUMO-GUI are also supported)");
+                          "Ensure that the edges in FILE are not modified (Each id on a single line. Selection files from sumo-gui are also supported)");
 
         oc.doRegister("geometry.remove.min-length", new Option_Float(0));
         oc.addDescription("geometry.remove.min-length", "Processing",
@@ -206,11 +207,17 @@ NBFrame::fillOptions(bool forNetgen) {
         oc.doRegister("railway.topology.repair.connect-straight", new Option_Bool(false));
         oc.addDescription("railway.topology.repair.connect-straight", "Railway", "Allow bidiretional rail use wherever rails with opposite directions meet at a straight angle");
 
+        oc.doRegister("railway.topology.repair.stop-turn", new Option_Bool(false));
+        oc.addDescription("railway.topology.repair.stop-turn", "Railway", "Add turn-around connections at all loaded stops.");
+
         oc.doRegister("railway.topology.all-bidi", new Option_Bool(false));
         oc.addDescription("railway.topology.all-bidi", "Railway", "Make all rails usable in both direction");
 
         oc.doRegister("railway.topology.all-bidi.input-file", new Option_FileName());
         oc.addDescription("railway.topology.all-bidi.input-file", "Railway", "Make all rails edge ids from FILE usable in both direction");
+
+        oc.doRegister("railway.topology.direction-priority", new Option_Bool(false));
+        oc.addDescription("railway.topology.direction-priority", "Railway", "Set edge priority values based on estimated main direction");
 
         oc.doRegister("railway.access-distance", new Option_Float(150.f));
         oc.addDescription("railway.access-distance", "Railway", "The search radius for finding suitable road accesses for rail stops");
@@ -257,6 +264,9 @@ NBFrame::fillOptions(bool forNetgen) {
     oc.addSynonyme("roundabouts.guess", "guess-roundabouts", true);
     oc.addDescription("roundabouts.guess", "Processing", "Enable roundabout-guessing");
 
+    oc.doRegister("roundabouts.visibility-distance", new Option_Float(9));
+    oc.addDescription("roundabouts.visibility-distance", "Processing", "Default visibility when approaching a roundabout");
+
     oc.doRegister("opposites.guess", new Option_Bool(false));
     oc.addDescription("opposites.guess", "Processing", "Enable guessing of opposite direction lanes usable for overtaking");
 
@@ -285,6 +295,10 @@ NBFrame::fillOptions(bool forNetgen) {
         oc.doRegister("junctions.join-exclude", new Option_StringVector());
         oc.addDescription("junctions.join-exclude", "Junctions", "Interprets STR[] as list of junctions to exclude from joining");
 
+        oc.doRegister("junctions.join-same", new Option_Bool(false));
+        oc.addDescription("junctions.join-same", "Junctions",
+                "Joins junctions that have the same coordinates even if not connected");
+
         oc.doRegister("speed.offset", new Option_Float(0));
         oc.addDescription("speed.offset", "Processing", "Modifies all edge speeds by adding FLOAT");
 
@@ -293,6 +307,10 @@ NBFrame::fillOptions(bool forNetgen) {
 
         oc.doRegister("speed.minimum", new Option_Float(0));
         oc.addDescription("speed.minimum", "Processing", "Modifies all edge speeds to at least FLOAT");
+
+        oc.doRegister("edges.join-tram-dist", new Option_Float(-1));
+        oc.addDescription("edges.join-tram-dist", "Processing",
+                          "Joins tram edges into road lanes with similar geometry (within FLOAT distance)");
     }
 
     oc.doRegister("junctions.corner-detail", new Option_Integer(5));
@@ -394,6 +412,9 @@ NBFrame::fillOptions(bool forNetgen) {
 
     oc.doRegister("walkingareas", new Option_Bool(false));
     oc.addDescription("walkingareas", "Pedestrian", "Always build walking areas even if there are no crossings");
+
+    oc.doRegister("walkingareas.join-dist", new Option_Float(15));
+    oc.addDescription("walkingareas.join-dist", "Pedestrian", "Do not create a walkingarea between sidewalks that are connected by a pedestrian junction within FLOAT");
 
     // tls setting options
     // explicit tls
@@ -531,10 +552,10 @@ NBFrame::fillOptions(bool forNetgen) {
     oc.addDescription("keep-edges.explicit", "Edge Removal", "Only keep edges in STR[] or those which are kept due to other keep-edges or remove-edges options");
 
     oc.doRegister("keep-edges.input-file", new Option_FileName());
-    oc.addDescription("keep-edges.input-file", "Edge Removal", "Only keep edges in FILE (Each id on a single line. Selection files from SUMO-GUI are also supported) or those which are kept due to other keep-edges or remove-edges options");
+    oc.addDescription("keep-edges.input-file", "Edge Removal", "Only keep edges in FILE (Each id on a single line. Selection files from sumo-gui are also supported) or those which are kept due to other keep-edges or remove-edges options");
 
     oc.doRegister("remove-edges.input-file", new Option_FileName());
-    oc.addDescription("remove-edges.input-file", "Edge Removal", "Remove edges in FILE. (Each id on a single line. Selection files from SUMO-GUI are also supported)");
+    oc.addDescription("remove-edges.input-file", "Edge Removal", "Remove edges in FILE. (Each id on a single line. Selection files from sumo-gui are also supported)");
 
     if (!forNetgen) {
         oc.doRegister("keep-edges.postload", new Option_Bool(false));
@@ -659,11 +680,17 @@ NBFrame::checkOptions() {
         oc.set("no-internal-links", "false");
     }
     if (oc.getFloat("junctions.small-radius") > oc.getFloat("default.junctions.radius") && oc.getFloat("default.junctions.radius") >= 0) {
-        WRITE_ERROR("option 'default.junctions.radius' cannot be smaller than option 'junctions.small-radius'");
-        ok = false;
+        if (!oc.isDefault("junctions.small-radius")) {
+            WRITE_ERROR("option 'default.junctions.radius' cannot be smaller than option 'junctions.small-radius'");
+            ok = false;
+        } else {
+            oc.set("junctions.small-radius", oc.getValueString("default.junctions.radius"));
+        }
     }
-    if (oc.getString("tls.layout") != "opposites" && oc.getString("tls.layout") != "incoming") {
-        WRITE_ERROR("tls.layout must be 'opposites' or 'incoming'");
+    if (oc.getString("tls.layout") != "opposites"
+            && oc.getString("tls.layout") != "incoming"
+            && oc.getString("tls.layout") != "alternateOneWay") {
+        WRITE_ERROR("tls.layout must be 'opposites', 'incoming' or 'alternateOneWay'");
         ok = false;
     }
     if (!oc.isDefault("default.right-of-way") &&
@@ -671,11 +698,22 @@ NBFrame::checkOptions() {
         WRITE_ERROR("default.right-of-way must be one of '" + toString(SUMOXMLDefinitions::RightOfWayValues.getStrings()) + "'");
         ok = false;
     }
+    if (oc.getFloat("roundabouts.visibility-distance") < 0 && oc.getFloat("roundabouts.visibility-distance") != NBEdge::UNSPECIFIED_VISIBILITY_DISTANCE) {
+        WRITE_ERROR("roundabouts.visibility-distance must be positive or -1");
+        ok = false;
+    }
     if (oc.isDefault("railway.topology.repair") && oc.getBool("railway.topology.repair.connect-straight")) {
         oc.set("railway.topology.repair", "true");
     }
     if (oc.isDefault("railway.topology.all-bidi") && !oc.isDefault("railway.topology.all-bidi.input-file")) {
         oc.set("railway.topology.all-bidi", "true");
+    }
+    if (oc.isDefault("railway.topology.repair.stop-turn") && !oc.isDefault("railway.topology.repair")) {
+        oc.set("railway.topology.repair.stop-turn", "true");
+    }
+    if (!SUMOXMLDefinitions::LaneSpreadFunctions.hasString(oc.getString("default.spreadtype"))) {
+        WRITE_ERROR("Unknown value for default.spreadtype '" + oc.getString("default.spreadtype") + "'.");
+        ok = false;
     }
     return ok;
 }

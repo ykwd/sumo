@@ -21,10 +21,6 @@
 ///
 // A detector of vehicles passing an area between entry/exit points
 /****************************************************************************/
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <algorithm>
@@ -573,6 +569,9 @@ MSE3Collector::getCurrentVehicleIDs() const {
     return ret;
 }
 
+void
+MSE3Collector::clearState() {
+    myEnteredContainer.clear();
+}
 
 /****************************************************************************/
-

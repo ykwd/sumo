@@ -34,11 +34,14 @@ netedit.rebuildNetwork()
 # go to delete mode
 netedit.deleteMode()
 
+# enable 'Automatically delete additionals'
+netedit.changeAutomaticallyDeleteAdditionals(referencePosition)
+
 # delete edge
 netedit.leftClick(referencePosition, 220, 200)
 
 # delete node
-netedit.leftClick(referencePosition, 520, 225)
+netedit.leftClick(referencePosition, 536, 236)
 
 # rebuild network
 netedit.rebuildNetwork()

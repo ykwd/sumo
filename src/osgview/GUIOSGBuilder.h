@@ -17,19 +17,12 @@
 ///
 // Builds OSG nodes from microsim objects
 /****************************************************************************/
-#ifndef GUIOSGBuilder_h
-#define GUIOSGBuilder_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #ifdef HAVE_OSG
 
 #include <map>
-#include <osg/ref_ptr>
 #include "GUIOSGView.h"
 
 
@@ -84,8 +77,3 @@ private:
 
 
 #endif
-
-#endif
-
-/****************************************************************************/
-

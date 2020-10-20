@@ -19,8 +19,7 @@
 // Representation of electric circuit of overhead wires
 /// @note    based on work 2017 Ahmad Khaled, Ahmad Essam, Omnia Zakaria, Mary Nader
 /****************************************************************************/
-#ifndef CIRCUIT_H
-#define CIRCUIT_H
+#pragma once
 
 #include <vector>
 #ifdef HAVE_EIGEN
@@ -116,7 +115,7 @@ private:
     /*
      *    removes the "colToRemove"-th column from matrix "matrix"
      */
-    void removeColumn(Eigen::MatrixXd& matrix, const unsigned int colToRemove);
+    void removeColumn(Eigen::MatrixXd& matrix, const int colToRemove);
 
     /*
      * solves the system of nonlinear equations Ax = B(1/x)
@@ -180,4 +179,3 @@ public:
         lastId--;
     };
 };
-#endif

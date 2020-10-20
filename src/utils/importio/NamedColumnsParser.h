@@ -18,13 +18,7 @@
 ///
 // A parser to retrieve information from a table with known columns
 /****************************************************************************/
-#ifndef NamedColumnsParser_h
-#define NamedColumnsParser_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <map>
@@ -186,9 +180,3 @@ private:
     bool myAmCaseInsensitive;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

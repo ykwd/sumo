@@ -19,14 +19,7 @@
 ///
 // A java-style StringTokenizer for c++ (stl)
 /****************************************************************************/
-#ifndef StringTokenizer_h
-#define StringTokenizer_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-
+#pragma once
 #include <string>
 #include <vector>
 
@@ -151,9 +144,3 @@ private:
     /// @brief the list of substring lengths
     SizeVector myLengths;
 };
-
-
-#endif
-
-/****************************************************************************/
-

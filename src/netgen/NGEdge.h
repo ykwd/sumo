@@ -19,13 +19,7 @@
 ///
 // A netgen-representation of an edge
 /****************************************************************************/
-#ifndef NGNetElements_h
-#define NGNetElements_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <list>
@@ -120,8 +114,3 @@ private:
  * @brief A list of edges (edge pointers)
  */
 typedef std::list<NGEdge*> NGEdgeList;
-
-#endif
-
-/****************************************************************************/
-

@@ -19,11 +19,6 @@
 ///
 // The class holds a description of a connection between two edges
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <sstream>
@@ -72,7 +67,7 @@ NBConnection::NBConnection(NBEdge* from, int fromLane,
     assert(myFromLane<0||from->getNumLanes()>(int) myFromLane);
     assert(myToLane<0||to->getNumLanes()>(int) myToLane);
     */
-    myFromID = from->getID();
+    myFromID = from != nullptr ? from->getID() : "";
     myToID = to != nullptr ? to->getID() : "";
 }
 
@@ -269,6 +264,4 @@ operator<<(std::ostream& os, const NBConnection& c) {
 }
 
 
-
 /****************************************************************************/
-

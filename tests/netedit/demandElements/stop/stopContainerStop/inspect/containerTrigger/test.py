@@ -38,16 +38,16 @@ netedit.stopMode()
 netedit.changeStopType("stopContainerStop")
 
 # create stop
-netedit.leftClick(referencePosition, 327, 208)
+netedit.leftClick(referencePosition, 290, 175)
 
 # go to inspect mode
 netedit.inspectMode()
 
 # inspect stop
-netedit.leftClick(referencePosition, 327, 208)
+netedit.leftClick(referencePosition, 290, 175)
 
 # change value
-netedit.modifyBoolAttribute(6, True)
+netedit.modifyBoolAttribute(5, True)
 
 # Check undo redo
 netedit.undo(referencePosition, 3)

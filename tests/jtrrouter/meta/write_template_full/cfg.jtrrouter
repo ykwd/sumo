@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Wed Feb  5 23:37:59 2020 by Eclipse SUMO jtrrouter Version v1_4_0+0947-40275488a3
+<!-- generated on Mon Sep  7 13:28:02 2020 by Eclipse SUMO jtrrouter Version v1_6_0+2015-336b3d6f93
 -->
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/jtrrouterConfiguration.xsd">
@@ -23,14 +23,14 @@
     </input>
 
     <output>
+        <output-file value="" synonymes="o output" type="FILE" help="Write generated routes to FILE"/>
+        <vtype-output value="" synonymes="vtype" type="FILE" help="Write used vehicle types into separate FILE"/>
+        <keep-vtype-distributions value="false" type="BOOL" help="Keep vTypeDistribution ids when writing vehicles and their types"/>
         <write-license value="false" type="BOOL" help="Include license info into every output file"/>
         <output-prefix value="" type="STR" help="Prefix which is applied to all output files. The special string &apos;TIME&apos; is replaced by the current time."/>
         <precision value="2" type="INT" help="Defines the number of digits after the comma for floating point output"/>
         <precision.geo value="6" type="INT" help="Defines the number of digits after the comma for lon,lat output"/>
-        <human-readable-time value="false" synonymes="H" type="BOOL" help="Write time values as hour:minute:second or day:hour:minute:second rathern than seconds"/>
-        <output-file value="" synonymes="o output" type="FILE" help="Write generated routes to FILE"/>
-        <vtype-output value="" synonymes="vtype" type="FILE" help="Write used vehicle types into separate FILE"/>
-        <keep-vtype-distributions value="false" type="BOOL" help="Keep vTypeDistribution ids when writing vehicles and their types"/>
+        <human-readable-time value="false" synonymes="H" type="BOOL" help="Write time values as hour:minute:second or day:hour:minute:second rather than seconds"/>
         <exit-times value="false" type="BOOL" help="Write exit times (weights) for each edge"/>
     </output>
 
@@ -48,7 +48,7 @@
         <weights.minor-penalty value="1.5" type="FLOAT" help="Apply the given time penalty when computing routing costs for minor-link internal lanes"/>
         <with-taz value="false" type="BOOL" help="Use origin and destination zones (districts) for in- and output"/>
         <mapmatch.distance value="100" type="FLOAT" help="Maximum distance when mapping input coordinates (fromXY etc.) to the road network"/>
-        <mapmatch.junctions value="false" type="BOOL" help="Match postions to junctions instead of edges"/>
+        <mapmatch.junctions value="false" type="BOOL" help="Match positions to junctions instead of edges"/>
         <bulk-routing value="false" type="BOOL" help="Aggregate routing queries with the same origin"/>
         <routing-threads value="0" type="INT" help="The number of parallel execution threads used for routing"/>
         <restriction-params value="" type="STR[]" help="Comma separated list of param keys to compare for additional restrictions"/>
@@ -59,7 +59,7 @@
         <ignore-vclasses value="false" synonymes="i" type="BOOL" help="Ignore road restrictions based on vehicle class"/>
         <allow-loops value="false" type="BOOL" help="Allow to re-use a road"/>
         <sources-are-sinks value="false" synonymes="S" type="BOOL" help="Use all source edges as sink edges."/>
-        <discount-sources value="false" synonymes="D" type="BOOL" help="Subtract upstream flow when inserting a new flow. When option --sources-are-sinks is set, the upstream flow is limited to the value of the source flow and the remainig part termines."/>
+        <discount-sources value="false" synonymes="D" type="BOOL" help="Subtract upstream flow when inserting a new flow. When option --sources-are-sinks is set, the upstream flow is limited to the value of the source flow and the remaining part terminates."/>
     </processing>
 
     <defaults>
@@ -84,6 +84,7 @@
         <version value="false" synonymes="V" type="BOOL" help="Prints the current version"/>
         <xml-validation value="auto" synonymes="X" type="STR" help="Set schema validation scheme of XML inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;)"/>
         <xml-validation.net value="never" type="STR" help="Set schema validation scheme of SUMO network inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;)"/>
+        <xml-validation.routes value="auto" type="STR" help="Set schema validation scheme of SUMO route inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;)"/>
         <no-warnings value="false" synonymes="W suppress-warnings" type="BOOL" help="Disables output of warnings"/>
         <aggregate-warnings value="-1" type="INT" help="Aggregate warnings of the same type whenever more than INT occur"/>
         <log value="" synonymes="l log-file" type="FILE" help="Writes all messages to FILE (implies verbose)"/>

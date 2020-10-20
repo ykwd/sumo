@@ -19,13 +19,7 @@
 ///
 // A list of positions
 /****************************************************************************/
-#ifndef PositionVector_h
-#define PositionVector_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -396,8 +390,9 @@ public:
      * @param[in] extend how long to extend this vector for finding an orthogonal
      * @param[in] front Whether to take the segment before or after the base point in case of ambiguity
      * @param[in] length the length of the orthogonal
+     * @param[in] deg the rotation angle relative to the shape direction
      */
-    PositionVector getOrthogonal(const Position& p, double extend, bool before, double length = 1.0) const;
+    PositionVector getOrthogonal(const Position& p, double extend, bool before, double length = 1.0, double deg = 90) const;
 
     /// @brief returned vector that is smoothed at the front (within dist)
     PositionVector smoothedZFront(double dist = std::numeric_limits<double>::max()) const;
@@ -405,8 +400,11 @@ public:
     /// @brief returned vector that varies z smoothly over its length
     PositionVector interpolateZ(double zStart, double zEnd) const;
 
-    /// @brief resample shape with the given number of points (equal spacing)
-    PositionVector resample(double maxLength) const;
+    /**@brief resample shape (i.e. transform to segments, equal spacing)
+     * @param[in] maxLength lenght of every segment
+     * @param[in] adjustEnd enable or disable adjust end (i.e. result has the same original lenght, last segment could be short)
+     */
+    PositionVector resample(double maxLength, const bool adjustEnd) const;
 
     /// @brief return the offset at the given index
     double offsetAtIndex2D(int index) const;
@@ -423,9 +421,3 @@ private:
     /// @brief return whether the line segments defined by Line p11,p12 and Line p21,p22 intersect
     static bool intersects(const Position& p11, const Position& p12, const Position& p21, const Position& p22, const double withinDist = 0., double* x = 0, double* y = 0, double* mu = 0);
 };
-
-
-#endif
-
-/****************************************************************************/
-

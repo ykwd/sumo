@@ -21,13 +21,7 @@
 /// @see microsim/MSDriverState.h
 ///
 /****************************************************************************/
-#ifndef MSDevice_DriverState_h
-#define MSDevice_DriverState_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSVehicleDevice.h"
@@ -163,9 +157,3 @@ private:
     MSDevice_DriverState& operator=(const MSDevice_DriverState&);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

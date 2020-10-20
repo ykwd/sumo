@@ -5,7 +5,7 @@ permalink: /Simulation/Safety/
 
 # Collisions
 
-[SUMO](../SUMO.md) tracks gaps between vehicles that are on the
+[sumo](../sumo.md) tracks gaps between vehicles that are on the
 same edge either fully or partially. By default, whenever these gaps are
 reduced to below a vehicles *minGap* a collision is registered (default
 2.5m). This (potentially) surprising behavior is used to detect issues
@@ -27,7 +27,7 @@ of the following keywords:
 - **teleport**: (the default): the follower vehicle is moved
   (teleported) to the next edge on its route
 - **warn**: a warning is issued
-- **none**: no action is take
+- **none**: no action is taken
 - **remove**: both vehicles are removed from the simulation
 
 Additionally there is the possibility of stopping vehicles for a fixed
@@ -45,10 +45,28 @@ the speed, it is also necessary to disable safety checks using [the
 commands speedMode and
 laneChangeMode](../TraCI/Change_Vehicle_State.md).
 
-To create rear-end collisions with some probability one can configure
-vehicles with a value of *tau* that is lower than the simulation step
-size (default 1s) and use the default Krauss model.
+### Collisions during car-following
+Rear-end collisiosn during normal driving may be caused by any of the following:
 
+- vehicles with a value of *tau* that is lower than the simulation step
+size (default 1s) when using the default Krauss model.
+- vehicles with a value of *tau* that is lower than their *actionStepLength*
+- vehicles with an *apparentDecel* parameter that is lower than their *decel* parameter (causing other drivers to misjudge their deceleration capabilities)
+- [driver imperfection modelled with the
+  *driverstate*-device](../Driver_State.md)
+
+### Collisions related to lane-changing
+Collisions from lane-changing can be caused by unsafe lateral movements (side collisions) and by changing lanes in a way that creates unsafe following situations (rear-end collisions).
+
+Side collosions can be caused by
+- configuring lateral imperfection with vType parameter *lcSigma*
+- allowing lateral encroachment with vType parameter *lcPushy* (but this parameter itself will not cause collisions, only reduce lateral gaps in some situations, requires the sublane model)
+- *lcImpatience* (growing impatience permits lower lateral gaps when using the sublane model)
+
+Unsafe changing can be caused by configuringlower gap acceptance with parameter
+- *lcAssertive* (the acceptable gap is computed by dividing the safe gap by lcAssertive)
+
+### Collisions at Intersections
 Collisions at intersections may be caused by any of the following:
 
 - Unsafe [junction model
@@ -107,12 +125,12 @@ ahead.
 ## Action Step Length
 
 By default, vehicles recompute their speed and lane-changing decisions
-every simulation step. When running with sub-second time resultion (i.e.
+every simulation step. When running with sub-second time resolution (i.e.
 **--step-length 0.1**), this also gives very low effective reaction times.
 
 To decouple the decision interval from the simulation step length, the
 vehicle *action-step-length* can be defined as the duration between
-subsequent vehicle decisions. Decision-making starts direclty after
+subsequent vehicle decisions. Decision-making starts directly after
 insertion which means vehicles inserted at different times may take
 decisions during different simulation steps. During simulation steps
 without decision-making, vehicle positions are updated according to the
@@ -164,9 +182,11 @@ are safety related:
 - lcPushy: setting this to values between 0 and 1 causes aggressive
   lateral encroachment (only when using the [Sublane
   Model](../Simulation/SublaneModel.md))
+- lcImpatience: Repeated failure to change lanes causes lower lateral gaps to be accepted when using the sublane model
 - lcAssertive: setting this values above 1 cause acceptance of smaller
   longitudinal gaps in proportion to driver impatience(only when using
   the [Sublane Model](../Simulation/SublaneModel.md))
+- lcSigma: models random lateral variations (lane keeping imperfection)
 
 ## Junction Model
 

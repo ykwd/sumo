@@ -41,7 +41,7 @@ following example is a modification of
 [tutorial/traci_tls](../Tutorials/TraCI4Traffic_Lights.md)):
 
 First you compose the command line to start either
-[SUMO](../SUMO.md) or [SUMO-GUI](../SUMO-GUI.md) (leaving out
+[sumo](../sumo.md) or [sumo-gui](../sumo-gui.md) (leaving out
 the option  which was needed before 0.28.0):
 
 ```
@@ -142,7 +142,7 @@ subscriptions, whose reference object is a vehicle and whose requested
 context objects are vehicles as well) it is possible to request
 additional filters to be applied already on the server side. The general
 procedure is to equip a requested context subscription with the filter
-directly after the call to `subscribeContext()` by a succesive call to
+directly after the call to `subscribeContext()` by a successive call to
 `addSubscriptionFilter<FILTER_ID>()` as for instance in the following
 snippet:
 
@@ -189,18 +189,22 @@ of traci.StepListener) i.e.
 
 ```
  class ExampleListener(traci.StepListener):
-    def step(self, t=0):
-        # do something at every simulaton step
-        print("ExampleListener called at time %s ms." % t)
+    def step(self, t):
+        # do something after every call to simulationStep
+        print("ExampleListener called with parameter %s." % t)
         # indicate that the step listener should stay active in the next step
         return True
        
  listener = ExampleListener()
  traci.addStepListener(listener)
 ```
+Please note that the listener is not activated for every simulation step
+but for every call to simulationStep (which may perform multiple steps up to the given time *t*).
+Furthermore the parameter *t* is not the current simulation time but exactly
+the (optional) parameter passed to the simulationStep call (which is 0 by default).
 
 !!! caution
-    A TraCI StepListener cannot be used in the case that one traci client controls several SUMO-instances.
+    A TraCI StepListener cannot be used in the case that one TraCI client controls several SUMO-instances.
 
 ## Controlling parallel simulations from the same TraCI script
 
@@ -295,21 +299,35 @@ For this functionality it is recommended to use
   subprocess.Popen, be sure to call wait() on the resulting process
   object before quitting your script. You might loose output
   otherwise.
+  
+### Determine the traci library being loaded
+When working with different sumo versions it may happen that the call `import traci` loads the wrong library.
+The easiest way to debug this is to add the following lines after the import
+```
+import traci
+print("LOADPATH:", '\n'.join(sys.path))                                                                                                                                      
+print("TRACIPATH:", traci.__file__) 
+sys.exit()
+```
+Make sure that the TRACIPATH corresponds to the sumo version that you wish to use. 
+If it does not, then the order of directories in LOADPATH (sys.path) must be changed or the SUMO installation must be removed from any directories that come before the wanted directory.
 
 ### Debugging a TraCI session on Linux
 
 Sometimes SUMO may crash while running a simulation with TraCI. The
 below steps make it simple to run sumo with traci in a debugger:
 
-1\) add the option *--save-configuration* to your traci script:
+1\) Add the option *--save-configuration* to your traci script:
 
 ```
 traci.start([sumoBinary, '-c', 'run.sumocfg', '--save-configuration', 'debug.sumocfg'])
 ```
 
-2\) run your traci script. Instead of starting sumo it will just write
+2\) Run your traci script. Instead of starting sumo it will just write
 the configuration with the chosen port but it will still try to connect
-repeatedly 3) run
+repeatedly.
+
+3\) Run
 
 ```
 gdb --args sumoD -c debug.sumocfg
@@ -317,6 +335,13 @@ gdb --args sumoD -c debug.sumocfg
 
 (where sumoD is sumo [compiled in debug
 mode](../Installing/Linux_Build.md#building_the_sumo_binaries_with_cmake_recommended))
+
+### Generating a log of all traci commands
+To share a traci scenario (i.e. in a bug report) it may be useful to seperate the logic of the traci script from the actual commands.
+For this, the function `traci.start` accepts the optional arguments `traceFile` and `traceGetters`.
+When calling `traci.start([<commands>], traceFile=<LOG_FILE_PATH>)` all traci commands that were sent to sumo will be written to the given LOG_FILE_PATH.
+This allows re-running the scenario without the original runner script.
+When option `traceGetters=False` is set, only functions that change the simulation state are included in the log file. Functions that retrieve simulation data are technically not needed to reproduce a scenario but it may be useful to include them if the data retrieval functions are themselves the cause of a bug.
 
 ## Usage Examples
 

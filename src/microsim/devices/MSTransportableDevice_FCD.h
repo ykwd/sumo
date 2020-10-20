@@ -18,13 +18,7 @@
 ///
 // A device which records floating car data
 /****************************************************************************/
-#ifndef MSTransportableDevice_FCD_h
-#define MSTransportableDevice_FCD_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSTransportableDevice.h"
@@ -104,9 +98,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

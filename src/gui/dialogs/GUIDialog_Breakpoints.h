@@ -18,13 +18,7 @@
 ///
 // Editor for simulation breakpoints
 /****************************************************************************/
-#ifndef GUIDialog_Breakpoints_h
-#define GUIDialog_Breakpoints_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -104,9 +98,3 @@ private:
     /// @brief Lock for modifying the list of breakpoints
     FXMutex* myBreakpointLock;
 };
-
-
-#endif
-
-/****************************************************************************/
-

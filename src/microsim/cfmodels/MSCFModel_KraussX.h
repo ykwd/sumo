@@ -17,12 +17,7 @@
 ///
 // Experimental extensions to the Krauss car-following model
 /****************************************************************************/
-#ifndef MSCFModel_KraussX_h
-#define MSCFModel_KraussX_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSCFModel_Krauss.h"
@@ -89,5 +84,4 @@ private:
 
 };
 
-#endif /* MSCFModel_KraussX_H */
 

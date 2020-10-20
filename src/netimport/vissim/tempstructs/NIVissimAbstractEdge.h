@@ -18,13 +18,7 @@
 ///
 // -------------------
 /****************************************************************************/
-#ifndef NIVissimAbstractEdge_h
-#define NIVissimAbstractEdge_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <map>
@@ -75,9 +69,3 @@ private:
     typedef std::map<int, NIVissimAbstractEdge*> DictType;
     static DictType myDict;
 };
-
-
-#endif
-
-/****************************************************************************/
-

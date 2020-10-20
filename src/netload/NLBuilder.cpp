@@ -19,11 +19,6 @@
 ///
 // The main interface for loading a microsim
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <iostream>
@@ -34,7 +29,6 @@
 #include <utils/common/MsgHandler.h>
 #include <utils/common/StringTokenizer.h>
 #include <utils/common/SystemFrame.h>
-#include <utils/iodevices/BinaryInputDevice.h>
 #include <utils/options/Option.h>
 #include <utils/options/OptionsCont.h>
 #include <utils/options/OptionsIO.h>
@@ -53,6 +47,7 @@
 #include <microsim/MSVehicleTransfer.h>
 #include <microsim/MSNet.h>
 #include <microsim/devices/MSDevice.h>
+#include <microsim/devices/MSDevice_ToC.h>
 #include <microsim/MSEdgeControl.h>
 #include <microsim/MSGlobals.h>
 #include <microsim/output/MSDetectorControl.h>
@@ -130,8 +125,8 @@ NLBuilder::build() {
         throw ProcessError("Invalid network, no network version declared.");
     }
     // check whether the loaded net agrees with the simulation options
-    if (myOptions.getBool("no-internal-links") && myXMLHandler.haveSeenInternalEdge()) {
-        WRITE_WARNING("Network contains internal links but option --no-internal-links is set. Vehicles will 'jump' across junctions and thus underestimate route lengths and travel times.");
+    if ((myOptions.getBool("no-internal-links") || myOptions.getBool("mesosim")) && myXMLHandler.haveSeenInternalEdge() && myXMLHandler.haveSeenDefaultLength()) {
+        WRITE_WARNING("Network contains internal links which are ignored. Vehicles will 'jump' across junctions and thus underestimate route lengths and travel times.");
     }
     buildNet();
     // @note on loading order constraints:
@@ -160,8 +155,8 @@ NLBuilder::build() {
             const std::string sourceID = it->first + "-source";
             if (MSEdge::dictionary(sinkID) == nullptr && MSEdge::dictionary(sourceID) == nullptr) {
                 // sink must be built and addd before source
-                MSEdge* sink = myEdgeBuilder.buildEdge(sinkID, EDGEFUNC_CONNECTOR, "", "", -1, 0);
-                MSEdge* source = myEdgeBuilder.buildEdge(sourceID, EDGEFUNC_CONNECTOR, "", "", -1, 0);
+                MSEdge* sink = myEdgeBuilder.buildEdge(sinkID, SumoXMLEdgeFunc::CONNECTOR, "", "", -1, 0);
+                MSEdge* source = myEdgeBuilder.buildEdge(sourceID, SumoXMLEdgeFunc::CONNECTOR, "", "", -1, 0);
                 sink->setOtherTazConnector(source);
                 source->setOtherTazConnector(sink);
                 MSEdge::dictionary(sinkID, sink);
@@ -225,7 +220,7 @@ NLBuilder::build() {
         if (myOptions.isDefault("begin")) {
             myOptions.set("begin", time2string(h.getTime()));
             if (TraCIServer::getInstance() != nullptr) {
-                TraCIServer::getInstance()->setTargetTime(h.getTime());
+                TraCIServer::getInstance()->stateLoaded(h.getTime());
             }
         }
         if (MsgHandler::getErrorInstance()->wasInformed()) {
@@ -261,7 +256,8 @@ NLBuilder::init(const bool isLibsumo) {
         SystemFrame::close();
         return nullptr;
     }
-    XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"));
+    SystemFrame::checkOptions();
+    XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"), oc.getString("xml-validation.routes"));
     if (!MSFrame::checkOptions()) {
         throw ProcessError();
     }
@@ -312,6 +308,7 @@ NLBuilder::initRandomness() {
     RandHelper::initRandGlobal(MSRouteHandler::getParsingRNG());
     RandHelper::initRandGlobal(MSDevice::getEquipmentRNG());
     RandHelper::initRandGlobal(OUProcess::getRNG());
+    RandHelper::initRandGlobal(MSDevice_ToC::getResponseTimeRNG());
     MSLane::initRNGs(OptionsCont::getOptions());
 }
 
@@ -330,20 +327,21 @@ NLBuilder::buildNet() {
         junctions->postloadInitContainer();
         routeLoaders = buildRouteLoaderControl(myOptions);
         tlc = myJunctionBuilder.buildTLLogics();
-        const std::vector<int> times = myOptions.getIntVector("save-state.times");
-        for (std::vector<int>::const_iterator i = times.begin(); i != times.end(); ++i) {
-            stateDumpTimes.push_back(TIME2STEPS(*i));
+        for (std::string timeStr : myOptions.getStringVector("save-state.times")) {
+            stateDumpTimes.push_back(string2time(timeStr));
         }
         if (myOptions.isSet("save-state.files")) {
             stateDumpFiles = myOptions.getStringVector("save-state.files");
             if (stateDumpFiles.size() != stateDumpTimes.size()) {
-                WRITE_ERROR("Wrong number of state file names!");
+                throw ProcessError("Wrong number of state file names!");
             }
         } else {
             const std::string prefix = myOptions.getString("save-state.prefix");
             const std::string suffix = myOptions.getString("save-state.suffix");
             for (std::vector<SUMOTime>::iterator i = stateDumpTimes.begin(); i != stateDumpTimes.end(); ++i) {
-                stateDumpFiles.push_back(prefix + "_" + time2string(*i) + suffix);
+                std::string timeStamp = time2string(*i);
+                std::replace(timeStamp.begin(), timeStamp.end(), ':', '-');
+                stateDumpFiles.push_back(prefix + "_" + timeStamp + suffix);
             }
         }
     } catch (IOError& e) {

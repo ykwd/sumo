@@ -29,6 +29,7 @@ import subprocess
 import warnings
 import sys
 import os
+from functools import wraps
 
 if 'SUMO_HOME' in os.environ:
     sys.path.append(os.path.join(os.environ['SUMO_HOME'], 'tools'))
@@ -43,13 +44,18 @@ from .domain import _defaultDomains  # noqa
 from .connection import Connection, StepListener  # noqa
 from .exceptions import FatalTraCIError, TraCIException  # noqa
 from . import _inductionloop, _lanearea, _multientryexit, _trafficlight  # noqa
+from . import _variablespeedsign, _meandata  # noqa
 from . import _lane, _person, _route, _vehicle, _vehicletype  # noqa
 from . import _edge, _gui, _junction, _poi, _polygon, _simulation  # noqa
+from . import _calibrator, _routeprobe, _rerouter  # noqa
+from . import _busstop, _parkingarea, _chargingstation, _overheadwire  # noqa
 
 inductionloop = _inductionloop.InductionLoopDomain()
 lanearea = _lanearea.LaneAreaDomain()
 multientryexit = _multientryexit.MultiEntryExitDomain()
 trafficlight = _trafficlight.TrafficLightDomain()
+variablespeedsign = _variablespeedsign.VariableSpeedSignDomain()
+meandata = _meandata.MeanDataDomain()
 lane = _lane.LaneDomain()
 person = _person.PersonDomain()
 route = _route.RouteDomain()
@@ -61,8 +67,17 @@ junction = _junction.JunctionDomain()
 poi = _poi.PoiDomain()
 polygon = _polygon.PolygonDomain()
 simulation = _simulation.SimulationDomain()
+calibrator = _calibrator.CalibratorDomain()
+busstop = _busstop.BusStopDomain()
+parkingarea = _parkingarea.ParkingAreaDomain()
+chargingstation = _chargingstation.ChargingStationDomain()
+overheadwire = _overheadwire.OverheadWireDomain()
+routeprobe = _routeprobe.RouteProbeDomain()
+rerouter = _rerouter.RerouterDomain()
 
 _connections = {}
+_traceFile = {}
+_traceGetters = {}
 # cannot use immutable type as global variable
 _currentLabel = [""]
 _connectHook = None
@@ -76,6 +91,16 @@ def _STEPS2TIME(step):
 def setConnectHook(hookFunc):
     global _connectHook
     _connectHook = hookFunc
+
+
+def _addTracing(method):
+    @wraps(method)
+    def tracingWrapper(*args, **kwargs):
+        _traceFile[_currentLabel[0]].write("traci.%s(%s)\n" % (
+            method.__name__,
+            ', '.join(list(map(repr, args)) + ["%s=%s" % (n, repr(v)) for n, v in kwargs.items()])))
+        return method(*args, **kwargs)
+    return tracingWrapper
 
 
 def connect(port=8813, numRetries=10, host="localhost", proc=None, waitBetweenRetries=1):
@@ -113,19 +138,22 @@ def init(port=8813, numRetries=10, host="localhost", label="default", proc=None)
     return getVersion()
 
 
-def start(cmd, port=None, numRetries=10, label="default", verbose=False):
+def start(cmd, port=None, numRetries=10, label="default", verbose=False,
+          traceFile=None, traceGetters=True, stdout=None):
     """
     Start a sumo server using cmd, establish a connection to it and
     store it under the given label. This method is not thread-safe.
     """
     if label in _connections:
         raise TraCIException("Connection '%s' is already active." % label)
+    if traceFile is not None:
+        _startTracing(traceFile, cmd, port, label, traceGetters)
     while numRetries >= 0 and label not in _connections:
         sumoPort = sumolib.miscutils.getFreeSocketPort() if port is None else port
         cmd2 = cmd + ["--remote-port", str(sumoPort)]
         if verbose:
             print("Calling " + ' '.join(cmd2))
-        sumoProcess = subprocess.Popen(cmd2)
+        sumoProcess = subprocess.Popen(cmd2, stdout=stdout)
         try:
             return init(sumoPort, numRetries, "localhost", label, sumoProcess)
         except TraCIException:
@@ -134,6 +162,13 @@ def start(cmd, port=None, numRetries=10, label="default", verbose=False):
             warnings.warn("Could not connect to TraCI server using port %s. Retrying with different port." % sumoPort)
             numRetries -= 1
     raise FatalTraCIError("Could not connect.")
+
+
+def _startTracing(traceFile, cmd, port, label, traceGetters):
+    _traceFile[label] = open(traceFile, 'w')
+    _traceFile[label].write("traci.start(%s, port=%s, label=%s)\n" % (
+        repr(cmd), repr(port), repr(label)))
+    _traceGetters[label] = traceGetters
 
 
 def isLibsumo():
@@ -157,7 +192,14 @@ def load(args):
     """
     if "" not in _connections:
         raise FatalTraCIError("Not connected.")
+    if _traceFile:
+        # cannot wrap because the method is import from __init__
+        _traceFile[_currentLabel[0]].write("traci.load(%s)\n" % repr(args))
     return _connections[""].load(args)
+
+
+def isLoaded():
+    return "" in _connections
 
 
 def simulationStep(step=0):
@@ -168,6 +210,10 @@ def simulationStep(step=0):
     """
     if "" not in _connections:
         raise FatalTraCIError("Not connected.")
+    if _traceFile:
+        # cannot wrap because the method is import from __init__
+        args = "" if step == 0 else str(step)
+        _traceFile[_currentLabel[0]].write("traci.simulationStep(%s)\n" % args)
     return _connections[""].simulationStep(step)
 
 
@@ -210,7 +256,13 @@ def close(wait=True):
     if "" not in _connections:
         raise FatalTraCIError("Not connected.")
     _connections[""].close(wait)
+    _connections[""].simulation._setConnection(None)
     del _connections[_currentLabel[0]]
+    del _connections[""]
+    if _traceFile:
+        # cannot wrap because the method is import from __init__
+        _traceFile[_currentLabel[0]].write("traci.close()\n")
+        _traceFile[_currentLabel[0]].close()
 
 
 def switch(label):
@@ -218,6 +270,8 @@ def switch(label):
     _currentLabel[0] = label
     for domain in _defaultDomains:
         domain._setConnection(_connections[""])
+        if _traceFile:
+            domain._setTraceFile(_traceFile[label], _traceGetters[label])
 
 
 def getLabel():
@@ -228,3 +282,7 @@ def getConnection(label="default"):
     if label not in _connections:
         raise TraCIException("connection with label '%s' is not known")
     return _connections[label]
+
+
+def setLegacyGetLeader(enabled):
+    _vehicle._legacyGetLeader = enabled

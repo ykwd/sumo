@@ -19,13 +19,7 @@
 ///
 //  Function type template
 /****************************************************************************/
-#ifndef CastingFunctionBinding_h
-#define CastingFunctionBinding_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/ValueSource.h>
@@ -78,9 +72,3 @@ private:
     CastingFunctionBinding<T, R, O>& operator=(const CastingFunctionBinding<T, R, O>&);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

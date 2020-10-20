@@ -38,13 +38,13 @@ netedit.changeElement("chargingStation")
 netedit.changeDefaultValue(10, "reference center")
 
 # create chargingStation in mode "reference center"
-netedit.leftClick(referencePosition, 250, 170)
+netedit.leftClick(referencePosition, 250, 172)
 
 # go to inspect mode
 netedit.inspectMode()
 
 # inspect first chargingStation
-netedit.leftClick(referencePosition, 250, 168)
+netedit.leftClick(referencePosition, 250, 173)
 
 # Change parameter Power with a non valid value (dummy)
 netedit.modifyAttribute(6, "DummyPower", True)

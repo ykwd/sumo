@@ -28,7 +28,7 @@ sys.path.append(os.path.join(os.environ.get("SUMO_HOME", SUMO_HOME), "tools"))
 import traci  # noqa
 import sumolib  # noqa
 
-traci.start([sumolib.checkBinary('sumo'), "-c", "sumo.sumocfg"])
+traci.start([sumolib.checkBinary('sumo'), "-c", "sumo.sumocfg"] + sys.argv[1:])
 for step in range(3):
     print("step", step)
     traci.simulationStep()
@@ -43,6 +43,8 @@ print("occupancy", traci.inductionloop.getLastStepOccupancy(loopID))
 print("meanLength", traci.inductionloop.getLastStepMeanLength(loopID))
 print("timeSinceDet", traci.inductionloop.getTimeSinceDetection(loopID))
 print("vehData", traci.inductionloop.getVehicleData(loopID))
+print("position", traci.inductionloop.getPosition(loopID))
+print("laneID", traci.inductionloop.getLaneID(loopID))
 
 traci.inductionloop.subscribe(loopID)
 print(traci.inductionloop.getSubscriptionResults(loopID))

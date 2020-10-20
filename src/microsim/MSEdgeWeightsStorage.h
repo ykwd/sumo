@@ -18,13 +18,7 @@
 ///
 // A storage for edge travel times and efforts
 /****************************************************************************/
-#ifndef MSEdgeWeightsStorage_h
-#define MSEdgeWeightsStorage_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/ValueTimeLine.h>
@@ -133,9 +127,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -17,27 +17,24 @@
 ///
 // A series of automatic Cruise Controllers (CC, ACC, CACC)
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-#include "MSCFModel_CC.h"
+#include <algorithm>
+#include <utils/common/RandHelper.h>
+#include <utils/common/SUMOTime.h>
+#include <utils/common/StringUtils.h>
 #include <microsim/MSVehicle.h>
 #include <microsim/MSVehicleControl.h>
 #include <microsim/MSNet.h>
 #include <microsim/MSEdge.h>
-#include <utils/common/RandHelper.h>
-#include <utils/common/SUMOTime.h>
-#include <utils/common/StringUtils.h>
+#include <microsim/MSStop.h>
 #include <microsim/cfmodels/ParBuffer.h>
 #include <libsumo/Vehicle.h>
 #include <libsumo/TraCIDefs.h>
-#include <algorithm>
+#include "MSCFModel_CC.h"
 
 #ifndef sgn
 #define sgn(x) ((x > 0) - (x < 0))
 #endif
+
 
 // ===========================================================================
 // method definitions
@@ -64,9 +61,7 @@ MSCFModel_CC::MSCFModel_CC(const MSVehicleType* vtype) : MSCFModel(vtype),
 
     //if the lanes count has not been specified in the attributes of the model, lane changing cannot properly work
     if (myLanesCount == -1) {
-        std::cerr << "The number of lanes needs to be specified in the attributes of carFollowing-CC with the \"lanesCount\" attribute\n";
-        WRITE_ERROR("The number of lanes needs to be specified in the attributes of carFollowing-CC with the \"lanesCount\" attribute");
-        assert(false);
+        throw ProcessError("The number of lanes needs to be specified in the attributes of carFollowing-CC with the \"lanesCount\" attribute");
     }
 
     //instantiate the driver model. For now, use Krauss as default, then needs to be parameterized
@@ -180,7 +175,7 @@ MSCFModel_CC::finalizeSpeed(MSVehicle* const veh, double vPos) const {
 
     //check whether the vehicle has collided and set the flag in case
     if (!vars->crashed) {
-        for (const MSVehicle::Stop& s : veh->getMyStops()) {
+        for (const MSStop& s : veh->getStops()) {
             if (s.collision) {
                 vars->crashed = true;
             }

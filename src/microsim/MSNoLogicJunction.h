@@ -20,13 +20,7 @@
 ///
 // logic, e.g. for exits.
 /****************************************************************************/
-#ifndef MSNoLogicJunction_h
-#define MSNoLogicJunction_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -63,6 +57,7 @@ public:
      */
     MSNoLogicJunction(const std::string& id, SumoXMLNodeType type, const Position& position,
                       const PositionVector& shape,
+                      const std::string& name,
                       std::vector<MSLane*> incoming,
                       std::vector<MSLane*> internal);
 
@@ -88,9 +83,3 @@ private:
     MSNoLogicJunction& operator=(const MSNoLogicJunction&);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

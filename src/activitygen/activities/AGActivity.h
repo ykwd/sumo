@@ -23,13 +23,7 @@
 // Parent object for all activities. Derived classes generate trips for each
 // household.
 /****************************************************************************/
-#ifndef AGACTIVITY_H
-#define AGACTIVITY_H
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "AGTrip.h"
@@ -123,7 +117,3 @@ protected:
     double carPreference;
 
 };
-
-#endif
-
-/****************************************************************************/

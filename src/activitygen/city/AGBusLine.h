@@ -21,13 +21,7 @@
 ///
 // Bus line of the city: contains all the buses of this line
 /****************************************************************************/
-#ifndef AGBUSLINE_H
-#define AGBUSLINE_H
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <iostream>
@@ -74,7 +68,3 @@ private:
     int maxTripTime;
     int busNbr;
 };
-
-#endif
-
-/****************************************************************************/

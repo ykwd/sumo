@@ -20,13 +20,7 @@
 ///
 // A MSVehicle extended by some values for usage within the gui
 /****************************************************************************/
-#ifndef GUIMEVehicle_h
-#define GUIMEVehicle_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -103,7 +97,7 @@ public:
     /** @brief Draws the route
      * @param[in] r The route to draw
      */
-    void drawRouteHelper(const GUIVisualizationSettings& s, const MSRoute& r, bool future, const RGBColor& col) const;
+    void drawRouteHelper(const GUIVisualizationSettings& s, const MSRoute& r, bool future, bool noLoop, const RGBColor& col) const;
 
     /// @brief retrieve information about the current stop state
     std::string getStopInfo() const;
@@ -133,9 +127,3 @@ public:
     GUIParameterTableWindow* getTypeParameterWindow(GUIMainWindow& app, GUISUMOAbstractView& parent);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

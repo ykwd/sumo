@@ -17,12 +17,7 @@
 ///
 // The pedestrian following model (prototype)
 /****************************************************************************/
-#ifndef MSPModel_NonInteracting_h
-#define MSPModel_NonInteracting_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -60,6 +55,9 @@ public:
     /// @brief register the given transportable
     MSTransportableStateAdapter* add(MSTransportable* transportable, MSStageMoving* stage, SUMOTime now);
 
+    /// @brief load the state of the given transportable
+    MSTransportableStateAdapter* loadState(MSTransportable* transportable, MSStageMoving* stage, std::istringstream& in);
+
     /// @brief remove the specified person from the pedestrian simulation
     void remove(MSTransportableStateAdapter* state);
 
@@ -68,11 +66,21 @@ public:
         return false;
     }
 
+    /// @brief return the number of active objects
+    int getActiveNumber() {
+        return myNumActivePedestrians;
+    }
+
+    void registerArrived() {
+        myNumActivePedestrians--;
+    }
+
 private:
     class MoveToNextEdge : public Command {
     public:
-        MoveToNextEdge(MSTransportable* transportable, MSStageMoving& walk) : myParent(walk), myTransportable(transportable) {}
-        ~MoveToNextEdge() {}
+        MoveToNextEdge(MSTransportable* transportable, MSStageMoving& walk, MSPModel_NonInteracting* model) :
+            myParent(walk), myTransportable(transportable), myModel(model) {}
+        virtual ~MoveToNextEdge();
         SUMOTime execute(SUMOTime currentTime);
         void abortWalk() {
             myTransportable = nullptr;
@@ -84,6 +92,8 @@ private:
     private:
         MSStageMoving& myParent;
         MSTransportable* myTransportable;
+        MSPModel_NonInteracting* myModel;
+
     private:
         /// @brief Invalidated assignment operator.
         MoveToNextEdge& operator=(const MoveToNextEdge&);
@@ -93,7 +103,7 @@ private:
     /// @brief implementation of callbacks to retrieve various state information from the model
     class PState : public MSTransportableStateAdapter {
     public:
-        PState(MoveToNextEdge* cmd): myCommand(cmd) {};
+        PState(MoveToNextEdge* cmd, std::istringstream* in = nullptr);
 
         /// @brief abstract methods inherited from PedestrianState
         /// @{
@@ -107,10 +117,18 @@ private:
         /// @}
 
         /// @brief compute walking time on edge and update state members
-        SUMOTime computeWalkingTime(const MSEdge* prev, const MSStageMoving& stage, SUMOTime currentTime);
-        MoveToNextEdge* getCommand() {
+        virtual SUMOTime computeDuration(const MSEdge* prev, const MSStageMoving& stage, SUMOTime currentTime);
+        MoveToNextEdge* getCommand() const {
             return myCommand;
         }
+
+        SUMOTime getEventTime() const {
+            return myLastEntryTime + myCurrentDuration;
+        }
+
+        /** @brief Saves the current state into the given stream
+         */
+        void saveState(std::ostringstream& out);
 
     protected:
         SUMOTime myLastEntryTime;
@@ -123,7 +141,7 @@ private:
 
     class CState : public PState {
     public:
-        CState(MoveToNextEdge* cmd) : PState(cmd) {};
+        CState(MoveToNextEdge* cmd, std::istringstream* in = nullptr);
 
         /// @brief the offset for computing container positions when being transhiped
         static const double LATERAL_OFFSET;
@@ -133,7 +151,7 @@ private:
         /// @brief return the direction in which the container heading to
         double getAngle(const MSStageMoving& stage, SUMOTime now) const;
         /// @brief compute tranship time on edge and update state members
-        SUMOTime computeTranshipTime(const MSEdge* prev, const MSStageMoving& stage, SUMOTime currentTime);
+        SUMOTime computeDuration(const MSEdge* prev, const MSStageMoving& stage, SUMOTime currentTime);
 
     private:
         Position myCurrentBeginPosition;  //the position the container is moving from during its tranship stage
@@ -144,8 +162,10 @@ private:
     /// @brief the net to which to issue moveToNextEdge commands
     MSNet* myNet;
 
+    /// @brief the total number of active pedestrians
+    int myNumActivePedestrians;
+
 };
 
 
-#endif /* MSPModel_NonInteracting_h */
 

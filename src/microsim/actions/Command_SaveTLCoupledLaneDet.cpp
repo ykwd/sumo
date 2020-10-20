@@ -19,11 +19,6 @@
 ///
 // Writes e2 state of a link for the time the link has yellow/red
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include "Command_SaveTLCoupledLaneDet.h"
@@ -31,7 +26,6 @@
 #include <microsim/traffic_lights/MSTrafficLightLogic.h>
 #include <microsim/MSEventControl.h>
 #include <microsim/output/MSDetectorFileOutput.h>
-#include <microsim/MSLinkCont.h>
 #include <utils/common/UtilExceptions.h>
 #include <utils/common/MsgHandler.h>
 #include <utils/iodevices/OutputDevice.h>
@@ -73,6 +67,4 @@ Command_SaveTLCoupledLaneDet::execute() {
 }
 
 
-
 /****************************************************************************/
-

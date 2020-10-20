@@ -19,13 +19,7 @@
 ///
 // A device which collects info on the vehicle trip
 /****************************************************************************/
-#ifndef MSDevice_Vehroutes_h
-#define MSDevice_Vehroutes_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSVehicleDevice.h"
@@ -205,6 +199,8 @@ private:
     /// @brief A shortcut for the Option "vehroute-output.incomplete"
     static bool myIncludeIncomplete;
 
+    /// @brief A shortcut for the Option "vehroute-output.stop-edges"
+    static bool myWriteStopPriorEdges;
 
     /** @class StateListener
      * @brief A class that is notified about reroutings
@@ -299,6 +295,9 @@ private:
     /// @brief The lateral depart position
     double myDepartPosLat;
 
+    /// @brief the edges that were passed before the current stop
+    std::vector<const MSEdge*> myPriorEdges;
+
     OutputDevice_String myStopOut;
 
 private:
@@ -310,9 +309,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

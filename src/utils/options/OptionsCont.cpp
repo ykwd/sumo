@@ -20,9 +20,6 @@
 ///
 // A storage for options (typed value containers)
 /****************************************************************************/
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <map>
@@ -348,7 +345,12 @@ OptionsCont::relocateFiles(const std::string& configuration) const {
         if (option->isFileName() && option->isSet()) {
             StringVector fileList = StringVector(option->getStringVector());
             for (std::string& f : fileList) {
-                f = StringUtils::urlDecode(FileHelpers::checkForRelativity(f, configuration));
+                f = FileHelpers::checkForRelativity(f, configuration);
+                try {
+                    f = StringUtils::urlDecode(f);
+                } catch (NumberFormatException& e) {
+                    WRITE_WARNING(toString(e.what()) + " when trying to decode filename '" + f + "'.");
+                }
             }
             const std::string conv = joinToString(fileList, ',');
             if (conv != joinToString(option->getStringVector(), ',')) {
@@ -546,7 +548,7 @@ OptionsCont::splitLines(std::ostream& os, std::string what,
             }
             if (splitPos != std::string::npos) {
                 os << what.substr(0, splitPos) << std::endl;
-                what = what.substr(splitPos);
+                what = what.substr(splitPos + 1);
                 for (int r = 0; r < nextOffset + 1; ++r) {
                     os << ' ';
                 }

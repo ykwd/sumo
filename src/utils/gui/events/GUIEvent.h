@@ -17,13 +17,7 @@
 ///
 // Definition of an own event class
 /****************************************************************************/
-#ifndef GUIEvent_h
-#define GUIEvent_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/foxtools/FXThreadEvent.h>
@@ -95,9 +89,3 @@ protected:
     /// @brief the type of the event
     GUIEventType myType;
 };
-
-
-#endif
-
-/****************************************************************************/
-

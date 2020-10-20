@@ -22,13 +22,7 @@
 ///
 // Person in working age: can be linked to a work position.
 /****************************************************************************/
-#ifndef AGADULT_H
-#define AGADULT_H
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -122,7 +116,3 @@ private:
      */
     static AGWorkPosition* randomFreeWorkPosition(std::vector<AGWorkPosition>* wps);
 };
-
-#endif /* AGADULT_H */
-
-/****************************************************************************/

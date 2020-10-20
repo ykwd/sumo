@@ -19,16 +19,10 @@
 ///
 // Set z-values for all network positions based on data from a height map
 /****************************************************************************/
-#ifndef NBHeightMapper_h
-#define NBHeightMapper_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
-#ifdef _MSC_VER
+#ifdef WIN32
 typedef __int16 int16_t;
 #else
 #include <stdint.h>
@@ -63,7 +57,7 @@ class NBHeightMapper {
     friend class NBHeightMapperTest;
 
 public:
-    /** @brief loads heigh map data if any loading options are set
+    /** @brief loads height map data if any loading options are set
      *
      * @param[in] oc The options container to get further options from
      * @exception ProcessError if something fails
@@ -78,7 +72,7 @@ public:
 
     /// @brief returns the convex boundary of all known triangles
     const Boundary& getBoundary() {
-        return Singleton.myBoundary;
+        return myInstance.myBoundary;
     }
 
     /// @brief returns height for the given geo coordinate (WGS84)
@@ -129,7 +123,7 @@ public:
 
 private:
     /// @brief the singleton instance
-    static NBHeightMapper Singleton;
+    static NBHeightMapper myInstance;
 
     Triangles myTriangles;
 
@@ -198,9 +192,3 @@ inline TRIANGLE_RTREE_QUAL::Rect TRIANGLE_RTREE_QUAL::CombineRect(Rect* a_rectA,
     newRect.m_max[1] = rtree_max(a_rectA->m_max[1], a_rectB->m_max[1]);
     return newRect;
 }
-
-
-#endif
-
-/****************************************************************************/
-

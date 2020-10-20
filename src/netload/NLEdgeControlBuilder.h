@@ -20,13 +20,7 @@
 ///
 // Interface for building edges
 /****************************************************************************/
-#ifndef NLEdgeControlBuilder_h
-#define NLEdgeControlBuilder_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -201,9 +195,3 @@ private:
     NLEdgeControlBuilder& operator=(const NLEdgeControlBuilder& s);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

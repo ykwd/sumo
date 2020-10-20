@@ -17,11 +17,6 @@
 ///
 // APIs for getting/setting person values via TraCI
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/common/StringTokenizer.h>
@@ -49,8 +44,7 @@ TraCIServerAPI_Person::processGet(TraCIServer& server, tcpip::Storage& inputStor
     const std::string id = inputStorage.readString();
     server.initWrapper(libsumo::RESPONSE_GET_PERSON_VARIABLE, variable, id);
     try {
-        if (!libsumo::Person::handleVariable(id, variable, &server) &&
-                !libsumo::VehicleType::handleVariable(libsumo::Person::getTypeID(id), variable, &server)) {
+        if (!libsumo::Person::handleVariable(id, variable, &server)) {
             switch (variable) {
                 case libsumo::VAR_EDGES: {
                     int nextStageIndex = 0;
@@ -76,6 +70,51 @@ TraCIServerAPI_Person::processGet(TraCIServer& server, tcpip::Storage& inputStor
                     }
                     server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_STRING);
                     server.getWrapperStorage().writeString(libsumo::Person::getParameter(id, paramName));
+                    break;
+                }
+                case libsumo::VAR_PARAMETER_WITH_KEY: {
+                    std::string paramName = "";
+                    if (!server.readTypeCheckingString(inputStorage, paramName)) {
+                        return server.writeErrorStatusCmd(libsumo::CMD_GET_PERSON_VARIABLE, "Retrieval of a parameter requires its name.", outputStorage);
+                    }
+                    server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_COMPOUND);
+                    server.getWrapperStorage().writeInt(2);  /// length
+                    server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_STRING);
+                    server.getWrapperStorage().writeString(paramName);
+                    server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_STRING);
+                    server.getWrapperStorage().writeString(libsumo::Person::getParameter(id, paramName));
+                    break;
+                }
+                case libsumo::VAR_TAXI_RESERVATIONS: {
+                    int onlyNew = 0;
+                    if (!server.readTypeCheckingInt(inputStorage, onlyNew)) {
+                        return server.writeErrorStatusCmd(libsumo::CMD_GET_PERSON_VARIABLE, "Retrieval of reservations requires an integer flag.", outputStorage);
+                    }
+                    const std::vector<libsumo::TraCIReservation> result = libsumo::Person::getTaxiReservations(onlyNew);
+                    server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_COMPOUND);
+                    server.getWrapperStorage().writeInt((int)result.size());
+                    for (const libsumo::TraCIReservation& r : result) {
+                        server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_COMPOUND);
+                        server.getWrapperStorage().writeInt(9);
+                        server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_STRING);
+                        server.getWrapperStorage().writeString(r.id);
+                        server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_STRINGLIST);
+                        server.getWrapperStorage().writeStringList(r.persons);
+                        server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_STRING);
+                        server.getWrapperStorage().writeString(r.group);
+                        server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_STRING);
+                        server.getWrapperStorage().writeString(r.fromEdge);
+                        server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_STRING);
+                        server.getWrapperStorage().writeString(r.toEdge);
+                        server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_DOUBLE);
+                        server.getWrapperStorage().writeDouble(r.departPos);
+                        server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_DOUBLE);
+                        server.getWrapperStorage().writeDouble(r.arrivalPos);
+                        server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_DOUBLE);
+                        server.getWrapperStorage().writeDouble(r.depart);
+                        server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_DOUBLE);
+                        server.getWrapperStorage().writeDouble(r.reservationTime);
+                    }
                     break;
                 }
                 default:
@@ -187,7 +226,7 @@ TraCIServerAPI_Person::processSet(TraCIServer& server, tcpip::Storage& inputStor
                 }
                 int numParameters = inputStorage.readInt();
                 if (numParameters == 13) {
-                    libsumo::Person::appendStage(*TraCIServerAPI_Simulation::readStage(server, inputStorage), id);
+                    libsumo::Person::appendStage(id, *TraCIServerAPI_Simulation::readStage(server, inputStorage));
                 } else {
                     int stageType;
                     if (!server.readTypeCheckingInt(inputStorage, stageType)) {

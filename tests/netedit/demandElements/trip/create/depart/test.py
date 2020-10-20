@@ -34,42 +34,42 @@ netedit.supermodeDemand()
 # go to vehicle mode
 netedit.vehicleMode()
 
-# select trip
-netedit.changeElement("trip")
+# disable select trip due this is the first vehicle in the list
+# netedit.changeElement("trip")
 
 # try to create trip
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create trip
 netedit.typeEnter()
 
 # set invalid depart
-netedit.changeDefaultValue(19, "-12")
+netedit.changeDefaultValue(18, "-12")
 
 # try to create trip
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create trip
 netedit.typeEnter()
 
 # set valid depart
-netedit.changeDefaultValue(19, "30")
+netedit.changeDefaultValue(18, "30")
 
 # create trip
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create trip
 netedit.typeEnter()
 
 # set valid depart (output will be changed)
-netedit.changeDefaultValue(19, "20")
+netedit.changeDefaultValue(18, "20")
 
 # create trip
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create trip
 netedit.typeEnter()

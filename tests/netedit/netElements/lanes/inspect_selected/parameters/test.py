@@ -32,25 +32,25 @@ neteditProcess, referencePosition = netedit.setupAndStart(neteditTestRoot)
 netedit.rebuildNetwork()
 
 # toogle select lanes
-netedit.changeEditMode('2')
+netedit.changeEditMode('4')
 
 # go to select mode
 netedit.selectMode()
 
-# select first edge
-netedit.leftClick(referencePosition, 250, 180)
+# select first lane
+netedit.leftClick(referencePosition, 250, 165)
 
-# select second edge
-netedit.leftClick(referencePosition, 250, 100)
+# select second lane
+netedit.leftClick(referencePosition, 250, 105)
 
 # go to inspect mode
 netedit.inspectMode()
 
-# inspect edge
-netedit.leftClick(referencePosition, 250, 180)
+# inspect lane
+netedit.leftClick(referencePosition, 250, 105)
 
 # check parameters
-netedit.checkParameters(referencePosition, 9, False)
+netedit.checkParameters(referencePosition, 9, True)
 
 # save additionals
 netedit.saveAdditionals(referencePosition)

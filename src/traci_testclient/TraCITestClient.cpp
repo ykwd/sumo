@@ -25,8 +25,9 @@
 /* =========================================================================
  * included modules
  * ======================================================================= */
-#include <config.h>
-
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 #include <vector>
 #include <iostream>
 #include <iomanip>
@@ -41,8 +42,6 @@
 
 #include <libsumo/TraCIConstants.h>
 #include <libsumo/TraCIDefs.h>
-#include <utils/common/SUMOTime.h>
-#include <utils/common/ToString.h>
 #include "TraCITestClient.h"
 
 
@@ -646,6 +645,8 @@ TraCITestClient::readAndReportTypeDependent(tcpip::Storage& inMsg, int valueData
 void
 TraCITestClient::testAPI() {
     answerLog << "testAPI:\n";
+    const auto& version = getVersion();
+    answerLog << "  getVersion: " << version.first << ", " << version.second << "\n";
     answerLog << "  setOrder:\n";
     setOrder(0);
     // edge
@@ -791,6 +792,11 @@ TraCITestClient::testAPI() {
     answerLog << "    getSpeed: " << vehicle.getSpeed("0") << "\n";
     answerLog << "    getLateralSpeed: " << vehicle.getLateralSpeed("0") << "\n";
     answerLog << "    getAcceleration: " << vehicle.getAcceleration("0") << "\n";
+
+    answerLog << "    getFollowSpeed: " << vehicle.getFollowSpeed("0", 10, 20, 9, 4.5) << "\n";
+    answerLog << "    getSecureGap: " << vehicle.getSecureGap("0", 10, 9, 4.5) << "\n";
+    answerLog << "    getStopSpeed: " << vehicle.getStopSpeed("0", 10, 20) << "\n";
+
     answerLog << "    getSpeedMode: " << vehicle.getSpeedMode("0") << "\n";
     answerLog << "    getSlope: " << vehicle.getSlope("0") << "\n";
     answerLog << "    getLine: " << vehicle.getLine("0") << "\n";
@@ -800,8 +806,11 @@ TraCITestClient::testAPI() {
     answerLog << "    getMaxSpeed: " << vehicle.getMaxSpeed("0") << "\n";
     answerLog << "    isRouteValid: " << vehicle.isRouteValid("0") << "\n";
     answerLog << "    getStopState: " << vehicle.getStopState("0") << "\n";
+    answerLog << "    getStopDelay: " << vehicle.getStopDelay("0") << "\n";
     vehicle.setParameter("0", "meaningOfLife", "42");
     answerLog << "    param: " << vehicle.getParameter("0", "meaningOfLife") << "\n";
+    std::pair<std::string, std::string> paramTuple = vehicle.getParameterWithKey("0", "meaningOfLife");
+    answerLog << "    parameterWithKey: (" << paramTuple.first << ", " << paramTuple.second << ")\n";
     libsumo::TraCIColor col1;
     col1.r = 255;
     col1.g = 255;
@@ -824,6 +833,7 @@ TraCITestClient::testAPI() {
     answerLog << "    moveToXY, simStep:\n";
     vehicle.moveToXY("0", "dummy", 0, 2231.61, 498.29, 90, 1);
     simulationStep();
+    // simulationStep(1);
     answerLog << "    getRoadID: " << vehicle.getRoadID("0") << "\n";
     answerLog << "    getLaneID: " << vehicle.getLaneID("0") << "\n";
     vehicle.changeTarget("0", "e_o0");
@@ -845,12 +855,18 @@ TraCITestClient::testAPI() {
     answerLog << "    getShapeClass: " << vehicle.getShapeClass("0") << "\n";
     std::pair<std::string, double> leader = vehicle.getLeader("1", 1000);
     answerLog << "    getLeader: " << leader.first << ", " << leader.second << "\n";
+    std::pair<std::string, double> follower = vehicle.getFollower("1", 1000);
+    answerLog << "    getFollower: " << follower.first << ", " << follower.second << "\n";
     std::pair<int, int> state = vehicle.getLaneChangeState("1", 1);
     answerLog << "    getLaneChangeState (left): " << state.first << ", " << state.second << "\n";
     state = vehicle.getLaneChangeState("1", -1);
     answerLog << "    getLaneChangeState (right): " << state.first << ", " << state.second << "\n";
     vehicle.rerouteTraveltime("0");
     vehicle.setSpeedFactor("0", 0.8);
+    vehicle.setSpeedMode("0", 0);
+    answerLog << "    getSpeedMode after change: " << vehicle.getSpeedMode("0") << "\n";
+    vehicle.setLaneChangeMode("0", 0);
+    answerLog << "    getLaneChangeMode after change: " << vehicle.getLaneChangeMode("0") << "\n";
     answerLog << "    remove:\n";
     vehicle.remove("0");
     answerLog << "    getIDCount: " << vehicle.getIDCount() << "\n";
@@ -946,6 +962,7 @@ TraCITestClient::testAPI() {
     person.setType("p0", "stilts");
     answerLog << "    getIDList: " << joinToString(person.getIDList(), " ") << "\n";
     answerLog << "    getRoadID: " << person.getRoadID("p0") << "\n";
+    answerLog << "    getLaneID: " << person.getLaneID("p0") << "\n";
     answerLog << "    getTypeID: " << person.getTypeID("p0") << "\n";
     answerLog << "    getWaitingTime: " << person.getWaitingTime("p0") << "\n";
     answerLog << "    getNextEdge: " << person.getNextEdge("p0") << "\n";
@@ -1012,21 +1029,23 @@ TraCITestClient::testAPI() {
         }
     }
     libsumo::TraCILogic logic("custom", 0, 3);
-    logic.phases = std::vector<libsumo::TraCIPhase>({ libsumo::TraCIPhase(5, "rrrrrrr", 5, 5), libsumo::TraCIPhase(10, "ggggggg", 5, 15),
-                   libsumo::TraCIPhase(3, "GGGGGGG", 3, 3), libsumo::TraCIPhase(3, "yyyyyyy", 3, 3)
-                                                    });
-    trafficlights.setCompleteRedYellowGreenDefinition("n_m4", logic);
+    logic.phases = std::vector<libsumo::TraCIPhase*>({ new libsumo::TraCIPhase(5, "rrrrrrr", 5, 5),
+                     new libsumo::TraCIPhase(10, "ggggggg", 5, 15),
+                     new libsumo::TraCIPhase(3, "GGGGGGG", 3, 3),
+                     new libsumo::TraCIPhase(3, "yyyyyyy", 3, 3)
+    });
+    trafficlights.setProgramLogic("n_m4", logic);
 
-    std::vector<libsumo::TraCILogic> logics = trafficlights.getCompleteRedYellowGreenDefinition("n_m4");
+    std::vector<libsumo::TraCILogic> logics = trafficlights.getAllProgramLogics("n_m4");
     answerLog << "    completeDefinition:\n";
     for (int i = 0; i < (int)logics.size(); ++i) {
         answerLog << "      subID=" << logics[i].programID << " type=" << logics[i].type << " phase=" << logics[i].currentPhaseIndex << "\n";
-        answerLog << "      params=" << joinToString(logics[i].subParameter, " ", ":") << "\n";
+        answerLog << "      params=" << joinToString(logics[i].subParameter) << "\n";
         for (int j = 0; j < (int)logics[i].phases.size(); ++j) {
-            answerLog << "         phase=" << logics[i].phases[j].state
-                      << " dur=" << logics[i].phases[j].duration
-                      << " minDur=" << logics[i].phases[j].minDur
-                      << " maxDur=" << logics[i].phases[j].maxDur
+            answerLog << "         phase=" << logics[i].phases[j]->state
+                      << " dur=" << logics[i].phases[j]->duration
+                      << " minDur=" << logics[i].phases[j]->minDur
+                      << " maxDur=" << logics[i].phases[j]->maxDur
                       << "\n";
         }
     }
@@ -1048,8 +1067,8 @@ TraCITestClient::testAPI() {
     load(args);
     simulationStep();
     answerLog << "    getCurrentTime: " << simulation.getCurrentTime() << "\n";
-    vehicle.subscribe("0", vars, 0, TIME2STEPS(100));
-    edge.subscribeContext("e_u1", libsumo::CMD_GET_VEHICLE_VARIABLE, 100, vars2, 0, TIME2STEPS(100));
+    vehicle.subscribe("0", vars, 0, 100);
+    edge.subscribeContext("e_u1", libsumo::CMD_GET_VEHICLE_VARIABLE, 100, vars2, 0, 100);
 
     answerLog << "  gui:\n";
     try {

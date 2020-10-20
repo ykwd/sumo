@@ -22,12 +22,7 @@
 /// @todo: check parameter admissibility in setter methods
 
 
-#ifndef MSDriverState_h
-#define MSDriverState_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <memory>
@@ -710,9 +705,3 @@ struct DriverStateDefaults {
     static double headwayErrorCoefficient;
     static double maximalReactionTimeFactor;
 };
-
-
-
-#endif
-
-/****************************************************************************/

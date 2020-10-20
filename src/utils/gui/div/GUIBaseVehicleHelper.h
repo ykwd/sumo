@@ -17,13 +17,7 @@
 ///
 // Functions used in GUIBaseVehicleHelper and GNEVehicle
 /****************************************************************************/
-#ifndef GUIBaseVehicleHelper_h
-#define GUIBaseVehicleHelper_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -65,9 +59,3 @@ public:
     static bool drawAction_drawVehicleAsImage(const GUIVisualizationSettings& s, const std::string& file,
             const GUIGlObject* o, const double width, double length);
 };
-
-
-#endif
-
-/****************************************************************************/
-

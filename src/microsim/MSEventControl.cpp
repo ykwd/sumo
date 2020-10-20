@@ -21,11 +21,6 @@
 ///
 // Stores time-dependant events and executes them at the proper time
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <cassert>
@@ -38,23 +33,22 @@
 // ===========================================================================
 // member definitions
 // ===========================================================================
-MSEventControl::MSEventControl()
-    : currentTimeStep(-1), myEvents() {}
+MSEventControl::MSEventControl() :
+    myEvents() {}
 
 
 MSEventControl::~MSEventControl() {
     // delete the events
-    while (!myEvents.empty()) {
-        Event e = myEvents.top();
+    for (const Event& e : myEvents) {
         delete e.first;
-        myEvents.pop();
     }
 }
 
 
 void
 MSEventControl::addEvent(Command* operation, SUMOTime execTimeStep) {
-    myEvents.push(Event(operation, execTimeStep));
+    myEvents.emplace_back(Event(operation, execTimeStep));
+    std::push_heap(myEvents.begin(), myEvents.end(), MSEventControl::eventCompare);
 }
 
 
@@ -62,13 +56,14 @@ void
 MSEventControl::execute(SUMOTime execTime) {
     // Execute all events that are scheduled for execTime.
     while (!myEvents.empty()) {
-        Event currEvent = myEvents.top();
+        Event currEvent = myEvents.front();
         if (currEvent.second < 0) {
             currEvent.second = execTime;
         }
         if (currEvent.second < execTime + DELTA_T) {
             Command* command = currEvent.first;
-            myEvents.pop();
+            std::pop_heap(myEvents.begin(), myEvents.end(), eventCompare);
+            myEvents.pop_back();
             SUMOTime time = 0;
             try {
                 time = command->execute(execTime);
@@ -85,8 +80,7 @@ MSEventControl::execute(SUMOTime execTime) {
                 }
                 delete currEvent.first;
             } else {
-                currEvent.second += time;
-                myEvents.push(currEvent);
+                addEvent(currEvent.first, currEvent.second + time);
             }
         } else {
             break;
@@ -100,20 +94,20 @@ MSEventControl::isEmpty() {
     return myEvents.empty();
 }
 
+
 void
-MSEventControl::setCurrentTimeStep(SUMOTime time) {
-    currentTimeStep = time;
-}
-
-SUMOTime
-MSEventControl::getCurrentTimeStep() {
-    if (currentTimeStep < 0) {
-        return MSNet::getInstance()->getCurrentTimeStep();
+MSEventControl::clearState(SUMOTime currentTime, SUMOTime newTime) {
+    for (auto eventIt = myEvents.begin(); eventIt != myEvents.end();) {
+        eventIt->second = eventIt->first->shiftTime(currentTime, eventIt->second, newTime);
+        if (eventIt->second >= 0) {
+            ++eventIt;
+        } else {
+            delete eventIt->first;
+            eventIt = myEvents.erase(eventIt);
+        }
     }
-    return currentTimeStep;
+    std::make_heap(myEvents.begin(), myEvents.end(), eventCompare);
 }
-
 
 
 /****************************************************************************/
-

@@ -18,13 +18,7 @@
 ///
 // Realises dumping Electric hybrid vehicle data
 /****************************************************************************/
-#ifndef MSElecHybridExport_h
-#define MSElecHybridExport_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/SUMOTime.h>
@@ -73,5 +67,4 @@ private:
 };
 
 
-#endif
 

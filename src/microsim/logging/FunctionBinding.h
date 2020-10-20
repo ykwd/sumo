@@ -20,14 +20,7 @@
 ///
 //  Function type template
 /****************************************************************************/
-#ifndef FunctionBinding_h
-#define FunctionBinding_h
-
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/ValueSource.h>
@@ -120,8 +113,3 @@ private:
     FunctionBindingString<T>& operator=(const FunctionBindingString<T>&);
 
 };
-
-#endif
-
-/****************************************************************************/
-

@@ -11,23 +11,26 @@ cp save2/state2.sumo.meso load_remove/input_meso_state.xml
 cp save2/state.sumo load_late_insertion/input_state.xml
 cp save2/state.sumo.meso load_late_insertion/input_meso_state.xml
 
+cp save2/state.sumo load_routes_as_additional/input_state.xml
+cp save2/state.sumo.meso load_routes_as_additional/input_meso_state.xml
+
 cp save2/state.sumo load_and_save/input_state.xml
 cp save2/state.sumo.meso load_and_save/input_meso_state.xml
 
-#cp save2/state.sumo load_and_save_including_actionStepLength/input_state.xml
-cp save2/state.sumo.meso load_and_save_including_actionStepLength/input_meso_state.xml
+cp save_actionStepLength/state.sumo load_and_save_actionStepLength/input_state.xml
+cp save_actionStepLength/state.sumo.meso load_and_save_actionStepLength/input_meso_state.xml
 
-#cp save2/state.sumo load_and_save_including_actionStepLength2/input_state.xml
-cp save2/state.sumo.meso load_and_save_including_actionStepLength2/input_meso_state.xml
+cp save_actionStepLength2/state.sumo load_and_save_actionStepLength2/input_state.xml
+cp save_actionStepLength2/state.sumo.meso load_and_save_actionStepLength2/input_meso_state.xml
 
-cp save_flow/state.sumo load_flow/input_state.xml
-cp save_flow/state.sumo.meso load_flow/input_meso_state.xml
+for f in flow parking parking_busStop stopped cyclic_stops rng routeDistribution; do
+    cp save_$f/state.sumo load_$f/input_state.xml
+    cp save_$f/state.sumo.meso load_$f/input_meso_state.xml
+done
 
-cp save_parking/state.sumo load_parking/input_state.xml
-cp save_parking/state.sumo.meso load_parking/input_meso_state.xml
-
-cp save_stopped/state.sumo load_stopped/input_state.xml
-cp save_stopped/state.sumo.meso load_stopped/input_meso_state.xml
+for f in rail_signal on_rail_signal rail_signal_constraint collision_stopped; do
+    cp save_$f/state.sumo load_$f/input_state.xml
+done
 
 sumo -c load_arriving/saveState.sumocfg
 sumo -c load_arriving/saveMesoState.sumocfg

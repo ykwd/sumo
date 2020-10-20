@@ -19,13 +19,7 @@
 ///
 // A reader for a SUMO network's projection description
 /****************************************************************************/
-#ifndef PCNetProjectionLoader_h
-#define PCNetProjectionLoader_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -98,9 +92,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

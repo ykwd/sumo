@@ -20,11 +20,6 @@
 ///
 // Sets and checks options for ma-routing
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <iostream>
@@ -57,7 +52,6 @@ ROMAFrame::fillOptions() {
     oc.addOptionSubTopic("Processing");
     oc.addOptionSubTopic("Defaults");
     oc.addOptionSubTopic("Time");
-    SystemFrame::addReportOptions(oc); // fill this subtopic, too
 
     // insert options
     addImportOptions();
@@ -133,6 +127,9 @@ ROMAFrame::addImportOptions() {
     oc.doRegister("junction-taz", new Option_Bool(false));
     oc.addDescription("junction-taz", "Input", "Initialize a TAZ for every junction to use attributes toJunction and fromJunction");
 
+    // need to do this here to be able to check for network and route input options
+    SystemFrame::addReportOptions(oc);
+
     // register the time settings
     oc.doRegister("begin", 'b', new Option_String("0", "TIME"));
     oc.addDescription("begin", "Time", "Defines the begin time; Previous trips will be discarded");
@@ -159,6 +156,9 @@ ROMAFrame::addImportOptions() {
     oc.doRegister("weights.expand", new Option_Bool(false));
     oc.addSynonyme("weights.expand", "expand-weights", true);
     oc.addDescription("weights.expand", "Processing", "Expand weights behind the simulation's end");
+
+    oc.doRegister("weights.priority-factor", new Option_Float(0));
+    oc.addDescription("weights.priority-factor", "Processing", "Consider edge priorities in addition to travel times, weighted by factor");
 
     oc.doRegister("routing-algorithm", new Option_String("dijkstra"));
     oc.addDescription("routing-algorithm", "Processing", "Select among routing algorithms ['dijkstra', 'astar', 'CH', 'CHWrapper']");
@@ -250,7 +250,7 @@ ROMAFrame::addAssignmentOptions() {
     oc.addDescription("max-iterations", "Processing", "maximal number of iterations for new route searching in incremental and stochastic user assignment");
 
     oc.doRegister("max-inner-iterations", new Option_Integer(1000));
-    oc.addDescription("max-inner-iterations", "Processing", "maximal number of inner iterations for user equilibrium calcuation in the stochastic user assignment");
+    oc.addDescription("max-inner-iterations", "Processing", "maximal number of inner iterations for user equilibrium calculation in the stochastic user assignment");
 
     // register route choice settings
     oc.doRegister("route-choice-method", new Option_String("logit"));
@@ -302,6 +302,4 @@ ROMAFrame::checkOptions() {
 }
 
 
-
 /****************************************************************************/
-

@@ -17,13 +17,7 @@
 ///
 // Calibrates the flow on a segment to a specified one
 /****************************************************************************/
-#ifndef METriggeredCalibrator_h
-#define METriggeredCalibrator_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -48,6 +42,7 @@ public:
                           const std::string& outputFilename,
                           const SUMOTime freq, const double length,
                           const MSRouteProbe* probe,
+                          const double invalidJamThreshold,
                           const std::string& vTypes);
 
     /** destructor */
@@ -89,7 +84,3 @@ private:
     MESegment* mySegment;
 
 };
-
-#endif
-
-/****************************************************************************/

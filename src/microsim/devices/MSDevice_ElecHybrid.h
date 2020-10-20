@@ -18,13 +18,7 @@
 ///
 // A device which stands as an implementation ElecHybrid and which outputs movereminder calls
 /****************************************************************************/
-#ifndef MSDevice_ElecHybrid_h
-#define MSDevice_ElecHybrid_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <microsim/devices/MSVehicleDevice.h>
@@ -299,9 +293,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

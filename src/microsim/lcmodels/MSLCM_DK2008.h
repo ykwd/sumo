@@ -21,13 +21,7 @@
 ///
 // A lane change model developed by D. Krajzewicz between 2004 and 2010
 /****************************************************************************/
-#ifndef MSLCM_DK2008_h
-#define MSLCM_DK2008_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSAbstractLaneChangeModel.h"
@@ -150,9 +144,3 @@ protected:
     bool myDontBrake;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

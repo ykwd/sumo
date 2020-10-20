@@ -18,13 +18,7 @@
 ///
 // Helper methods for Harmonoise-based noise emission computation
 /****************************************************************************/
-#ifndef HelpersHarmonoise_h
-#define HelpersHarmonoise_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -101,9 +95,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

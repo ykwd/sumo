@@ -17,16 +17,11 @@
 ///
 // A network change in which a traffic light is created or deleted
 /****************************************************************************/
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 
 #include <utils/options/OptionsCont.h>
 #include <netbuild/NBOwnTLDef.h>
-#include <netedit/netelements/GNEJunction.h>
 #include <netedit/GNENet.h>
 
 #include "GNEChange_TLS.h"
@@ -44,11 +39,10 @@ FXIMPLEMENT_ABSTRACT(GNEChange_TLS, GNEChange, nullptr, 0)
 
 /// @brief constructor for creating an edge
 GNEChange_TLS::GNEChange_TLS(GNEJunction* junction, NBTrafficLightDefinition* tlDef, bool forward, bool forceInsert, const std::string tlID):
-    GNEChange(junction->getNet(), forward),
+    GNEChange(forward, false),
     myJunction(junction),
     myTlDef(tlDef),
     myForceInsert(forceInsert) {
-    assert(myNet);
     myJunction->incRef("GNEChange_TLS");
     if (myTlDef == nullptr) {
         assert(forward);
@@ -64,7 +58,6 @@ GNEChange_TLS::GNEChange_TLS(GNEJunction* junction, NBTrafficLightDefinition* tl
 
 
 GNEChange_TLS::~GNEChange_TLS() {
-    assert(myJunction);
     myJunction->decRef("GNEChange_TLS");
     if (myJunction->unreferenced()) {
         // show extra information for tests
@@ -87,8 +80,8 @@ GNEChange_TLS::undo() {
         // add traffic light to junction
         myJunction->addTrafficLight(myTlDef, myForceInsert);
     }
-    // enable save netElements
-    myNet->requireSaveNet(true);
+    // enable save networkElements
+    myJunction->getNet()->requireSaveNet(true);
 }
 
 
@@ -105,8 +98,8 @@ GNEChange_TLS::redo() {
         // remove traffic light from junction
         myJunction->removeTrafficLight(myTlDef);
     }
-    // enable save netElements
-    myNet->requireSaveNet(true);
+    // enable save networkElements
+    myJunction->getNet()->requireSaveNet(true);
 }
 
 

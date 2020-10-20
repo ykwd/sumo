@@ -19,11 +19,6 @@
 ///
 // The router's network representation
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <algorithm>
@@ -65,18 +60,19 @@ RONet::getInstance(void) {
 }
 
 
-RONet::RONet()
-    : myVehicleTypes(), myDefaultVTypeMayBeDeleted(true),
-      myDefaultPedTypeMayBeDeleted(true), myDefaultBikeTypeMayBeDeleted(true),
-      myHaveActiveFlows(true),
-      myRoutesOutput(nullptr), myRouteAlternativesOutput(nullptr), myTypesOutput(nullptr),
-      myReadRouteNo(0), myDiscardedRouteNo(0), myWrittenRouteNo(0),
-      myHavePermissions(false),
-      myNumInternalEdges(0),
-      myErrorHandler(OptionsCont::getOptions().exists("ignore-errors")
-                     && OptionsCont::getOptions().getBool("ignore-errors") ? MsgHandler::getWarningInstance() : MsgHandler::getErrorInstance()),
-      myKeepVTypeDist(OptionsCont::getOptions().exists("keep-vtype-distributions")
-                      && OptionsCont::getOptions().getBool("keep-vtype-distributions")) {
+RONet::RONet() :
+    myVehicleTypes(), myDefaultVTypeMayBeDeleted(true),
+    myDefaultPedTypeMayBeDeleted(true), myDefaultBikeTypeMayBeDeleted(true),
+    myHaveActiveFlows(true),
+    myRoutesOutput(nullptr), myRouteAlternativesOutput(nullptr), myTypesOutput(nullptr),
+    myReadRouteNo(0), myDiscardedRouteNo(0), myWrittenRouteNo(0),
+    myHavePermissions(false),
+    myNumInternalEdges(0),
+    myErrorHandler(OptionsCont::getOptions().exists("ignore-errors")
+                   && OptionsCont::getOptions().getBool("ignore-errors") ? MsgHandler::getWarningInstance() : MsgHandler::getErrorInstance()),
+    myKeepVTypeDist(OptionsCont::getOptions().exists("keep-vtype-distributions")
+                    && OptionsCont::getOptions().getBool("keep-vtype-distributions")),
+    myHasBidiEdges(false) {
     if (myInstance != nullptr) {
         throw ProcessError("A network was already constructed.");
     }
@@ -168,9 +164,9 @@ RONet::addDistrict(const std::string id, ROEdge* source, ROEdge* sink) {
         delete sink;
         return false;
     }
-    sink->setFunction(EDGEFUNC_CONNECTOR);
+    sink->setFunction(SumoXMLEdgeFunc::CONNECTOR);
     addEdge(sink);
-    source->setFunction(EDGEFUNC_CONNECTOR);
+    source->setFunction(SumoXMLEdgeFunc::CONNECTOR);
     addEdge(source);
     sink->setOtherTazConnector(source);
     source->setOtherTazConnector(sink);
@@ -234,6 +230,17 @@ RONet::addJunctionTaz(ROAbstractEdgeBuilder& eb) {
     }
 }
 
+void
+RONet::setBidiEdges(const std::map<ROEdge*, std::string>& bidiMap) {
+    for (const auto& item : bidiMap) {
+        ROEdge* bidi = myEdges.get(item.second);
+        if (bidi == nullptr) {
+            WRITE_ERROR("The bidi edge '" + item.second + "' is not known.");
+        }
+        item.first->setBidiEdge(bidi);
+        myHasBidiEdges = true;
+    }
+}
 
 void
 RONet::addNode(RONode* node) {
@@ -578,9 +585,9 @@ RONet::createBulkRouteRequests(const RORouterProvider& provider, const SUMOTime 
 #endif
         for (std::vector<RORoutable*>::const_iterator j = i->second.begin(); j != i->second.end(); ++j) {
             (*j)->computeRoute(provider, removeLoops, myErrorHandler);
-            provider.getVehicleRouter().setBulkMode(true);
+            provider.getVehicleRouter((*j)->getVClass()).setBulkMode(true);
         }
-        provider.getVehicleRouter().setBulkMode(false);
+        provider.getVehicleRouter(SVC_IGNORING).setBulkMode(false);
     }
 }
 
@@ -713,15 +720,16 @@ RONet::getInternalEdgeNumber() const {
 
 void
 RONet::adaptIntermodalRouter(ROIntermodalRouter& router) {
+    double taxiWait = STEPS2TIME(string2time(OptionsCont::getOptions().getString("persontrip.taxi.waiting-time")));
     // add access to all parking areas
     for (const auto& i : myInstance->myStoppingPlaces[SUMO_TAG_PARKING_AREA]) {
-        router.getNetwork()->addAccess(i.first, myInstance->getEdgeForLaneID(i.second->lane), (i.second->startPos + i.second->endPos) / 2., 0., SUMO_TAG_PARKING_AREA);
+        router.getNetwork()->addAccess(i.first, myInstance->getEdgeForLaneID(i.second->lane), (i.second->startPos + i.second->endPos) / 2., 0., SUMO_TAG_PARKING_AREA, false, taxiWait);
     }
     // add access to all public transport stops
     for (const auto& stop : myInstance->myStoppingPlaces[SUMO_TAG_BUS_STOP]) {
-        router.getNetwork()->addAccess(stop.first, myInstance->getEdgeForLaneID(stop.second->lane), (stop.second->startPos + stop.second->endPos) / 2., 0., SUMO_TAG_BUS_STOP);
+        router.getNetwork()->addAccess(stop.first, myInstance->getEdgeForLaneID(stop.second->lane), (stop.second->startPos + stop.second->endPos) / 2., 0., SUMO_TAG_BUS_STOP, false, taxiWait);
         for (const auto& a : stop.second->accessPos) {
-            router.getNetwork()->addAccess(stop.first, myInstance->getEdgeForLaneID(std::get<0>(a)), std::get<1>(a), std::get<2>(a), SUMO_TAG_BUS_STOP);
+            router.getNetwork()->addAccess(stop.first, myInstance->getEdgeForLaneID(std::get<0>(a)), std::get<1>(a), std::get<2>(a), SUMO_TAG_BUS_STOP, true, taxiWait);
         }
     }
     // fill the public transport router with pre-parsed public transport lines
@@ -741,10 +749,10 @@ RONet::adaptIntermodalRouter(ROIntermodalRouter& router) {
         router.getNetwork()->addSchedule(veh->getParameter());
     }
     // add access to transfer from walking to taxi-use
-    if ((router.getCarWalkTransfer() & ROIntermodalRouter::Network::ALL_JUNCTIONS_TAXI) != 0) {
+    if ((router.getCarWalkTransfer() & ROIntermodalRouter::Network::TAXI_PICKUP_ANYWHERE) != 0) {
         for (const ROEdge* edge : ROEdge::getAllEdges()) {
             if ((edge->getPermissions() & SVC_PEDESTRIAN) != 0 && (edge->getPermissions() & SVC_TAXI) != 0) {
-                router.getNetwork()->addCarAccess(edge, SVC_TAXI);
+                router.getNetwork()->addCarAccess(edge, SVC_TAXI, taxiWait);
             }
         }
     }
@@ -760,6 +768,16 @@ RONet::hasPermissions() const {
 void
 RONet::setPermissionsFound() {
     myHavePermissions = true;
+}
+
+bool
+RONet::hasLoadedEffort() const {
+    for (const auto& item : myEdges) {
+        if (item.second->hasStoredEffort()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 const std::string
@@ -786,4 +804,3 @@ RONet::RoutingTask::run(FXWorkerThread* context) {
 
 
 /****************************************************************************/
-

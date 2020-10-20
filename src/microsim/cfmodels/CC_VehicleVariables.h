@@ -16,12 +16,7 @@
 /// @date    Mon, 7 Mar 2016
 ///
 /****************************************************************************/
-#ifndef CC_VEHICLEVARIABLES_H
-#define CC_VEHICLEVARIABLES_H
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "CC_Const.h"
@@ -210,4 +205,3 @@ public:
     bool autoLaneChange;
 };
 
-#endif

@@ -20,13 +20,7 @@
 ///
 // Reroutes vehicles passing an edge
 /****************************************************************************/
-#ifndef MSTriggeredRerouter_h
-#define MSTriggeredRerouter_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -183,6 +177,11 @@ public:
     MSParkingArea* rerouteParkingArea(const MSTriggeredRerouter::RerouteInterval* rerouteDef,
                                       SUMOVehicle& veh, bool& newDestination, ConstMSEdgeVector& newRoute) const;
 
+    /// @brief return all rerouter instances
+    static const std::map<std::string, MSTriggeredRerouter*>& getInstances() {
+        return myInstances;
+    }
+
 
 protected:
     /// @name inherited from GenericSAXHandler
@@ -256,6 +255,8 @@ protected:
     static MSEdge mySpecialDest_keepDestination;
     static MSEdge mySpecialDest_terminateRoute;
 
+    static std::map<std::string, MSTriggeredRerouter*> myInstances;
+
 private:
     /// @brief Invalidated copy constructor.
     MSTriggeredRerouter(const MSTriggeredRerouter&);
@@ -265,9 +266,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -18,13 +18,7 @@
 ///
 // Algorithms for highway on-/off-ramps computation
 /****************************************************************************/
-#ifndef NBAlgorithms_Ramps_h
-#define NBAlgorithms_Ramps_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -143,9 +137,3 @@ private:
     /// @brief shift ramp geometry to merge smoothly with the motorway
     static void patchRampGeometry(NBEdge* potRamp, NBEdge* first, NBEdge* potHighway, bool onRamp);
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -19,12 +19,7 @@
 ///
 // Scalable model based on Krauss by Peter Wagner
 /****************************************************************************/
-#ifndef MSCFModel_PWag2009_h
-#define MSCFModel_PWag2009_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSCFModel.h"
@@ -158,4 +153,3 @@ private:
 
 };
 
-#endif /* MSCFModel_PWag2009_H */

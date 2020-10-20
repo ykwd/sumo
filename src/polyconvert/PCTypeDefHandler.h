@@ -19,13 +19,7 @@
 ///
 // A handler for loading polygon type maps
 /****************************************************************************/
-#ifndef PCTypeDefHandler_h
-#define PCTypeDefHandler_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -93,9 +87,3 @@ private:
     PCTypeDefHandler& operator=(const PCTypeDefHandler& src);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -18,11 +18,6 @@
 ///
 // Builds OSG nodes from microsim objects
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #ifdef HAVE_OSG
@@ -30,6 +25,7 @@
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 4127) // do not warn about constant conditional expression
+#pragma warning(disable: 4275) // do not warn about the DLL interface for OSG
 #endif
 #include <osg/Version>
 #include <osgViewer/ViewerEventHandlers>
@@ -430,4 +426,3 @@ GUIOSGBuilder::buildMovable(const MSVehicleType& type) {
 
 
 /****************************************************************************/
-

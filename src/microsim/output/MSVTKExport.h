@@ -17,13 +17,7 @@
 ///
 // Produce a VTK output to use with Tools like ParaView
 /****************************************************************************/
-#ifndef MSVTKExport_h
-#define MSVTKExport_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/SUMOTime.h>
@@ -87,8 +81,3 @@ private:
     static std::string getOffset(int nr);
 
 };
-
-
-#endif
-
-/****************************************************************************/

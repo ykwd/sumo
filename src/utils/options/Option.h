@@ -19,13 +19,7 @@
 ///
 // Classes representing a single program option (with different types)
 /****************************************************************************/
-#ifndef Option_h
-#define Option_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -832,7 +826,3 @@ public:
      */
     std::string getValueString() const;
 };
-#endif
-
-/****************************************************************************/
-

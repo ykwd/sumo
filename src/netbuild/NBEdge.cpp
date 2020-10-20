@@ -22,11 +22,6 @@
 ///
 // Methods for the representation of a single edge
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <vector>
@@ -77,6 +72,8 @@ const double NBEdge::ANGLE_LOOKAHEAD = 10.0;
 const int NBEdge::UNSPECIFIED_INTERNAL_LANE_INDEX = -1;
 const bool NBEdge::UNSPECIFIED_CONNECTION_UNCONTROLLED = false;
 
+double NBEdge::myDefaultConnectionLength = NBEdge::UNSPECIFIED_LOADED_LENGTH;
+
 NBEdge NBEdge::DummyEdge;
 
 ConstRouterEdgePairVector NBEdge::Connection::myViaSuccessors = ConstRouterEdgePairVector({ std::pair<NBRouterEdge*, NBRouterEdge*>(nullptr, nullptr) });
@@ -103,10 +100,11 @@ NBEdge::Connection::Connection(int fromLane_, NBEdge* toEdge_, int toLane_) :
     tlLinkIndex(-1),
     tlLinkIndex2(-1),
     mayDefinitelyPass(false),
-    keepClear(true),
+    keepClear(KEEPCLEAR_UNSPECIFIED),
     contPos(UNSPECIFIED_CONTPOS),
     visibility(UNSPECIFIED_VISIBILITY_DISTANCE),
     speed(UNSPECIFIED_SPEED),
+    customLength(myDefaultConnectionLength),
     permissions(SVC_UNSPECIFIED),
     id(toEdge_ == nullptr ? "" : toEdge->getFromNode()->getID()),
     haveVia(false),
@@ -115,8 +113,8 @@ NBEdge::Connection::Connection(int fromLane_, NBEdge* toEdge_, int toLane_) :
 }
 
 
-NBEdge::Connection::Connection(int fromLane_, NBEdge* toEdge_, int toLane_, bool mayDefinitelyPass_, bool keepClear_, double contPos_,
-                               double visibility_, double speed_, bool haveVia_, bool uncontrolled_, const PositionVector& customShape_, SVCPermissions permissions_) :
+NBEdge::Connection::Connection(int fromLane_, NBEdge* toEdge_, int toLane_, bool mayDefinitelyPass_, KeepClear keepClear_, double contPos_,
+                               double visibility_, double speed_, double length_, bool haveVia_, bool uncontrolled_, const PositionVector& customShape_, SVCPermissions permissions_) :
     fromLane(fromLane_),
     toEdge(toEdge_),
     toLane(toLane_),
@@ -127,6 +125,7 @@ NBEdge::Connection::Connection(int fromLane_, NBEdge* toEdge_, int toLane_, bool
     contPos(contPos_),
     visibility(visibility_),
     speed(speed_),
+    customLength(length_),
     customShape(customShape_),
     permissions(permissions_),
     id(toEdge_ == nullptr ? "" : toEdge->getFromNode()->getID()),
@@ -215,12 +214,12 @@ NBEdge::MainDirections::MainDirections(const EdgeVector& outgoing, NBEdge* paren
     }
 #endif
     if (NBNode::isTrafficLight(to->getType()) &&
-            (straightestDir == LINKDIR_STRAIGHT || straightestDir == LINKDIR_PARTLEFT || straightestDir == LINKDIR_PARTRIGHT)) {
-        myDirs.push_back(MainDirections::DIR_FORWARD);
+            (straightestDir == LinkDirection::STRAIGHT || straightestDir == LinkDirection::PARTLEFT || straightestDir == LinkDirection::PARTRIGHT)) {
+        myDirs.push_back(MainDirections::Direction::FORWARD);
         return;
     }
     if (outgoing[0]->getJunctionPriority(to) == 1) {
-        myDirs.push_back(MainDirections::DIR_RIGHTMOST);
+        myDirs.push_back(MainDirections::Direction::RIGHTMOST);
     }
     // check whether the left turn has a higher priority
     if (outgoing.back()->getJunctionPriority(to) == 1) {
@@ -228,17 +227,17 @@ NBEdge::MainDirections::MainDirections(const EdgeVector& outgoing, NBEdge* paren
         //  let's check, whether it has also a higher priority (lane number/speed)
         //  than the current
         if (outgoing.back()->getPriority() > straight->getPriority()) {
-            myDirs.push_back(MainDirections::DIR_LEFTMOST);
+            myDirs.push_back(MainDirections::Direction::LEFTMOST);
         } else {
             if (outgoing.back()->getNumLanes() > straight->getNumLanes()) {
-                myDirs.push_back(MainDirections::DIR_LEFTMOST);
+                myDirs.push_back(MainDirections::Direction::LEFTMOST);
             }
         }
     }
     // check whether the forward direction has a higher priority
     // check whether it has a higher priority and is going straight
-    if (straight->getJunctionPriority(to) == 1 && to->getDirection(parent, straight) == LINKDIR_STRAIGHT) {
-        myDirs.push_back(MainDirections::DIR_FORWARD);
+    if (straight->getJunctionPriority(to) == 1 && to->getDirection(parent, straight) == LinkDirection::STRAIGHT) {
+        myDirs.push_back(MainDirections::Direction::FORWARD);
     }
 }
 
@@ -484,7 +483,8 @@ NBEdge::init(int noLanes, bool tryIgnoreNodePositions, const std::string& origID
     }
     if (myGeom.size() == 2 && myGeom[0] == myGeom[1]) {
         WRITE_WARNINGF("Edge's '%' from- and to-node are at the same position.", myID);
-        myGeom[1].add(Position(POSITION_EPS, POSITION_EPS));
+        int patchIndex = myFrom->getID() < myTo->getID() ? 1 : 0;
+        myGeom[patchIndex].add(Position(POSITION_EPS, POSITION_EPS));
     }
     //
     myFrom->addOutgoingEdge(this);
@@ -533,6 +533,9 @@ NBEdge::~NBEdge() {}
 void
 NBEdge::reshiftPosition(double xoff, double yoff) {
     myGeom.add(xoff, yoff, 0);
+    for (Lane& lane : myLanes) {
+        lane.customShape.add(xoff, yoff, 0);
+    }
     computeLaneShapes(); // old shapes are dubious if computed with large coordinates
     for (std::vector<Connection>::iterator i = myConnections.begin(); i != myConnections.end(); ++i) {
         (*i).customShape.add(xoff, yoff, 0);
@@ -592,6 +595,11 @@ NBEdge::hasDefaultGeometryEndpointAtNode(const NBNode* node) const {
         assert(node == myTo);
         return myGeom.back() == node->getPosition();
     }
+}
+
+Position
+NBEdge::getEndpointAtNode(const NBNode* node) const {
+    return node == myFrom ? myGeom.front() : myGeom.back();
 }
 
 void
@@ -706,9 +714,9 @@ NBEdge::resetNodeBorder(const NBNode* node) {
 bool
 NBEdge::isBidiRail(bool ignoreSpread) const {
     return (isRailway(getPermissions())
-            && (ignoreSpread || myLaneSpreadFunction == LANESPREAD_CENTER)
+            && (ignoreSpread || myLaneSpreadFunction == LaneSpreadFunction::CENTER)
             && myPossibleTurnDestination != nullptr
-            && (ignoreSpread || myPossibleTurnDestination->getLaneSpreadFunction() == LANESPREAD_CENTER)
+            && (ignoreSpread || myPossibleTurnDestination->getLaneSpreadFunction() == LaneSpreadFunction::CENTER)
             && isRailway(myPossibleTurnDestination->getPermissions())
             && myPossibleTurnDestination->getGeometry().reverse() == getGeometry());
 }
@@ -922,6 +930,9 @@ NBEdge::reduceGeometry(const double minDist) {
         myGeom = reverse.reverse();
     } else {
         myGeom.removeDoublePoints(minDist, true);
+        for (Lane& lane : myLanes) {
+            lane.customShape.removeDoublePoints(minDist, true);
+        }
     }
 }
 
@@ -1011,10 +1022,11 @@ NBEdge::addLane2LaneConnection(int from, NBEdge* dest,
                                int toLane, Lane2LaneInfoType type,
                                bool mayUseSameDestination,
                                bool mayDefinitelyPass,
-                               bool keepClear,
+                               KeepClear keepClear,
                                double contPos,
                                double visibility,
                                double speed,
+                               double length,
                                const PositionVector& customShape,
                                bool uncontrolled,
                                SVCPermissions permissions,
@@ -1031,7 +1043,7 @@ NBEdge::addLane2LaneConnection(int from, NBEdge* dest,
     if (!addEdge2EdgeConnection(dest)) {
         return false;
     }
-    return setConnection(from, dest, toLane, type, mayUseSameDestination, mayDefinitelyPass, keepClear, contPos, visibility, speed, customShape, uncontrolled, permissions, postProcess);
+    return setConnection(from, dest, toLane, type, mayUseSameDestination, mayDefinitelyPass, keepClear, contPos, visibility, speed, length, customShape, uncontrolled, permissions, postProcess);
 }
 
 
@@ -1057,10 +1069,11 @@ NBEdge::setConnection(int lane, NBEdge* destEdge,
                       int destLane, Lane2LaneInfoType type,
                       bool mayUseSameDestination,
                       bool mayDefinitelyPass,
-                      bool keepClear,
+                      KeepClear keepClear,
                       double contPos,
                       double visibility,
                       double speed,
+                      double length,
                       const PositionVector& customShape,
                       bool uncontrolled,
                       SVCPermissions permissions,
@@ -1104,13 +1117,14 @@ NBEdge::setConnection(int lane, NBEdge* destEdge,
     myConnections.back().visibility = visibility;
     myConnections.back().permissions = permissions;
     myConnections.back().speed = speed;
+    myConnections.back().customLength = length;
     myConnections.back().customShape = customShape;
     myConnections.back().uncontrolled = uncontrolled;
-    if (type == L2L_USER) {
+    if (type == Lane2LaneInfoType::USER) {
         myStep = EdgeBuildingStep::LANES2LANES_USER;
     } else {
         // check whether we have to take another look at it later
-        if (type == L2L_COMPUTED) {
+        if (type == Lane2LaneInfoType::COMPUTED) {
             // yes, the connection was set using an algorithm which requires a recheck
             myStep = EdgeBuildingStep::LANES2LANES_RECHECK;
         } else {
@@ -1186,8 +1200,8 @@ NBEdge::hasConnectionTo(NBEdge* destEdge, int destLane, int fromLane) const {
 
 
 bool
-NBEdge::isConnectedTo(const NBEdge* e) const {
-    if (e == myTurnDestination) {
+NBEdge::isConnectedTo(const NBEdge* e, const bool ignoreTurnaround) const {
+    if (!ignoreTurnaround && (e == myTurnDestination)) {
         return true;
     }
     return
@@ -1490,8 +1504,8 @@ NBEdge::replaceInConnections(NBEdge* which, const std::vector<NBEdge::Connection
                        << " newTarget=" << i->toEdge->getID() << " fromLane=" << toUse << " toLane=" << i->toLane << "\n";
         }
 #endif
-        setConnection(toUse, i->toEdge, i->toLane, L2L_COMPUTED, false, i->mayDefinitelyPass, i->keepClear,
-                      i->contPos, i->visibility, i->speed, i->customShape, i->uncontrolled);
+        setConnection(toUse, i->toEdge, i->toLane, Lane2LaneInfoType::COMPUTED, false, i->mayDefinitelyPass, i->keepClear,
+                      i->contPos, i->visibility, i->speed, i->customLength, i->customShape, i->uncontrolled);
     }
     // remove the remapped edge from connections
     removeFromConnections(which);
@@ -1525,7 +1539,7 @@ NBEdge::moveConnectionToLeft(int lane) {
     std::vector<Connection>::iterator i = myConnections.begin() + index;
     Connection c = *i;
     myConnections.erase(i);
-    setConnection(lane + 1, c.toEdge, c.toLane, L2L_VALIDATED, false);
+    setConnection(lane + 1, c.toEdge, c.toLane, Lane2LaneInfoType::VALIDATED, false);
 }
 
 
@@ -1535,7 +1549,7 @@ NBEdge::moveConnectionToRight(int lane) {
         if ((*i).fromLane == (int)lane && canMoveConnection(*i, lane - 1)) {
             Connection c = *i;
             i = myConnections.erase(i);
-            setConnection(lane - 1, c.toEdge, c.toLane, L2L_VALIDATED, false);
+            setConnection(lane - 1, c.toEdge, c.toLane, Lane2LaneInfoType::VALIDATED, false);
             return;
         }
     }
@@ -1558,6 +1572,7 @@ NBEdge::buildInnerEdges(const NBNode& n, int noInternalNoSplits, int& linkIndex,
     int internalLaneIndex = 0;
     int numLanes = 0; // number of lanes that share the same edge
     double lengthSum = 0; // total shape length of all lanes that share the same edge
+    int avoidedIntersectingLeftOriginLane = std::numeric_limits<int>::max();
     for (std::vector<Connection>::iterator i = myConnections.begin(); i != myConnections.end(); ++i) {
         Connection& con = *i;
         con.haveVia = false; // reset first since this may be called multiple times
@@ -1565,8 +1580,8 @@ NBEdge::buildInnerEdges(const NBNode& n, int noInternalNoSplits, int& linkIndex,
             continue;
         }
         LinkDirection dir = n.getDirection(this, con.toEdge);
-        const bool isRightTurn = (dir == LINKDIR_RIGHT || dir == LINKDIR_PARTRIGHT);
-        const bool isTurn = (isRightTurn || dir == LINKDIR_LEFT || dir == LINKDIR_PARTLEFT);
+        const bool isRightTurn = (dir == LinkDirection::RIGHT || dir == LinkDirection::PARTRIGHT);
+        const bool isTurn = (isRightTurn || dir == LinkDirection::LEFT || dir == LinkDirection::PARTLEFT);
 
         // put turning internal lanes on separate edges
         if (con.toEdge != toEdge || (isTurn && !joinTurns)) {
@@ -1584,7 +1599,7 @@ NBEdge::buildInnerEdges(const NBNode& n, int noInternalNoSplits, int& linkIndex,
         PositionVector shape = n.computeInternalLaneShape(this, con, numPoints, myTo, shapeFlag);
         std::vector<int> foeInternalLinks;
 
-        if (dir != LINKDIR_STRAIGHT && shape.length() < POSITION_EPS && !(isBidiRail() && getTurnDestination(true) == con.toEdge)) {
+        if (dir != LinkDirection::STRAIGHT && shape.length() < POSITION_EPS && !(isBidiRail() && getTurnDestination(true) == con.toEdge)) {
             WRITE_WARNINGF("Connection '%_%->%_%' is only %m short.", getID(), con.fromLane, con.toEdge->getID(), con.toLane, shape.length());
         }
 
@@ -1592,11 +1607,11 @@ NBEdge::buildInnerEdges(const NBNode& n, int noInternalNoSplits, int& linkIndex,
         std::pair<double, std::vector<int> > crossingPositions(-1, std::vector<int>());
         std::set<std::string> tmpFoeIncomingLanes;
         switch (dir) {
-            case LINKDIR_RIGHT:
-            case LINKDIR_PARTRIGHT:
-            case LINKDIR_LEFT:
-            case LINKDIR_PARTLEFT:
-            case LINKDIR_TURN: {
+            case LinkDirection::RIGHT:
+            case LinkDirection::PARTRIGHT:
+            case LinkDirection::LEFT:
+            case LinkDirection::PARTLEFT:
+            case LinkDirection::TURN: {
                 int index = 0;
                 const std::vector<NBEdge*>& incoming = n.getIncomingEdges();
                 for (EdgeVector::const_iterator i2 = incoming.begin(); i2 != incoming.end(); ++i2) {
@@ -1613,18 +1628,29 @@ NBEdge::buildInnerEdges(const NBNode& n, int noInternalNoSplits, int& linkIndex,
                         }
                         const bool foes = n.foes(this, con.toEdge, *i2, (*k2).toEdge);
                         bool needsCont = !isRailway(conPermissions) && n.needsCont(this, *i2, con, *k2);
-                        bool oppositeLeftIntersect = !foes && bothLeftIntersect(n, shape, dir, *i2, *k2, numPoints, width2);
+                        const bool avoidIntersectCandidate = !foes && bothLeftTurns(n, dir, *i2, *k2);
+                        bool oppositeLeftIntersect = avoidIntersectCandidate && haveIntersection(n, shape, *i2, *k2, numPoints, width2);
                         int shapeFlag = 0;
+                        SVCPermissions warn = SVCAll & ~(SVC_PEDESTRIAN | SVC_BICYCLE | SVC_DELIVERY | SVC_RAIL_CLASSES);
                         // do not warn if only bicycles pedestrians or delivery vehicles are involved as this is a typical occurence
-                        SVCPermissions warn = SVCAll & ~(SVC_PEDESTRIAN | SVC_BICYCLE | SVC_DELIVERY);
-                        if (oppositeLeftIntersect
+                        if (con.customShape.size() == 0
+                                && (*k2).customShape.size() == 0
+                                && (oppositeLeftIntersect || (avoidedIntersectingLeftOriginLane < con.fromLane  && avoidIntersectCandidate))
                                 && (((*i2)->getPermissions((*k2).fromLane) & warn) != 0
                                     && ((*k2).toEdge->getPermissions((*k2).toLane) & warn) != 0)) {
                             // recompute with different curve parameters (unless
                             // the other connection is "unimportant"
                             shapeFlag = NBNode::AVOID_INTERSECTING_LEFT_TURNS;
+                            PositionVector origShape = shape;
                             shape = n.computeInternalLaneShape(this, con, numPoints, myTo, shapeFlag);
-                            oppositeLeftIntersect = bothLeftIntersect(n, shape, dir, *i2, *k2, numPoints, width2, shapeFlag);
+                            oppositeLeftIntersect = haveIntersection(n, shape, *i2, *k2, numPoints, width2, shapeFlag);
+                            if (oppositeLeftIntersect
+                                    && (conPermissions & (SVCAll & ~(SVC_BICYCLE | SVC_PEDESTRIAN))) == 0) {
+                                shape = origShape;
+                            } else {
+                                // make sure connections further to the left do not get a wider angle
+                                avoidedIntersectingLeftOriginLane = con.fromLane;
+                            }
                         }
                         const bool bothPrio = getJunctionPriority(&n) > 0 && (*i2)->getJunctionPriority(&n) > 0;
                         //std::cout << "n=" << n.getID() << " e1=" << getID() << " prio=" << getJunctionPriority(&n) << " e2=" << (*i2)->getID() << " prio2=" << (*i2)->getJunctionPriority(&n) << " both=" << bothPrio << " bothLeftIntersect=" << bothLeftIntersect(n, shape, dir, *i2, *k2, numPoints, width2) << " needsCont=" << needsCont << "\n";
@@ -1643,8 +1669,9 @@ NBEdge::buildInnerEdges(const NBNode& n, int noInternalNoSplits, int& linkIndex,
                         }
                         const bool rightTurnConflict = NBNode::rightTurnConflict(
                                                            this, con.toEdge, con.fromLane, (*i2), (*k2).toEdge, (*k2).fromLane);
+                        const bool mergeConflict = myTo->mergeConflict(this, con, *i2, *k2, true);
                         // compute foe internal lanes
-                        if (foes || rightTurnConflict || oppositeLeftIntersect) {
+                        if (foes || rightTurnConflict || oppositeLeftIntersect || mergeConflict) {
                             foeInternalLinks.push_back(index);
                         }
                         // only warn once per pair of intersecting turns
@@ -1654,14 +1681,14 @@ NBEdge::buildInnerEdges(const NBNode& n, int noInternalNoSplits, int& linkIndex,
                                 && ((*i2)->getPermissions((*k2).fromLane) & warn) != 0
                                 && ((*k2).toEdge->getPermissions((*k2).toLane) & warn) != 0
                                 // do not warn for unregulated nodes
-                                && n.getType() != NODETYPE_NOJUNCTION
+                                && n.getType() != SumoXMLNodeType::NOJUNCTION
                            ) {
                             WRITE_WARNINGF("Intersecting left turns at junction '%' from lane '%' and lane '%' (increase junction radius to avoid this).",
                                            n.getID(), getLaneID(con.fromLane), (*i2)->getLaneID((*k2).fromLane));
                         }
                         // compute foe incoming lanes
                         const bool signalised = hasSignalisedConnectionTo(con.toEdge);
-                        if ((n.forbids(*i2, (*k2).toEdge, this, con.toEdge, signalised) || rightTurnConflict) && (needsCont || dir == LINKDIR_TURN)) {
+                        if ((n.forbids(*i2, (*k2).toEdge, this, con.toEdge, signalised) || rightTurnConflict) && (needsCont || dir == LinkDirection::TURN)) {
                             tmpFoeIncomingLanes.insert((*i2)->getID() + "_" + toString((*k2).fromLane));
                         }
                         if (bothPrio && oppositeLeftIntersect && getID() < (*i2)->getID()) {
@@ -1699,7 +1726,7 @@ NBEdge::buildInnerEdges(const NBNode& n, int noInternalNoSplits, int& linkIndex,
                     index++;
                 }
 
-                if (dir == LINKDIR_TURN && crossingPositions.first < 0 && crossingPositions.second.size() != 0 && shape.length() > 2. * POSITION_EPS) {
+                if (dir == LinkDirection::TURN && crossingPositions.first < 0 && crossingPositions.second.size() != 0 && shape.length() > 2. * POSITION_EPS) {
                     // let turnarounds wait in the middle if no other crossing point was found and it has a sensible length
                     // (if endOffset is used, the crossing point is in the middle of the part within the junction shape)
                     crossingPositions.first = (double)(shape.length() + getEndOffset(con.fromLane)) / 2.;
@@ -1746,11 +1773,11 @@ NBEdge::buildInnerEdges(const NBNode& n, int noInternalNoSplits, int& linkIndex,
                     const double limit = sqrt(limitTurnSpeed * radius);
                     const double reduction = con.vmax - limit;
                     // always treat connctions at roundabout as turns when warning
-                    const bool atRoundabout = getJunctionPriority(myTo) == ROUNDABOUT || con.toEdge->getJunctionPriority(myFrom) == ROUNDABOUT;
-                    int dir2 = atRoundabout ? LINKDIR_LEFT : dir;
-                    if ((dir2 == LINKDIR_STRAIGHT && reduction > limitTurnSpeedWarnStraight)
-                            || (dir2 != LINKDIR_TURN && reduction > limitTurnSpeedWarnTurn)) {
-                        std::string dirType = std::string(dir == LINKDIR_STRAIGHT ? "straight" : "turning");
+                    const bool atRoundabout = getJunctionPriority(myTo) == JunctionPriority::ROUNDABOUT || con.toEdge->getJunctionPriority(myFrom) == JunctionPriority::ROUNDABOUT;
+                    const LinkDirection dir2 = atRoundabout ? LinkDirection::LEFT : dir;
+                    if ((dir2 == LinkDirection::STRAIGHT && reduction > limitTurnSpeedWarnStraight)
+                            || (dir2 != LinkDirection::TURN && reduction > limitTurnSpeedWarnTurn)) {
+                        std::string dirType = std::string(dir == LinkDirection::STRAIGHT ? "straight" : "turning");
                         if (atRoundabout) {
                             dirType = "roundabout";
                         }
@@ -1766,6 +1793,8 @@ NBEdge::buildInnerEdges(const NBNode& n, int noInternalNoSplits, int& linkIndex,
                 //    std::cout << con.getDescription(this) << " angleRaw=" << angleRaw << " angle=" << RAD2DEG(angle) << " length=" << length << " radius=" << length / angle
                 //        << " vmaxTurn=" << sqrt(limitTurnSpeed * length / angle) << " vmax=" << con.vmax << "\n";
                 //}
+            } else if (fromRail && dir == LinkDirection::TURN) {
+                con.vmax = 0.01;
             }
         } else {
             con.vmax = con.speed;
@@ -1790,7 +1819,11 @@ NBEdge::buildInnerEdges(const NBNode& n, int noInternalNoSplits, int& linkIndex,
         ++internalLaneIndex;
         ++linkIndex;
         ++numLanes;
-        lengthSum += MAX2(POSITION_EPS, con.shape.length());
+        if (con.customLength != UNSPECIFIED_LOADED_LENGTH) {
+            lengthSum += con.customLength;
+        } else {
+            lengthSum += con.shape.length();
+        }
     }
     assignInternalLaneLength(myConnections.end(), numLanes, lengthSum);
 }
@@ -1804,7 +1837,19 @@ NBEdge::assignInternalLaneLength(std::vector<Connection>::iterator i, int numLan
     assert(i - myConnections.begin() >= numLanes);
     for (int prevIndex = 1; prevIndex <= numLanes; prevIndex++) {
         //std::cout << " con=" << (*(i - prevIndex)).getDescription(this) << " numLanes=" << numLanes << " avgLength=" << lengthSum / numLanes << "\n";
-        (*(i - prevIndex)).length = lengthSum / numLanes;
+        Connection& c = (*(i - prevIndex));
+        const double minLength = c.customLength != UNSPECIFIED_LOADED_LENGTH ? pow(10, -gPrecision) : POSITION_EPS;
+        c.length = MAX2(minLength, lengthSum / numLanes);
+        if (c.haveVia) {
+            c.viaLength = c.viaShape.length();
+            if (c.customLength != UNSPECIFIED_LOADED_LENGTH) {
+                // split length proportionally
+                const double firstLength = c.shape.length();
+                const double a = firstLength / (firstLength + c.viaLength);
+                c.length = MAX2(minLength, a * c.customLength);
+                c.viaLength = MAX2(minLength, c.customLength - c.length);
+            }
+        }
     }
 }
 
@@ -1841,24 +1886,20 @@ NBEdge::firstIntersection(const PositionVector& v1, const PositionVector& v2, do
 
 
 bool
-NBEdge::bothLeftIntersect(const NBNode& n, const PositionVector& shape, LinkDirection dir, NBEdge* otherFrom, const NBEdge::Connection& otherCon, int numPoints, double width2, int shapeFlag) const {
+NBEdge::bothLeftTurns(const NBNode& n, LinkDirection dir, NBEdge* otherFrom, const NBEdge::Connection& otherCon) const {
     if (otherFrom == this) {
         // not an opposite pair
         return false;
     }
     LinkDirection dir2 = n.getDirection(otherFrom, otherCon.toEdge);
-    const bool bothLeft = (dir == LINKDIR_LEFT || dir == LINKDIR_PARTLEFT) && (dir2 == LINKDIR_LEFT || dir2 == LINKDIR_PARTLEFT);
-    if (bothLeft) {
-        const PositionVector otherShape = n.computeInternalLaneShape(otherFrom, otherCon, numPoints, 0, shapeFlag);
-        const double minDV = firstIntersection(shape, otherShape, width2);
-        if (minDV < shape.length() - POSITION_EPS && minDV > POSITION_EPS) {
-            return true;
-        } else {
-            return false;
-        }
-    } else {
-        return false;
-    }
+    return (dir == LinkDirection::LEFT || dir == LinkDirection::PARTLEFT) && (dir2 == LinkDirection::LEFT || dir2 == LinkDirection::PARTLEFT);
+}
+
+bool
+NBEdge::haveIntersection(const NBNode& n, const PositionVector& shape, NBEdge* otherFrom, const NBEdge::Connection& otherCon, int numPoints, double width2, int shapeFlag) const {
+    const PositionVector otherShape = n.computeInternalLaneShape(otherFrom, otherCon, numPoints, 0, shapeFlag);
+    const double minDV = firstIntersection(shape, otherShape, width2);
+    return minDV < shape.length() - POSITION_EPS && minDV > POSITION_EPS;
 }
 
 
@@ -1942,17 +1983,26 @@ NBEdge::computeLaneShapes() {
         offset += (getLaneWidth(i) + getLaneWidth(i + 1)) / 2. + SUMO_const_laneOffset;
         offsets[i] = offset;
     }
-    if (myLaneSpreadFunction == LANESPREAD_RIGHT) {
-        double laneWidth = myLanes.back().width != UNSPECIFIED_WIDTH ? myLanes.back().width : SUMO_const_laneWidth;
-        offset = (laneWidth + SUMO_const_laneOffset) / 2.; // @note: offset for half of the center-line marking of the road
-    } else {
+    if (myLaneSpreadFunction == LaneSpreadFunction::CENTER) {
         double width = 0;
         for (int i = 0; i < (int)myLanes.size(); ++i) {
             width += getLaneWidth(i);
         }
         width += SUMO_const_laneOffset * double(myLanes.size() - 1);
         offset = -width / 2. + getLaneWidth((int)myLanes.size() - 1) / 2.;
+    } else {
+        double laneWidth = myLanes.back().width != UNSPECIFIED_WIDTH ? myLanes.back().width : SUMO_const_laneWidth;
+        offset = (laneWidth + SUMO_const_laneOffset) / 2.; // @note: offset for half of the center-line marking of the road
     }
+    if (myLaneSpreadFunction == LaneSpreadFunction::ROADCENTER) {
+        for (NBEdge* e : myTo->getOutgoingEdges()) {
+            if (e->getToNode() == myFrom && getInnerGeometry().reverse() == e->getInnerGeometry()) {
+                offset += (e->getTotalWidth() - getTotalWidth()) / 2;
+                break;
+            }
+        }
+    }
+
     for (int i = 0; i < (int)myLanes.size(); ++i) {
         offsets[i] += offset;
     }
@@ -1996,7 +2046,7 @@ NBEdge::computeAngle() {
     Position toCenter = (hasToShape ? myTo->getShape().getCentroid() : myTo->getPosition());
     PositionVector shape = myGeom;
     if ((hasFromShape || hasToShape) && getNumLanes() > 0) {
-        if (myLaneSpreadFunction == LANESPREAD_RIGHT) {
+        if (myLaneSpreadFunction == LaneSpreadFunction::RIGHT) {
             shape = myLanes[getNumLanes() - 1].shape ;
         } else {
             shape = myLanes[getNumLanes() / 2].shape;
@@ -2657,16 +2707,6 @@ NBEdge::divideSelectedLanesOnEdges(const EdgeVector* outgoing, const std::vector
                 --targetLanes;
             }
             if (numConsToTarget >= targetLanes) {
-                // let bicycles move onto the road to allow continuation
-                // the speed limit is taken from rural roads (which allow cycles)
-                // (pending implementation of #1859)
-                if (getPermissions(fromIndex) == SVC_BICYCLE && getSpeed() <= (101 / 3.6)) {
-                    for (NBEdge::Lane& lane : myLanes) {
-                        if (lane.permissions != SVC_PEDESTRIAN) {
-                            lane.permissions |= SVC_BICYCLE;
-                        }
-                    }
-                }
                 continue;
             }
             if (myLanes[fromIndex].connectionsDone) {
@@ -2707,7 +2747,7 @@ NBEdge::addStraightConnections(const EdgeVector* outgoing, const std::vector<int
     for (int i = 0; i < numOutgoing; i++) {
         if (maxPrio < priorities[i]) {
             const LinkDirection dir = myTo->getDirection(this, (*outgoing)[i]);
-            if (dir == LINKDIR_STRAIGHT) {
+            if (dir == LinkDirection::STRAIGHT) {
                 maxPrio = priorities[i];
                 target = (*outgoing)[i];
                 rightOfTarget = i == 0 ? outgoing->back() : (*outgoing)[i - 1];
@@ -2804,7 +2844,7 @@ NBEdge::prepareEdgePriorities(const EdgeVector* outgoing, const std::vector<int>
                                  << " dist=" << dist
                                  << "\n";
 #endif
-    if (dist != 0 && !mainDirections.includes(MainDirections::DIR_RIGHTMOST)) {
+    if (dist != 0 && !mainDirections.includes(MainDirections::Direction::RIGHTMOST)) {
         assert(priorities.size() > 0);
         priorities[0] /= 2;
 #ifdef DEBUG_CONNECTION_GUESSING
@@ -2829,7 +2869,7 @@ NBEdge::prepareEdgePriorities(const EdgeVector* outgoing, const std::vector<int>
         priorities[dist] += 1;
     } else {
         // try to ensure separation of left turns
-        if (mainDirections.includes(MainDirections::DIR_RIGHTMOST) && mainDirections.includes(MainDirections::DIR_LEFTMOST)) {
+        if (mainDirections.includes(MainDirections::Direction::RIGHTMOST) && mainDirections.includes(MainDirections::Direction::LEFTMOST)) {
             priorities[0] /= 4;
             priorities[(int)priorities.size() - 1] /= 2;
 #ifdef DEBUG_CONNECTION_GUESSING
@@ -2839,7 +2879,7 @@ NBEdge::prepareEdgePriorities(const EdgeVector* outgoing, const std::vector<int>
 #endif
         }
     }
-    if (mainDirections.includes(MainDirections::DIR_FORWARD)) {
+    if (mainDirections.includes(MainDirections::Direction::FORWARD)) {
         if (myLanes.size() > 2) {
             priorities[dist] *= 2;
 #ifdef DEBUG_CONNECTION_GUESSING
@@ -2863,7 +2903,7 @@ NBEdge::prepareEdgePriorities(const EdgeVector* outgoing, const std::vector<int>
 void
 NBEdge::appendTurnaround(bool noTLSControlled, bool noFringe, bool onlyDeadends, bool onlyTurnlane, bool noGeometryLike, bool checkPermissions) {
     // do nothing if no turnaround is known
-    if (myTurnDestination == nullptr || myTo->getType() == NODETYPE_RAIL_CROSSING) {
+    if (myTurnDestination == nullptr || myTo->getType() == SumoXMLNodeType::RAIL_CROSSING) {
         return;
     }
     // do nothing if the destination node is controlled by a tls and no turnarounds
@@ -2871,7 +2911,7 @@ NBEdge::appendTurnaround(bool noTLSControlled, bool noFringe, bool onlyDeadends,
     if (noTLSControlled && myTo->isTLControlled()) {
         return;
     }
-    if (noFringe && myTo->getFringeType() == FRINGE_TYPE_OUTER) {
+    if (noFringe && myTo->getFringeType() == FringeType::OUTER) {
         return;
     }
     bool isDeadEnd = true;
@@ -2891,7 +2931,7 @@ NBEdge::appendTurnaround(bool noTLSControlled, bool noFringe, bool onlyDeadends,
     if (onlyTurnlane) {
         for (const Connection& c : getConnectionsFromLane(fromLane)) {
             LinkDirection dir = myTo->getDirection(this, c.toEdge);
-            if (dir != LINKDIR_LEFT && dir != LINKDIR_PARTLEFT) {
+            if (dir != LinkDirection::LEFT && dir != LinkDirection::PARTLEFT) {
                 return;
             }
         }
@@ -2915,7 +2955,7 @@ NBEdge::appendTurnaround(bool noTLSControlled, bool noFringe, bool onlyDeadends,
         // @todo #4382: once the network fringe is tagged, it also should not receive turn-arounds)
         if (isBidiRail() && isRailDeadEnd()) {
             // add a slow connection because direction-reversal implies stopping
-            setConnection(fromLane, myTurnDestination, toLane, L2L_VALIDATED, false, false, true, UNSPECIFIED_CONTPOS, UNSPECIFIED_VISIBILITY_DISTANCE, SUMO_const_haltingSpeed);
+            setConnection(fromLane, myTurnDestination, toLane, Lane2LaneInfoType::VALIDATED, false, false, KEEPCLEAR_UNSPECIFIED, UNSPECIFIED_CONTPOS, UNSPECIFIED_VISIBILITY_DISTANCE, SUMO_const_haltingSpeed);
             return;
         } else {
             return;
@@ -2929,7 +2969,7 @@ NBEdge::appendTurnaround(bool noTLSControlled, bool noFringe, bool onlyDeadends,
             return;
         }
     }
-    setConnection(fromLane, myTurnDestination, toLane, L2L_VALIDATED);
+    setConnection(fromLane, myTurnDestination, toLane, Lane2LaneInfoType::VALIDATED);
 }
 
 
@@ -2968,7 +3008,7 @@ NBEdge::moveOutgoingConnectionsFrom(NBEdge* e, int laneOff) {
         for (std::vector<NBEdge::Connection>::iterator j = elv.begin(); j != elv.end(); j++) {
             NBEdge::Connection el = *j;
             assert(el.tlID == "");
-            addLane2LaneConnection(i + laneOff, el.toEdge, el.toLane, L2L_COMPUTED);
+            addLane2LaneConnection(i + laneOff, el.toEdge, el.toLane, Lane2LaneInfoType::COMPUTED);
         }
     }
 }
@@ -3196,6 +3236,10 @@ NBEdge::expandableBy(NBEdge* possContinuation, std::string& reason) const {
             return false;
         }
     }
+    // if given identically osm names 
+    if (!OptionsCont::getOptions().isDefault("output.street-names") && myStreetName != possContinuation->getStreetName()) {
+        return false;
+    }
 
     return true;
 }
@@ -3206,7 +3250,7 @@ NBEdge::append(NBEdge* e) {
     // append geometry
     myGeom.append(e->myGeom);
     for (int i = 0; i < (int)myLanes.size(); i++) {
-        myLanes[i].shape.append(e->myLanes[i].shape);
+        myLanes[i].customShape.append(e->myLanes[i].customShape);
         if (myLanes[i].knowsParameter(SUMO_PARAM_ORIGID) || e->myLanes[i].knowsParameter(SUMO_PARAM_ORIGID)
                 || OptionsCont::getOptions().getBool("output.original-names")) {
             const std::string origID = myLanes[i].getParameter(SUMO_PARAM_ORIGID, getID());
@@ -3629,7 +3673,7 @@ NBEdge::getSignalOffset() const {
     if (mySignalPosition == Position::INVALID) {
         return UNSPECIFIED_SIGNAL_OFFSET;
     } else {
-        Position laneEnd = myLaneSpreadFunction == LANESPREAD_RIGHT ?
+        Position laneEnd = myLaneSpreadFunction == LaneSpreadFunction::RIGHT ?
                            myLanes.back().shape.back() : myLanes[getNumLanes() / 2].shape.back();
         //std::cout << getID() << " signalPos=" << mySignalPosition << " laneEnd=" << laneEnd << " toShape=" << myTo->getShape() << " toBorder=" << myToBorder << "\n";
         return mySignalPosition.distanceTo2D(laneEnd);
@@ -3780,7 +3824,7 @@ NBEdge::addRestrictedLane(double width, SUMOVehicleClass vclass) {
         WRITE_WARNINGF("Edge '%' already has a dedicated lane for %s. Not adding another one.", getID(), toString(vclass));
         return;
     }
-    if (myLaneSpreadFunction == LANESPREAD_CENTER) {
+    if (myLaneSpreadFunction == LaneSpreadFunction::CENTER) {
         myGeom.move2side(width / 2);
     }
     // disallow pedestrians on all lanes to ensure that sidewalks are used and
@@ -3844,7 +3888,7 @@ NBEdge::shiftToLanesToEdge(NBEdge* to, int laneOff) {
 
 void
 NBEdge::shiftPositionAtNode(NBNode* node, NBEdge* other) {
-    if (myLaneSpreadFunction == LANESPREAD_CENTER && !isRailway(getPermissions())) {
+    if (myLaneSpreadFunction == LaneSpreadFunction::CENTER && !isRailway(getPermissions())) {
         const int i = (node == myTo ? -1 : 0);
         const int i2 = (node == myTo ? 0 : -1);
         const double dist = myGeom[i].distanceTo2D(node->getPosition());
@@ -4023,5 +4067,21 @@ NBEdge::getStraightContinuation(SVCPermissions permissions) const {
         return best;
     }
 }
+
+NBEdge*
+NBEdge::getStraightPredecessor(SVCPermissions permissions) const {
+    EdgeVector cands = filterByPermissions(myFrom->getIncomingEdges(), permissions);
+    if (cands.size() == 0) {
+        return nullptr;
+    }
+    sort(cands.begin(), cands.end(), NBContHelper::edge_similar_direction_sorter(this, false));
+    NBEdge* best = cands.front();
+    if (best->isTurningDirectionAt(this)) {
+        return nullptr;
+    } else {
+        return best;
+    }
+}
+
 
 /****************************************************************************/

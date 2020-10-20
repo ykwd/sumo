@@ -31,6 +31,8 @@ processed "natively"
     using VISUM data
   - *[vissim](Tools/Import/VISSIM.md)* - some helpers for
     using VISSIM data
+  - *[MATSim](Tools/Import/MATSim.md)* - some helpers for
+    using MATSim data
 - *[net](Tools/Net.md)* - tools for working with networks
 (mainly SUMO-networks)
 - *projects* - additional tools used by our projects
@@ -44,7 +46,7 @@ implementation of the TraCI interface
 mobility traces / trajectories / orbits / gps tracks in various
 formats
 - *[trip](Tools/Trip.md)* - Trip generation and modification
-without [OD2TRIPS](OD2TRIPS.md)
+without [od2trips](od2trips.md)
 - *[visualization](Tools/Visualization.md)* - graphical
 evaluation of SUMO-outputs
 - *[sumolib](Tools/Sumolib.md)* - python library for working

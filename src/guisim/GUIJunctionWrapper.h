@@ -19,13 +19,7 @@
 ///
 // Holds geometrical values for a junction
 /****************************************************************************/
-#ifndef GUIJunctionWrapper_h
-#define GUIJunctionWrapper_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -181,9 +175,3 @@ private:
     GUIJunctionWrapper& operator=(const GUIJunctionWrapper&);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

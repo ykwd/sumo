@@ -21,11 +21,6 @@
 ///
 // Loader for networks and route imports
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <iostream>
@@ -162,6 +157,7 @@ ROLoader::loadNet(RONet& toFill, ROAbstractEdgeBuilder& eb) {
         // create a TAZ for every junction
         toFill.addJunctionTaz(eb);
     }
+    toFill.setBidiEdges(handler.getBidiMap());
 }
 
 
@@ -312,4 +308,3 @@ ROLoader::writeStats(const SUMOTime time, const SUMOTime start, const SUMOTime a
 
 
 /****************************************************************************/
-

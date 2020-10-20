@@ -1,3 +1,5 @@
+basic
+
 route
 
 vehicletype
@@ -9,6 +11,10 @@ routeflow
 trip
 
 flow
+
+vehicle_embedded 
+
+flow_embedded
 
 person
 

@@ -20,11 +20,6 @@
 ///
 // A RGB-color definition
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <cmath>
@@ -70,13 +65,6 @@ RGBColor::RGBColor()
 
 RGBColor::RGBColor(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha)
     : myRed(red), myGreen(green), myBlue(blue), myAlpha(alpha) {}
-
-
-RGBColor::RGBColor(const RGBColor& col)
-    : myRed(col.myRed), myGreen(col.myGreen), myBlue(col.myBlue), myAlpha(col.myAlpha) {}
-
-
-RGBColor::~RGBColor() {}
 
 
 void
@@ -209,6 +197,16 @@ RGBColor::parseColor(std::string coldef) {
     if (coldef == "grey" || coldef == "gray") {
         return GREY;
     }
+    if (coldef == "invisible") {
+        return INVISIBLE;
+    }
+    if (coldef == "random") {
+        return fromHSV(RandHelper::rand(360, &myRNG),
+                       // prefer more saturated colors
+                       pow(RandHelper::rand(&myRNG), 0.3),
+                       // prefer brighter colors
+                       pow(RandHelper::rand(&myRNG), 0.3));
+    }
     unsigned char r = 0;
     unsigned char g = 0;
     unsigned char b = 0;
@@ -332,5 +330,5 @@ RGBColor::randomHue(double s, double v) {
     return fromHSV(RandHelper::rand(360, &myRNG), s, v);
 }
 
-/****************************************************************************/
 
+/****************************************************************************/

@@ -25,13 +25,7 @@
 ///
 // TraCI server used to control sumo by a remote TraCI client
 /****************************************************************************/
-#ifndef TRACISERVER_H
-#define TRACISERVER_H
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <map>
@@ -245,9 +239,9 @@ public:
     /// @}
 
 
-    /// @brief Sets myTargetTime on server and sockets to the given value
+    /// @brief updates myTargetTime and resets vehicle state changes after loading a simulation state
     /// @note  Used in MSStateHandler to update the server's time after loading a state
-    void setTargetTime(SUMOTime targetTime);
+    void stateLoaded(SUMOTime targetTime);
 
     std::vector<std::string>& getLoadArgs() {
         return myLoadArgs;
@@ -444,4 +438,3 @@ private:
 };
 
 
-#endif

@@ -44,13 +44,13 @@ netedit.inspectMode()
 netedit.leftClick(referencePosition, 320, 255)
 
 # check parameters
-netedit.checkParameters(referencePosition, 9, True)
-
-# save additionals
-netedit.saveAdditionals(referencePosition)
+netedit.checkParameters(referencePosition, 10, True)
 
 # save network
 netedit.saveNetwork(referencePosition)
+
+# save additionals
+netedit.saveAdditionals(referencePosition)
 
 # quit netedit
 netedit.quit(neteditProcess)

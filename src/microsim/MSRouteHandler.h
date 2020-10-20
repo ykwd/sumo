@@ -19,13 +19,7 @@
 ///
 // Parser and container for routes during their loading
 /****************************************************************************/
-#ifndef MSRouteHandler_h
-#define MSRouteHandler_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -102,6 +96,9 @@ protected:
     /// @brief opens a flow for reading
     void openFlow(const SUMOSAXAttributes& attrs);
 
+    /// @brief opens a route flow for reading
+    void openRouteFlow(const SUMOSAXAttributes& attrs);
+
     /// @brief opens a trip for reading
     void openTrip(const SUMOSAXAttributes& attrs);
 
@@ -174,6 +171,10 @@ protected:
     /// @brief The current route
     ConstMSEdgeVector myActiveRoute;
 
+    /// @brief number of repetitions of the active route
+    int myActiveRouteRepeat;
+    SUMOTime myActiveRoutePeriod;
+
     /// @brief The plan of the current person
     MSTransportable::MSTransportablePlan* myActivePlan;
 
@@ -208,15 +209,15 @@ private:
     /// @brief delete already created MSTransportablePlans if error occurs before handing over responsibility to a MSTransportable.
     void addFlowPerson(SUMOTime depart, MSVehicleType* type, const std::string& baseID, int i);
 
+    /// @brief determine the default group for rides and trips
+    static std::string getDefaultGroup(const std::string& personID);
+
+    /// @brief adapt implicit route (edges derived from stops) to additional vehicle-stops
+    MSRoute* addVehicleStopsToImplicitRoute(const MSRoute* route, bool isPermanent);
+
     /// @brief Invalidated copy constructor
     MSRouteHandler(const MSRouteHandler& s) = delete;
 
     /// @brief Invalidated assignment operator
     MSRouteHandler& operator=(const MSRouteHandler& s) = delete;
 };
-
-
-#endif
-
-/****************************************************************************/
-

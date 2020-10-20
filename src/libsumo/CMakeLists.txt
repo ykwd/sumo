@@ -29,6 +29,24 @@ set(libsumostatic_STAT_SRCS
     Polygon.cpp
     Route.h
     Route.cpp
+    Calibrator.h
+    Calibrator.cpp
+    BusStop.h
+    BusStop.cpp
+    ParkingArea.h
+    ParkingArea.cpp
+    ChargingStation.h
+    ChargingStation.cpp
+    RouteProbe.h
+    RouteProbe.cpp
+    Rerouter.h
+    Rerouter.cpp
+    VariableSpeedSign.h
+    VariableSpeedSign.cpp
+    MeanData.h
+    MeanData.cpp
+    OverheadWire.h
+    OverheadWire.cpp
     Simulation.cpp
     Simulation.h
     Subscription.h
@@ -43,6 +61,7 @@ set(libsumostatic_STAT_SRCS
 )
 
 add_library(libsumostatic STATIC ${libsumostatic_STAT_SRCS})
+add_dependencies(libsumostatic generate-version-h)
 set_property(TARGET libsumostatic PROPERTY FOLDER "libsumo")
 
 set(ENABLE_PYTHON_BINDINGS ON CACHE BOOL "Build Python Bindings")
@@ -125,11 +144,11 @@ if(SWIG_FOUND)
                 endif()
                 if (MSVC OR APPLE)
                     # disable python module for the debug build because virtually no one has a python debug dll to link against
-                    set_property(TARGET ${SWIG_MODULE_libsumo_REAL_NAME} PROPERTY EXCLUDE_FROM_DEFAULT_BUILD_DEBUG TRUE)
+#                    set_property(TARGET ${SWIG_MODULE_libsumo_REAL_NAME} PROPERTY EXCLUDE_FROM_DEFAULT_BUILD_DEBUG TRUE)
                     set_property(TARGET ${SWIG_MODULE_libsumo_REAL_NAME} PROPERTY FOLDER "libsumo")
                     swig_link_libraries(libsumo libsumostatic ${sumolibs} ${PYTHON_LIBRARIES})
                 else()
-                    swig_link_libraries(libsumo -Wl,--whole-archive libsumostatic ${sumolibs} -Wl,--no-whole-archive ${PYTHON_LIBRARIES})
+                    swig_link_libraries(libsumo -Wl,--whole-archive libsumostatic ${sumolibs} -Wl,--no-whole-archive)
                 endif()
                 if (NOT ${SETUPTOOLS_MISSING})
                     install(
@@ -146,12 +165,12 @@ endif()
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_SOURCE_DIR}/bin)
-add_library(libsumoc SHARED ${libsumostatic_STAT_SRCS})
-set_property(TARGET libsumoc PROPERTY FOLDER "libsumo")
-set_target_properties(libsumoc PROPERTIES PREFIX "")
-install(TARGETS libsumoc DESTINATION ${CMAKE_INSTALL_LIBDIR})
+add_library(libsumocpp SHARED ${libsumostatic_STAT_SRCS})
+set_property(TARGET libsumocpp PROPERTY FOLDER "libsumo")
+set_target_properties(libsumocpp PROPERTIES PREFIX "")
+install(TARGETS libsumocpp DESTINATION ${CMAKE_INSTALL_LIBDIR})
 if (MSVC OR APPLE)
-    target_link_libraries(libsumoc PRIVATE ${sumolibs})
+    target_link_libraries(libsumocpp PRIVATE ${sumolibs})
 else ()
-    target_link_libraries(libsumoc PRIVATE -Wl,--whole-archive ${sumolibs} -Wl,--no-whole-archive)
+    target_link_libraries(libsumocpp PRIVATE -Wl,--whole-archive ${sumolibs} -Wl,--no-whole-archive)
 endif()

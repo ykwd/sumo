@@ -17,13 +17,7 @@
 ///
 // A popup-menu for dynamic patameter table entries
 /****************************************************************************/
-#ifndef GUIParam_PopupMenu_h
-#define GUIParam_PopupMenu_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <string>
 
 #include <config.h>
@@ -101,9 +95,3 @@ protected:
     FOX_CONSTRUCTOR(GUIParam_PopupMenuInterface)
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

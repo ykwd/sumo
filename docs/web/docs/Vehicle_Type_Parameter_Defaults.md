@@ -6,7 +6,7 @@ permalink: /Vehicle_Type_Parameter_Defaults/
 This page describes the vehicle parameter defaults depending on the
 vehicle class. If no values are given the values for passenger are used.
 It uses as default always the values in the first line for each vehicle
-class. The other values are just as an information (to be used with own
+class. The other values (marked green) are just as an information (to be used with own
 vehicle types).
 
 <style type="text/css">
@@ -15,10 +15,10 @@ vehicle types).
 .tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
 .tg .tg-cly1{text-align:left;vertical-align:middle}
 .tg .tg-eaoh{font-weight:bold;background-color:#ffdead;text-align:center;vertical-align:top}
-.tg .tg-dr3j{font-weight:bold;background-color:#ffdead;text-align:center;vertical-align:middle}
+.tg .tg-dr3j{color: #495057; font-weight:bold;background-color:#ffdead;text-align:center;vertical-align:middle}
 .tg .tg-ye8u{background-color:#ffdead;text-align:center;vertical-align:top}
 .tg .tg-0lax{text-align:left;vertical-align:top}
-.tg .tg-c882{font-weight:bold;background-color:#e0ffd0;text-align:center;vertical-align:top}
+.tg .tg-c882{color: #495057; font-weight:bold;background-color:#e0ffd0;text-align:center;vertical-align:top}
 </style>
 <table class="tg">
   <tr>
@@ -33,22 +33,24 @@ vehicle types).
     <th class="tg-dr3j">v<sub>max</sub> maxSpeed</th>
     <th class="tg-dr3j">seats</th>
     <th class="tg-dr3j"><a href="Models/Emissions/HBEFA3-based.html">emissionClass (HBEFA3)</a></th>
+    <th class="tg-dr3j">speed deviation</th>
   </tr>
   <tr>
-    <td class="tg-cly1">pedestrian</td>
-    <td class="tg-cly1"><img src="images/Wikicommons_pedestrian.jpg" title="wikicommons_pedestrian.jpg" width="200" alt="" /></td>
-    <td class="tg-cly1">pedestrian</td>
-    <td class="tg-cly1">0.215m<sup>(1)</sup><br>0.478m<sup>(1)</sup><br>1.719m<sup>(1)</sup></td>
-    <td class="tg-cly1">0.25m</td>
+    <td class="tg-0lax">pedestrian</td>
+    <td class="tg-0lax"><img src="images/Wikicommons_pedestrian.jpg" title="wikicommons_pedestrian.jpg" width="200" alt="" /></td>
+    <td class="tg-0lax">pedestrian</td>
+    <td class="tg-0lax">0.215m<sup>(1)</sup><br>0.478m<sup>(1)</sup><br>1.719m<sup>(1)</sup></td>
+    <td class="tg-0lax">0.25m</td>
     <td class="tg-0lax">1.5m/s<sup>2(23)</sup></td>
     <td class="tg-0lax">2m/s<sup>2(23)</sup></td>
     <td class="tg-0lax">5m/s<sup>2</sup></td>
     <td class="tg-0lax">5.4km/h<sup>(23)</sup></td>
     <td class="tg-0lax">-</td>
     <td class="tg-0lax">zero</td>
+    <td class="tg-0lax">0.1</td>
   </tr>
   <tr>
-    <td class="tg-c882" colspan="11">two-wheeled vehicle</td>
+    <td class="tg-c882" colspan="12">two-wheeled vehicle</td>
   </tr>
   <tr>
     <td class="tg-0lax">bicycle</td>
@@ -62,6 +64,7 @@ vehicle types).
     <td class="tg-0lax">20km/h<sup>(19)</sup></td>
     <td class="tg-0lax">1</td>
     <td class="tg-0lax">zero</td>
+    <td class="tg-0lax">0.1</td>
   </tr>
   <tr>
     <td class="tg-0lax">moped</td>
@@ -74,7 +77,8 @@ vehicle types).
     <td class="tg-0lax">10m/s<sup>2</sup></td>
     <td class="tg-0lax">45km/h<sup>(24)</sup></td>
     <td class="tg-0lax">2</td>
-    <td class="tg-0lax">zero</td>
+    <td class="tg-0lax">LDV_G_EU6</td>
+    <td class="tg-0lax">0.1</td>
   </tr>
   <tr>
     <td class="tg-0lax">motorcycle</td>
@@ -88,9 +92,10 @@ vehicle types).
     <td class="tg-0lax">200km/h<sup>(28)</sup></td>
     <td class="tg-0lax">2</td>
     <td class="tg-0lax">LDV_G_EU6</td>
+    <td class="tg-0lax">0.1</td>
   </tr>
   <tr>
-    <td class="tg-c882" colspan="11">passenger car</td>
+    <td class="tg-c882" colspan="12">passenger car</td>
   </tr>
   <tr>
     <td class="tg-0lax" rowspan="5">passenger</td>
@@ -103,7 +108,8 @@ vehicle types).
     <td class="tg-0lax">9m/s<sup>2</sup></td>
     <td class="tg-0lax">180km/h<sup>(29)</sup></td>
     <td class="tg-0lax">5</td>
-    <td class="tg-0lax">LDV_G_EU4</td>
+    <td class="tg-0lax">PC_G_EU4</td>
+    <td class="tg-0lax">0.1</td>
   </tr>
   <tr>
     <td class="tg-0lax"><img src="images/Wikicommons_passenger_sedan.jpg" title="wikicommons_passenger_sedan.jpg" width="200" alt="" /></td>
@@ -115,7 +121,8 @@ vehicle types).
     <td class="tg-0lax">see above</td>
     <td class="tg-0lax">see above</td>
     <td class="tg-0lax">5</td>
-    <td class="tg-0lax">LDV_G_EU4</td>
+    <td class="tg-0lax">PC_G_EU4</td>
+    <td class="tg-0lax">0.1</td>
   </tr>
   <tr>
     <td class="tg-0lax"><img src="images/Wikicommons_passenger_hatchback.jpg" title="wikicommons_passenger_hatchback.jpg" width="200" alt="" /></td>
@@ -127,7 +134,8 @@ vehicle types).
     <td class="tg-0lax">see above</td>
     <td class="tg-0lax">see above</td>
     <td class="tg-0lax">5</td>
-    <td class="tg-0lax">LDV_G_EU4</td>
+    <td class="tg-0lax">PC_G_EU4</td>
+    <td class="tg-0lax">0.1</td>
   </tr>
   <tr>
     <td class="tg-0lax"><img src="images/Wikicommons_passenger_wagon.jpg" title="wikicommons_passenger_wagon.jpg" width="200" alt="" /></td>
@@ -139,19 +147,35 @@ vehicle types).
     <td class="tg-0lax">see above</td>
     <td class="tg-0lax">see above</td>
     <td class="tg-0lax">5</td>
-    <td class="tg-0lax">LDV_G_EU4</td>
+    <td class="tg-0lax">PC_G_EU4</td>
+    <td class="tg-0lax">0.1</td>
   </tr>
   <tr>
     <td class="tg-0lax"><img src="images/Wikicommons_passenger_van.jpg" title="wikicommons_passenger_van.jpg" width="200" alt="" /></td>
     <td class="tg-0lax">passenger/van</td>
-    <td class="tg-0lax">4.7m<sup>(16)</sup><br>1.9m<sup>(16)</sup><br>1.73m<sup>(16)</sup></td>
+    <td class="tg-c882">4.7m<sup>(16)</sup><br>1.9m<sup>(16)</sup><br>1.73m<sup>(16)</sup></td>
     <td class="tg-0lax">see above</td>
     <td class="tg-0lax">see above</td>
     <td class="tg-0lax">see above</td>
     <td class="tg-0lax">see above</td>
     <td class="tg-0lax">see above</td>
     <td class="tg-0lax">6<br></td>
-    <td class="tg-0lax">LDV_G_EU4</td>
+    <td class="tg-0lax">PC_G_EU4</td>
+    <td class="tg-0lax">0.1</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">taxi</td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax">passenger</td>
+    <td class="tg-0lax">see passenger</td>
+    <td class="tg-0lax">see passenger</td>
+    <td class="tg-0lax">see passenger</td>
+    <td class="tg-0lax">see passenger</td>
+    <td class="tg-0lax">see passenger</td>
+    <td class="tg-0lax">see passenger</td>
+    <td class="tg-0lax">see passenger</td>
+    <td class="tg-0lax">PC_G_EU4</td>
+    <td class="tg-0lax">0.05</td>
   </tr>
   <tr>
     <td class="tg-0lax">emergency</td>
@@ -165,6 +189,7 @@ vehicle types).
     <td class="tg-0lax">see above</td>
     <td class="tg-0lax">3</td>
     <td class="tg-0lax">LDV</td>
+    <td class="tg-0lax">0</td>
   </tr>
   <tr>
     <td class="tg-0lax">delivery</td>
@@ -178,9 +203,10 @@ vehicle types).
     <td class="tg-0lax">see above</td>
     <td class="tg-0lax">3</td>
     <td class="tg-0lax">LDV</td>
+    <td class="tg-0lax">0.05</td>
   </tr>
   <tr>
-    <td class="tg-c882" colspan="11">truck</td>
+    <td class="tg-c882" colspan="12">truck</td>
   </tr>
   <tr>
     <td class="tg-0lax">truck</td>
@@ -194,6 +220,7 @@ vehicle types).
     <td class="tg-0lax">130km/h<sup>(35)</sup></td>
     <td class="tg-0lax">3</td>
     <td class="tg-0lax">HDV</td>
+    <td class="tg-0lax">0.05</td>
   </tr>
   <tr>
     <td class="tg-0lax" rowspan="2">trailer</td>
@@ -207,6 +234,7 @@ vehicle types).
     <td class="tg-0lax">see above</td>
     <td class="tg-0lax">3</td>
     <td class="tg-0lax">HDV</td>
+    <td class="tg-0lax">0.05</td>
   </tr>
   <tr>
     <td class="tg-0lax"><img src="images/Wikicommons_transport_trailer.jpg" title="wikicommons_transport_trailer.jpg" width="200" alt="" /></td>
@@ -219,9 +247,10 @@ vehicle types).
     <td class="tg-0lax">see above</td>
     <td class="tg-0lax">3</td>
     <td class="tg-0lax">HDV</td>
+    <td class="tg-0lax">0.05</td>
   </tr>
   <tr>
-    <td class="tg-c882" colspan="11">bus</td>
+    <td class="tg-c882" colspan="12">bus</td>
   </tr>
   <tr>
     <td class="tg-0lax" rowspan="2">bus</td>
@@ -235,6 +264,7 @@ vehicle types).
     <td class="tg-0lax">85km/h<sup>(3)</sup></td>
     <td class="tg-0lax">~85</td>
     <td class="tg-0lax">Bus</td>
+    <td class="tg-0lax">0</td>
   </tr>
   <tr>
     <td class="tg-0lax"><img src="images/Wikicommons_bus_flexible.jpg" title="wikicommons_bus_flexible.jpg" width="200" alt="" /></td>
@@ -247,6 +277,7 @@ vehicle types).
     <td class="tg-0lax">see above</td>
     <td class="tg-0lax">~150</td>
     <td class="tg-0lax">Bus</td>
+    <td class="tg-0lax">0</td>
   </tr>
   <tr>
     <td class="tg-0lax">coach</td>
@@ -260,9 +291,10 @@ vehicle types).
     <td class="tg-0lax">100km/h<sup>(32)</sup></td>
     <td class="tg-0lax">70<sup>(9)</sup></td>
     <td class="tg-0lax">Coach</td>
+    <td class="tg-0lax">0.05</td>
   </tr>
   <tr>
-    <td class="tg-c882" colspan="11">rail</td>
+    <td class="tg-c882" colspan="12">rail</td>
   </tr>
   <tr>
     <td class="tg-0lax">tram</td>
@@ -276,6 +308,7 @@ vehicle types).
     <td class="tg-0lax">80km/h<sup>(36)</sup></td>
     <td class="tg-0lax">~120<sup>(7, *)</sup></td>
     <td class="tg-0lax">zero</td>
+    <td class="tg-0lax">0</td>
   </tr>
   <tr>
     <td class="tg-0lax">rail_urban</td>
@@ -289,6 +322,7 @@ vehicle types).
     <td class="tg-0lax">100km/h<sup>(4)</sup></td>
     <td class="tg-0lax">~300(*2/*4)</td>
     <td class="tg-0lax">zero</td>
+    <td class="tg-0lax">0</td>
   </tr>
   <tr>
     <td class="tg-0lax" rowspan="2">rail</td>
@@ -302,6 +336,7 @@ vehicle types).
     <td class="tg-0lax">160km/h<sup>(11)</sup></td>
     <td class="tg-0lax">~434(*2)<sup>(11)</sup></td>
     <td class="tg-0lax">HDV_D_EU0</td>
+    <td class="tg-0lax">0</td>
   </tr>
   <tr>
     <td class="tg-0lax"><img src="images/Wikicommons_rail_cargo.jpg" title="wikicommons_rail_cargo.jpg" width="200" alt="" /></td>
@@ -314,6 +349,7 @@ vehicle types).
     <td class="tg-0lax">120km/h<sup>(5)</sup></td>
     <td class="tg-0lax">1</td>
     <td class="tg-0lax">HDV_D_EU0</td>
+    <td class="tg-0lax">0</td>
   </tr>
   <tr>
     <td class="tg-0lax">rail_electric</td>
@@ -327,9 +363,10 @@ vehicle types).
     <td class="tg-0lax">330km/h<sup>(12)</sup></td>
     <td class="tg-0lax">425<sup>(12)</sup></td>
     <td class="tg-0lax">zero</td>
+    <td class="tg-0lax">0</td>
   </tr>
   <tr>
-    <td class="tg-c882" colspan="11">electric vehicle</td>
+    <td class="tg-c882" colspan="12">electric vehicle</td>
   </tr>
   <tr>
     <td class="tg-0lax">evehicle</td>
@@ -343,9 +380,10 @@ vehicle types).
     <td class="tg-0lax">see passenger</td>
     <td class="tg-0lax">see passenger</td>
     <td class="tg-0lax">zero</td>
+    <td class="tg-0lax">0.1</td>
   </tr>
   <tr>
-    <td class="tg-c882" colspan="11">ships</td>
+    <td class="tg-c882" colspan="12">ship</td>
   </tr>
   <tr>
     <td class="tg-0lax">ship</td>
@@ -359,6 +397,7 @@ vehicle types).
     <td class="tg-0lax">4.12 (8 Knots)</td>
     <td class="tg-0lax"></td>
     <td class="tg-0lax">HDV_D_EU0</td>
+    <td class="tg-0lax">0.1</td>
   </tr>
 </table>
 
@@ -416,4 +455,4 @@ vehicle types).
 - (37):
   <http://www.rettungsdienst.brk.de/technik/rtw/rtw_by_2010/daten>
 - (\*): estimated
-- (\*\*): need to be revisited to fit to model behaviour
+- (\*\*): need to be revisited to fit to model behavior

@@ -17,11 +17,6 @@
 ///
 // Calibrates the flow on a segment to a specified one
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <string>
@@ -58,8 +53,9 @@ METriggeredCalibrator::METriggeredCalibrator(const std::string& id,
         const std::string& outputFilename,
         const SUMOTime freq, const double length,
         const MSRouteProbe* probe,
+        const double invalidJamThreshold,
         const std::string& vTypes) :
-    MSCalibrator(id, edge, (MSLane*)nullptr, pos, aXMLFilename, outputFilename, freq, length, probe, vTypes, false),
+    MSCalibrator(id, edge, (MSLane*)nullptr, pos, aXMLFilename, outputFilename, freq, length, probe, invalidJamThreshold, vTypes, false),
     mySegment(MSGlobals::gMesoNet->getSegmentForEdge(*edge, pos)) {
     myEdgeMeanData.setDescription("meandata_calibrator_" + getID());
     mySegment->addDetector(&myEdgeMeanData);
@@ -140,7 +136,7 @@ METriggeredCalibrator::execute(SUMOTime currentTime) {
             WRITE_WARNING("Clearing jam at calibrator '" + getID() + "' at time " + time2string(currentTime));
         }
         // remove one vehicle currently on the segment
-        if (mySegment->vaporizeAnyCar(currentTime)) {
+        if (mySegment->vaporizeAnyCar(currentTime, this)) {
             myClearedInJam++;
         } else {
             if (!myHaveWarnedAboutClearingJam) {
@@ -171,7 +167,7 @@ METriggeredCalibrator::execute(SUMOTime currentTime) {
             //std::cout << "time:" << STEPS2TIME(currentTime) << " w:" << wishedNum << " s:" << insertionSlack << " before:" << adaptedNum;
             while (wishedNum > adaptedNum + insertionSlack && remainingVehicleCapacity() > maximumInflow()) {
                 SUMOVehicleParameter* pars = myCurrentStateInterval->vehicleParameter;
-                const MSRoute* route = myProbe != nullptr ? myProbe->getRoute() : nullptr;
+                const MSRoute* route = myProbe != nullptr ? myProbe->sampleRoute() : nullptr;
                 if (route == nullptr) {
                     route = MSRoute::dictionary(pars->routeid);
                 }
@@ -227,9 +223,8 @@ METriggeredCalibrator::execute(SUMOTime currentTime) {
         //std::cout << " after:" << adaptedNum << "\n";
         // we only remove vehicles once we really have to
         while (totalWishedNum < adaptedNum) {
-            if (!mySegment->vaporizeAnyCar(currentTime)) {
+            if (!mySegment->vaporizeAnyCar(currentTime, this)) {
                 // @bug: short edges may be jumped in a single step, giving us no chance to remove a vehicle
-                // @bug2: vehicleApplies() must be considered (#3082)
                 break;
             }
             myRemoved++;
@@ -253,7 +248,7 @@ METriggeredCalibrator::invalidJam() const {
         return false;
     }
     // maxSpeed reflects the calibration target
-    const bool toSlow = mySegment->getMeanSpeed() < 0.8 * mySegment->getEdge().getSpeedLimit();
+    const bool toSlow = mySegment->getMeanSpeed() < myInvalidJamThreshold * mySegment->getEdge().getSpeedLimit();
     return toSlow && remainingVehicleCapacity() < maximumInflow();
 }
 
@@ -273,4 +268,3 @@ METriggeredCalibrator::reset() {
 
 
 /****************************************************************************/
-

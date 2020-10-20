@@ -18,13 +18,7 @@
 ///
 // Helper methods for HBEFA-based emission computation
 /****************************************************************************/
-#ifndef HelpersEnergy_h
-#define HelpersEnergy_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -44,9 +38,10 @@
  * @brief Helper methods for energy-based electricity consumption computation based on the battery device
  */
 class HelpersEnergy : public PollutantsInterface::Helper {
-public:
-    static const int ENERGY_BASE = 3 << 16;
+private:
+    static const int ENERGY_BASE = 4 << 16;
 
+public:
     /** @brief Constructor (initializes myEmissionClassStrings)
      */
     HelpersEnergy();
@@ -65,7 +60,7 @@ public:
      */
     double compute(const SUMOEmissionClass c, const PollutantsInterface::EmissionType e, const double v, const double a, const double slope, const std::map<int, double>* param) const;
 
-    /** @brief Computes the achievable acceleartion using the given speed and amount of consumed electric power
+    /** @brief Computes the achievable acceleration using the given speed and amount of consumed electric power
      *
      * @param[in] c emission class for the function parameters to use
      * @param[in] e the type of emission (CO, CO2, ...), only electricity gives valid results
@@ -85,9 +80,3 @@ private:
     /// @brief The default parameter
     std::map<int, double> myDefaultParameter;
 };
-
-
-#endif
-
-/****************************************************************************/
-

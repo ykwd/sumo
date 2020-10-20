@@ -21,12 +21,7 @@
 // The class for low-level policy
 /****************************************************************************/
 
-#ifndef MSTLPolicy_h
-#define MSTLPolicy_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 //#define SWARM_DEBUG
@@ -132,4 +127,3 @@ public:
     double computeDesirability(double vehInMeasure, double vehOutMeasure);
 };
 
-#endif

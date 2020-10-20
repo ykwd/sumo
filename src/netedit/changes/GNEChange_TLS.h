@@ -17,23 +17,11 @@
 ///
 // A network change in which a traffic light is created or deleted
 /****************************************************************************/
-#ifndef GNEChange_TLS_h
-#define GNEChange_TLS_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
-#include <fx.h>
-#include <utils/foxtools/fxexdefs.h>
 #include "GNEChange.h"
 
-// ===========================================================================
-// class declarations
-// ===========================================================================
-class NBTrafficLightDefinition;
 class GNEJunction;
 
 // ===========================================================================
@@ -88,6 +76,3 @@ private:
     /// @brief check if forceInsert is enabled
     bool myForceInsert;
 };
-
-#endif
-/****************************************************************************/

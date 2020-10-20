@@ -19,12 +19,7 @@
 // code adapted from https://github.com/glgh/w99-demo
 // (MIT License, Copyright (c) 2016 glgh)
 /****************************************************************************/
-#ifndef MSCFModel_W99_H
-#define MSCFModel_W99_H
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSCFModel.h"
@@ -91,15 +86,6 @@ public:
      */
     double interactionGap(const MSVehicle* const, double vL) const;
 
-    /** @brief Returns the minimum gap to reserve if the leader is braking at maximum (>=0)
-     * @param[in] veh The vehicle itself, for obtaining other values
-     * @param[in] pred The leader vehicle, for obtaining other values
-     * @param[in] speed EGO's speed
-     * @param[in] leaderSpeed LEADER's speed
-     * @param[in] leaderMaxDecel LEADER's max. deceleration rate
-     */
-    double getSecureGap(const MSVehicle* const veh, const MSVehicle* const pred, const double speed, const double leaderSpeed, const double leaderMaxDecel) const;
-
     /** @brief Returns the model's name
      * @return The model's name
      * @see MSCFModel::getModelName
@@ -161,4 +147,3 @@ private:
     MSCFModel_W99& operator=(const MSCFModel_W99& s);
 };
 
-#endif /* MSCFModel_W99_H */

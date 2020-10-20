@@ -21,11 +21,6 @@
 ///
 // Perfoms network import
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <string>
@@ -55,7 +50,6 @@
 #include <netimport/vissim/NIImporter_Vissim.h>
 #include <netimport/NIImporter_ArcView.h>
 #include <netimport/NIImporter_SUMO.h>
-#include <netimport/NIImporter_RobocupRescue.h>
 #include <netimport/NIImporter_OpenStreetMap.h>
 #include <netimport/NIImporter_OpenDrive.h>
 #include <netimport/NIImporter_MATSim.h>
@@ -93,7 +87,6 @@ NILoader::load(OptionsCont& oc) {
     NBHeightMapper::loadIfSet(oc);
     // try to load using different methods
     NIImporter_SUMO::loadNetwork(oc, myNetBuilder);
-    NIImporter_RobocupRescue::loadNetwork(oc, myNetBuilder);
     NIImporter_OpenStreetMap::loadNetwork(oc, myNetBuilder);
     NIImporter_VISUM::loadNetwork(oc, myNetBuilder);
     NIImporter_ArcView::loadNetwork(oc, myNetBuilder);
@@ -120,6 +113,9 @@ NILoader::load(OptionsCont& oc) {
     }
     if (myNetBuilder.getEdgeCont().size() == 0) {
         throw ProcessError("No edges loaded.");
+    }
+    if (!myNetBuilder.getEdgeCont().checkConsistency(myNetBuilder.getNodeCont())) {
+        throw ProcessError();
     }
     // report loaded structures
     WRITE_MESSAGE(" Import done:");
@@ -208,5 +204,6 @@ NILoader::loadXML(OptionsCont& oc) {
     }
     return ok;
 }
+
 
 /****************************************************************************/

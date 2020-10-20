@@ -24,11 +24,6 @@
 // A lane change model developed by J. Erdmann
 // based on the model of D. Krajzewicz developed between 2004 and 2011 (MSLCM_DK2004)
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <iostream>
@@ -40,45 +35,47 @@
 #include <microsim/MSLane.h>
 #include <microsim/MSDriverState.h>
 #include <microsim/MSNet.h>
+#include <microsim/MSStop.h>
+#include "MSLCHelper.h"
 #include "MSLCM_LC2013.h"
 
 
 // ===========================================================================
 // variable definitions
 // ===========================================================================
-#define LOOK_FORWARD (double)10.
+#define LOOK_FORWARD 10.
 
-#define JAM_FACTOR (double)1.
+#define JAM_FACTOR 1.
 
-#define LCA_RIGHT_IMPATIENCE (double)-1.
-#define CUT_IN_LEFT_SPEED_THRESHOLD (double)27.
+#define LCA_RIGHT_IMPATIENCE -1.
+#define CUT_IN_LEFT_SPEED_THRESHOLD 27.
 
 #define LOOK_AHEAD_MIN_SPEED 0.0
 #define LOOK_AHEAD_SPEED_MEMORY 0.9
 
-#define HELP_DECEL_FACTOR (double)1.0
+#define HELP_DECEL_FACTOR 1.0
 
-#define HELP_OVERTAKE  (double)(10.0 / 3.6)
-#define MIN_FALLBEHIND  (double)(7.0 / 3.6)
+#define HELP_OVERTAKE  (10.0 / 3.6)
+#define MIN_FALLBEHIND  (7.0 / 3.6)
 
 // allow overtaking to the right below this speed difference
-#define OVERTAKE_RIGHT_THRESHOLD (double)(5/3.6)
+#define OVERTAKE_RIGHT_THRESHOLD (5/3.6)
 
-#define RELGAIN_NORMALIZATION_MIN_SPEED (double)10.0
-#define URGENCY (double)2.0
-#define OPPOSITE_URGENCY (double)5.0
+#define RELGAIN_NORMALIZATION_MIN_SPEED 10.0
+#define URGENCY 2.0
+#define OPPOSITE_URGENCY 5.0
 
-#define KEEP_RIGHT_TIME (double)5.0 // the number of seconds after which a vehicle should move to the right lane
-#define KEEP_RIGHT_ACCEPTANCE (double)7.0 // calibration factor for determining the desire to keep right
+#define KEEP_RIGHT_TIME 5.0 // the number of seconds after which a vehicle should move to the right lane
+#define KEEP_RIGHT_ACCEPTANCE 7.0 // calibration factor for determining the desire to keep right
 
-#define ROUNDABOUT_DIST_FACTOR (double)10.0 // Must be >=1.0, serves an alternative way of decreasing sense lc-urgency by multiplying the distance along the next roundabout
+#define ROUNDABOUT_DIST_FACTOR 10.0 // Must be >=1.0, serves an alternative way of decreasing sense lc-urgency by multiplying the distance along the next roundabout
 
-#define KEEP_RIGHT_HEADWAY (double)2.0
-#define MAX_ONRAMP_LENGTH (double)200.
-#define TURN_LANE_DIST (double)200.0 // the distance at which a lane leading elsewhere is considered to be a turn-lane that must be avoided
+#define KEEP_RIGHT_HEADWAY 2.0
+#define MAX_ONRAMP_LENGTH 200.
+#define TURN_LANE_DIST 200.0 // the distance at which a lane leading elsewhere is considered to be a turn-lane that must be avoided
 
-#define LC_RESOLUTION_SPEED_LAT (double)0.5 // the lateral speed (in m/s) for a standing vehicle which was unable to finish a continuous LC in time (in case mySpeedLatStanding==0), see #3771
-#define LC_ASSUMED_DECEL (double)1.0 // the minimal constant deceleration assumed to estimate the duration of a continuous lane-change at its initiation.
+#define LC_RESOLUTION_SPEED_LAT 0.5 // the lateral speed (in m/s) for a standing vehicle which was unable to finish a continuous LC in time (in case mySpeedLatStanding==0), see #3771
+#define LC_ASSUMED_DECEL 1.0 // the minimal constant deceleration assumed to estimate the duration of a continuous lane-change at its initiation.
 
 #define REACT_TO_STOPPED_DISTANCE 100
 
@@ -241,6 +238,8 @@ MSLCM_LC2013::_patchSpeed(const double min, const double wanted, const double ma
 
     // letting vehicles merge in at the end of the lane in case of counter-lane change, step#2
     double MAGIC_offset = 1.;
+    double nVSafe = wanted;
+    bool gotOne = false;
     //   if we want to change and have a blocking leader and there is enough room for him in front of us
     if (myLeadingBlockerLength != 0) {
         double space = myLeftSpace - myLeadingBlockerLength - MAGIC_offset - myVehicle.getVehicleType().getMinGap();
@@ -260,13 +259,12 @@ MSLCM_LC2013::_patchSpeed(const double min, const double wanted, const double ma
                     std::cout << SIMTIME << " veh=" << myVehicle.getID() << " slowing down for leading blocker, safe=" << safe << (safe + NUMERICAL_EPS < min ? " (not enough)" : "") << "\n";
                 }
 #endif
-                return MAX2(min, safe);
+                nVSafe = MAX2(min, safe);
+                gotOne = true;
             }
         }
     }
 
-    double nVSafe = wanted;
-    bool gotOne = false;
     const double coopWeight = MAX2(0.0, MIN2(1.0, myCooperativeSpeed));
     for (std::vector<double>::const_iterator i = myLCAccelerationAdvices.begin(); i != myLCAccelerationAdvices.end(); ++i) {
         double a = (*i);
@@ -322,7 +320,7 @@ MSLCM_LC2013::_patchSpeed(const double min, const double wanted, const double ma
                 std::cout << SIMTIME << " veh=" << myVehicle.getID() << " LCA_WANTS_LANECHANGE (strat, no vSafe)\n";
             }
 #endif
-            return (max + wanted) / (double) 2.0;
+            return (max + wanted) /  2.0;
         } else if ((state & LCA_COOPERATIVE) != 0) {
             // only minor adjustments in speed should be done
             if ((state & LCA_BLOCKED_BY_LEADER) != 0) {
@@ -332,7 +330,7 @@ MSLCM_LC2013::_patchSpeed(const double min, const double wanted, const double ma
                 }
 #endif
                 if (wanted >= 0.) {
-                    return (MAX2(0., min) + wanted) / (double) 2.0;
+                    return (MAX2(0., min) + wanted) /  2.0;
                 } else {
                     return wanted;
                 }
@@ -343,13 +341,13 @@ MSLCM_LC2013::_patchSpeed(const double min, const double wanted, const double ma
                     std::cout << SIMTIME << " veh=" << myVehicle.getID() << " LCA_BLOCKED_BY_FOLLOWER (coop)\n";
                 }
 #endif
-                return (max + wanted) / (double) 2.0;
+                return (max + wanted) /  2.0;
             }
             //} else { // VARIANT_16
             //    // only accelerations should be performed
             //    if ((state & LCA_BLOCKED_BY_FOLLOWER) != 0) {
             //        if (gDebugFlag2) std::cout << SIMTIME << " veh=" << myVehicle.getID() << " LCA_BLOCKED_BY_FOLLOWER\n";
-            //        return (max + wanted) / (double) 2.0;
+            //        return (max + wanted) /  2.0;
             //    }
         }
     }
@@ -365,7 +363,7 @@ MSLCM_LC2013::_patchSpeed(const double min, const double wanted, const double ma
         if (gDebugFlag2) std::cout << SIMTIME << " veh=" << myVehicle.getID() << " LCA_AMBLOCKINGFOLLOWER\n";
 
         //return min; // VARIANT_3 (brakeStrong)
-        return (min + wanted) / (double) 2.0;
+        return (min + wanted) /  2.0;
     }
     if ((state & LCA_AMBACKBLOCKER) != 0) {
         if (max <= myVehicle.getCarFollowModel().maxNextSpeed(myVehicle.getSpeed(), &myVehicle) && min == 0) { // !!! was standing
@@ -389,7 +387,7 @@ MSLCM_LC2013::_patchSpeed(const double min, const double wanted, const double ma
             std::cout << SIMTIME << " veh=" << myVehicle.getID() << " LCA_AMBLOCKINGLEADER\n";
         }
 #endif
-        return (max + wanted) / (double) 2.0;
+        return (max + wanted) /  2.0;
     }
 
     if ((state & LCA_AMBLOCKINGFOLLOWER_DONTBRAKE) != 0) {
@@ -403,7 +401,7 @@ MSLCM_LC2013::_patchSpeed(const double min, const double wanted, const double ma
         if (max <= myVehicle.getCarFollowModel().maxNextSpeed(myVehicle.getSpeed(), &myVehicle) && min == 0) { // !!! was standing
             return wanted;
         }
-        return (min + wanted) / (double) 2.0;
+        return (min + wanted) /  2.0;
         */
     }
     if (!myVehicle.getLane()->getEdge().hasLaneChanger()) {
@@ -537,7 +535,7 @@ MSLCM_LC2013::informLeader(MSAbstractLaneChangeModel::MSLCMessager& msgPass,
                 const double decel = remainingSeconds == 0. ? myVehicle.getCarFollowModel().getMaxDecel() :
                                      MIN2(myVehicle.getCarFollowModel().getMaxDecel(),
                                           MAX2(MIN_FALLBEHIND, (myVehicle.getSpeed() - targetSpeed) / remainingSeconds));
-                const double nextSpeed = MIN2(plannedSpeed, myVehicle.getSpeed() - ACCEL2SPEED(decel));
+                const double nextSpeed = MIN2(plannedSpeed, MAX2(0.0, myVehicle.getSpeed() - ACCEL2SPEED(decel)));
 #ifdef DEBUG_INFORMER
                 if (DEBUG_COND) {
                     std::cout << SIMTIME
@@ -749,7 +747,7 @@ MSLCM_LC2013::informFollower(MSAbstractLaneChangeModel::MSLCMessager& msgPass,
                                   nv, nv->getSpeed(), neighFollow.second + SPEED2DIST(plannedSpeed), plannedSpeed, myCarFollowModel.getMaxDecel()));
                 vsafe = MAX2(neighNewSpeed, nv->getCarFollowModel().followSpeed(
                                  nv, nv->getSpeed(), neighFollow.second + SPEED2DIST(plannedSpeed - vsafe1), plannedSpeed, myCarFollowModel.getMaxDecel()));
-                assert(vsafe <= vsafe1);
+                //assert(vsafe <= vsafe1); assertion does not hold for models with randomness in followSpeed (W99)
             } else {
                 // ballistic
 
@@ -1035,7 +1033,7 @@ MSLCM_LC2013::prepareStep() {
     // truncate to work around numerical instability between different builds
     mySpeedGainProbability = ceil(mySpeedGainProbability * 100000.0) * 0.00001;
     myKeepRightProbability = ceil(myKeepRightProbability * 100000.0) * 0.00001;
-    if (mySigma > 0 && MSGlobals::gLaneChangeDuration > DELTA_T && !isChangingLanes()) {
+    if (mySigma > 0 && !isChangingLanes()) {
         // disturb lateral position directly
         const double oldPosLat = myVehicle.getLateralPositionOnLane();
         const double deltaPosLat = OUProcess::step(oldPosLat,
@@ -1093,7 +1091,7 @@ MSLCM_LC2013::_wantsChange(
         // internal edges are not kept inside the bestLanes structure
         prebLane = prebLane->getLinkCont()[0]->getLane();
     }
-    // XXX: What does the following code do? Please comment. (Leo) Refs. #2578
+    // special case: vehicle considers changing to the opposite direction edge
     const bool checkOpposite = &neighLane.getEdge() != &myVehicle.getLane()->getEdge();
     const int prebOffset = (checkOpposite ? 0 : laneOffset);
     for (int p = 0; p < (int) preb.size(); ++p) {
@@ -1209,7 +1207,7 @@ MSLCM_LC2013::_wantsChange(
                                 (memoryFactor * myLookAheadSpeed + (1 - memoryFactor) * myVehicle.getSpeed()));
     }
     double laDist = myLookAheadSpeed * LOOK_FORWARD * myStrategicParam * (right ? 1 : myLookaheadLeft);
-    laDist += myVehicle.getVehicleType().getLengthWithGap() * (double) 2.;
+    laDist += myVehicle.getVehicleType().getLengthWithGap() *  2.;
 
 
     if (bestLaneOffset == 0 && leader.first != 0 && leader.first->isStopped() && leader.second < (currentDist - posOnLane)) {
@@ -1225,6 +1223,9 @@ MSLCM_LC2013::_wantsChange(
                   + neighLead.first->getVehicleType().getLengthWithGap()
                   + neighLead.second);
     }
+    if (myStrategicParam < 0) {
+        laDist = -1e3; // never perform strategic change
+    }
 
     // free space that is available for changing
     //const double neighSpeed = (neighLead.first != 0 ? neighLead.first->getSpeed() :
@@ -1237,14 +1238,14 @@ MSLCM_LC2013::_wantsChange(
 
     // Next we assign to roundabout edges a larger distance than to normal edges
     // in order to decrease sense of lc urgency and induce higher usage of inner roundabout lanes.
-    const double roundaboutBonus = getRoundaboutDistBonus(curr, neigh, best);
+    const double roundaboutBonus = MSLCHelper::getRoundaboutDistBonus(myVehicle, myRoundaboutBonus, curr, neigh, best);
     currentDist += roundaboutBonus;
     neighDist += roundaboutBonus;
 
     const double usableDist = MAX2(currentDist - posOnLane - best.occupation * JAM_FACTOR, driveToNextStop);
     //- (best.lane->getVehicleNumber() * neighSpeed)); // VARIANT 9 jfSpeed
     const double maxJam = MAX2(preb[currIdx + prebOffset].occupation, preb[currIdx].occupation);
-    const double neighLeftPlace = MAX2((double) 0, neighDist - posOnLane - maxJam);
+    const double neighLeftPlace = MAX2(0.0, neighDist - posOnLane - maxJam);
     const double vMax = myVehicle.getLane()->getVehicleMaxSpeed(&myVehicle);
     // upper bound which will be restricted successively
     double thisLaneVSafe = vMax;
@@ -1414,7 +1415,7 @@ MSLCM_LC2013::_wantsChange(
         myLeftSpace = currentDist - posOnLane;
         if (changeToBest && abs(bestLaneOffset) > 1) {
             // there might be a vehicle which needs to counter-lane-change one lane further and we cannot see it yet
-            myLeadingBlockerLength = MAX2((double)(right ? 20.0 : 40.0), myLeadingBlockerLength);
+            myLeadingBlockerLength = MAX2((right ? 20.0 : 40.0), myLeadingBlockerLength);
 #ifdef DEBUG_WANTS_CHANGE
             if (DEBUG_COND) {
                 std::cout << "  reserving space for unseen blockers myLeadingBlockerLength=" << myLeadingBlockerLength << "\n";
@@ -1432,8 +1433,8 @@ MSLCM_LC2013::_wantsChange(
         const int remainingLanes = MAX2(1, abs(bestLaneOffset));
         const double urgency = isOpposite() ? OPPOSITE_URGENCY : URGENCY;
         const double remainingSeconds = ((ret & LCA_TRACI) == 0 ?
-                                         //MAX2((double)STEPS2TIME(TS), (myLeftSpace-myLeadingBlockerLength) / MAX2(myLookAheadSpeed, NUMERICAL_EPS) / remainingLanes / urgency) :
-                                         MAX2((double)STEPS2TIME(TS), myLeftSpace / MAX2(myLookAheadSpeed, NUMERICAL_EPS) / remainingLanes / urgency) :
+                                         //MAX2(STEPS2TIME(TS), (myLeftSpace-myLeadingBlockerLength) / MAX2(myLookAheadSpeed, NUMERICAL_EPS) / remainingLanes / urgency) :
+                                         MAX2(STEPS2TIME(TS), myLeftSpace / MAX2(myLookAheadSpeed, NUMERICAL_EPS) / remainingLanes / urgency) :
                                          myVehicle.getInfluencer().changeRequestRemainingSeconds(currentTime));
         const double plannedSpeed = informLeader(msgPass, blocked, myLca, neighLead, remainingSeconds);
         // NOTE: for the  ballistic update case negative speeds may indicate a stop request,
@@ -1457,9 +1458,9 @@ MSLCM_LC2013::_wantsChange(
         return ret;
     }
     // a high inconvenience prevents cooperative changes.
-    const double inconvenience = MIN2((double)1.0, (laneOffset < 0
-                                      ? mySpeedGainProbability / myChangeProbThresholdRight
-                                      : -mySpeedGainProbability / myChangeProbThresholdLeft));
+    const double inconvenience = MIN2(1.0, (laneOffset < 0
+                                            ? mySpeedGainProbability / myChangeProbThresholdRight
+                                            : -mySpeedGainProbability / myChangeProbThresholdLeft));
     const bool speedGainInconvenient = inconvenience > myCooperativeParam;
     const bool neighOccupancyInconvenient = neigh.lane->getBruttoOccupancy() > curr.lane->getBruttoOccupancy();
 
@@ -1615,7 +1616,7 @@ MSLCM_LC2013::_wantsChange(
             // honor the obligation to keep right (Rechtsfahrgebot)
             // XXX consider fast approaching followers on the current lane. Refs #2578
             //const double vMax = myLookAheadSpeed;
-            const double acceptanceTime = KEEP_RIGHT_ACCEPTANCE * vMax * MAX2((double)1, myVehicle.getSpeed()) / myVehicle.getLane()->getSpeedLimit();
+            const double acceptanceTime = KEEP_RIGHT_ACCEPTANCE * vMax * MAX2(1.0, myVehicle.getSpeed()) / myVehicle.getLane()->getSpeedLimit();
             double fullSpeedGap = MAX2(0., neighDist - myVehicle.getCarFollowModel().brakeGap(vMax));
             double fullSpeedDrivingSeconds = MIN2(acceptanceTime, fullSpeedGap / vMax);
             if (neighLead.first != 0 && neighLead.first->getSpeed() < vMax) {
@@ -1679,7 +1680,7 @@ MSLCM_LC2013::_wantsChange(
 #endif
 
         if (mySpeedGainProbability < -myChangeProbThresholdRight
-                && neighDist / MAX2((double) .1, myVehicle.getSpeed()) > 20.) { //./MAX2((double) .1, myVehicle.getSpeed())) { // -.1
+                && neighDist / MAX2(.1, myVehicle.getSpeed()) > 20.) { //./MAX2( .1, myVehicle.getSpeed())) { // -.1
             req = ret | lca | LCA_SPEEDGAIN;
             if (!cancelRequest(req, laneOffset)) {
                 return ret | req;
@@ -1726,7 +1727,7 @@ MSLCM_LC2013::_wantsChange(
 
         if (mySpeedGainProbability > myChangeProbThresholdLeft
                 && (relativeGain > NUMERICAL_EPS || changeLeftToAvoidOvertakeRight)
-                && neighDist / MAX2((double) .1, myVehicle.getSpeed()) > 20.) { // .1
+                && neighDist / MAX2(.1, myVehicle.getSpeed()) > 20.) { // .1
             req = ret | lca | LCA_SPEEDGAIN;
             if (!cancelRequest(req, laneOffset)) {
                 return ret | req;
@@ -1803,158 +1804,6 @@ MSLCM_LC2013::anticipateFollowSpeed(const std::pair<MSVehicle*, double>& leaderD
 }
 
 
-double
-MSLCM_LC2013::getRoundaboutDistBonus(const MSVehicle::LaneQ& curr, const MSVehicle::LaneQ& neigh, const MSVehicle::LaneQ& best) {
-    if (isOpposite()) {
-        return 0;
-    }
-    const MSVehicle::LaneQ& inner = curr.lane == best.lane ? neigh : curr;
-
-    int roundaboutJunctionsAhead = 0;
-    bool enteredRoundabout = false;
-    double seen = -myVehicle.getPositionOnLane();
-
-    // first check using only normal lanes
-    for (int i = 0; i < (int)best.bestContinuations.size(); i++) {
-        MSLane* lane = best.bestContinuations[i];
-        if (lane == nullptr) {
-            lane = myVehicle.getLane();
-        }
-        if ((!enteredRoundabout || lane->getEdge().isRoundabout()) && i >= (int)inner.bestContinuations.size()) {
-            // no bonus if we cannot continue on the inner lane until leaving the roundabout
-#ifdef DEBUG_WANTS_CHANGE
-            if (debugVehicle()) {
-                std::cout << "   noBonus: inner does not continue (lane=" << lane->getID() << ")\n";
-            }
-#endif
-            return 0;
-        }
-        if (seen > 300) {
-            // avoid long look-ahead
-#ifdef DEBUG_WANTS_CHANGE
-            if (debugVehicle()) {
-                std::cout << "   noBonus: seen=" << seen << " (lane=" << lane->getID() << ")\n";
-            }
-#endif
-            return 0;
-        }
-        const MSJunction* junction = lane->getEdge().getToJunction();
-        if (lane->getEdge().isRoundabout()) {
-            enteredRoundabout = true;
-            if (junction->getIncoming().size() + junction->getOutgoing().size() > 2) {
-                roundaboutJunctionsAhead++;
-            }
-        } else if (enteredRoundabout) {
-            // only check the first roundabout
-            break;
-        }
-        seen += lane->getLength();
-    }
-    // no bonus if we want to take the next exit
-    if (roundaboutJunctionsAhead < 2) {
-        return 0;
-    }
-
-    // compute bonus value based on jamming and exact distances (taking into
-    // account internal lanes)
-    double occupancyOuter = 0;
-    double occupancyInner = 0;
-    double distanceInRoundabout = 0;
-    MSLane* prevNormal = nullptr;
-    MSLane* prevInner = nullptr;
-    enteredRoundabout = false;
-    for (int i = 0; i < (int)best.bestContinuations.size(); i++) {
-        MSLane* lane = best.bestContinuations[i];
-        if (lane == nullptr) {
-            continue;
-        }
-        if (lane->getEdge().isRoundabout()) {
-            enteredRoundabout = true;
-        } else if (enteredRoundabout) {
-            // only check the first roundabout
-            break;
-        }
-        MSLane* via = nullptr;
-        if (prevNormal != nullptr) {
-            for (MSLink* link : prevNormal->getLinkCont()) {
-                if (link->getLane() == lane) {
-                    via = link->getViaLane();
-                }
-            }
-        }
-        if (enteredRoundabout) {
-            distanceInRoundabout += lane->getLength();
-            if (via != nullptr) {
-                distanceInRoundabout += via->getLength();
-            }
-        }
-        // discount vehicles that are upstream from ego
-        const double upstreamDiscount = &lane->getEdge() == &myVehicle.getLane()->getEdge()
-                                        ? (lane->getLength() - myVehicle.getPositionOnLane()) / lane->getLength() : 1;
-        prevNormal = lane;
-        occupancyOuter += upstreamDiscount * lane->getBruttoVehLenSum();
-        if (debugVehicle()) {
-            std::cout << " lane=" << lane->getID() << " occ=" << lane->getBruttoVehLenSum() << " discount=" << upstreamDiscount << " outer=" << occupancyOuter << "\n";
-        }
-        if (via != nullptr) {
-            occupancyOuter += via->getBruttoVehLenSum();
-            if (debugVehicle()) {
-                std::cout << " via=" << via->getID() << " occ=" << via->getBruttoVehLenSum() << " outer=" << occupancyOuter << "\n";
-            }
-        }
-        if (i < (int)inner.bestContinuations.size()) {
-            MSLane* innerLane = inner.bestContinuations[i];
-            occupancyInner += upstreamDiscount * innerLane->getBruttoVehLenSum();
-            if (debugVehicle()) {
-                std::cout << " inner=" << innerLane->getID() << " occ=" << innerLane->getBruttoVehLenSum() << " discount=" << upstreamDiscount << " inner=" << occupancyInner << "\n";
-            }
-            if (prevInner != nullptr) {
-                for (MSLink* link : prevInner->getLinkCont()) {
-                    if (link->getLane() == innerLane && link->getViaLane() != nullptr) {
-                        occupancyInner += link->getViaLane()->getBruttoVehLenSum();
-                        if (debugVehicle()) {
-                            std::cout << " innerVia=" << link->getViaLane()->getID() << " occ=" << link->getViaLane()->getBruttoVehLenSum() << " inner=" << occupancyInner << "\n";
-                        }
-                    }
-                }
-            }
-            prevInner = innerLane;
-        }
-    }
-
-#ifdef DEBUG_WANTS_CHANGE
-    if (debugVehicle()) {
-        std::cout << "   distanceInRoundabout=" << distanceInRoundabout
-                  << " roundaboutJunctionsAhead=" << roundaboutJunctionsAhead
-                  << " occupancyInner=" << occupancyInner
-                  << " occupancyOuter=" << occupancyOuter
-                  << "\n";
-    }
-#endif
-
-    const double maxOccupancy = MAX2(occupancyInner, occupancyOuter);
-    if (maxOccupancy == 0) {
-        // no bonues if the roundabout is empty
-        return 0;
-    }
-    // give some bonus for using the inside lane at equal occupancy
-    const double bonus = roundaboutJunctionsAhead * 7.5;
-    const double relativeJam = (occupancyOuter - occupancyInner + bonus) / (maxOccupancy + bonus);
-    // no bonus if the inner lane or the left lane entering the roundabout is jammed
-    const double jamFactor = MAX2(0.0, relativeJam);
-    const double result = distanceInRoundabout * jamFactor * myRoundaboutBonus * 9; // the 9 is abitrary and only there for backward compatibility
-#ifdef DEBUG_WANTS_CHANGE
-    if (debugVehicle()) {
-        std::cout << "   relativeJam=" << relativeJam
-                  << " jamFactor=" << jamFactor
-                  << " distanceBonus=" << result
-                  << "\n";
-    }
-#endif
-    return result;
-}
-
-
 int
 MSLCM_LC2013::slowDownForBlocked(MSVehicle** blocked, int state) {
     //  if this vehicle is blocking someone in front, we maybe decelerate to let him in
@@ -1983,7 +1832,7 @@ MSLCM_LC2013::slowDownForBlocked(MSVehicle** blocked, int state) {
                 }
                 addLCSpeedAdvice(myCarFollowModel.followSpeed(
                                      &myVehicle, myVehicle.getSpeed(),
-                                     (double)(gap - POSITION_EPS), (*blocked)->getSpeed(),
+                                     gap - POSITION_EPS, (*blocked)->getSpeed(),
                                      (*blocked)->getCarFollowModel().getMaxDecel()));
 
                 //(*blocked) = 0; // VARIANT_14 (furtherBlock)
@@ -2002,7 +1851,7 @@ MSLCM_LC2013::slowDownForBlocked(MSVehicle** blocked, int state) {
                 state |= LCA_AMBACKBLOCKER;
                 myVSafes.push_back(myCarFollowModel.followSpeed(
                                        &myVehicle, myVehicle.getSpeed(),
-                                       (double)(gap - POSITION_EPS), (*blocked)->getSpeed(),
+                                       (gap - POSITION_EPS), (*blocked)->getSpeed(),
                                        (*blocked)->getCarFollowModel().getMaxDecel()));
             }*/
         }
@@ -2088,14 +1937,19 @@ void MSLCM_LC2013::addLCSpeedAdvice(const double vSafe) {
 
 
 double
-MSLCM_LC2013::computeSpeedLat(double latDist, double& maneuverDist) {
-    double speedBound = myMaxSpeedLatStanding + myMaxSpeedLatFactor * myVehicle.getSpeed();
-    if (isChangingLanes()) {
-        // Don't stay caught in the middle of a lane change while vehicle is standing, workaround for #3771
-        speedBound = MAX2(LC_RESOLUTION_SPEED_LAT, speedBound);
+MSLCM_LC2013::computeSpeedLat(double latDist, double& maneuverDist) const {
+    double result = MSAbstractLaneChangeModel::computeSpeedLat(latDist, maneuverDist);
+    if (DEBUG_COND) {
+        std::cout << " myLeftSpace=" << myLeftSpace << " latDist=" << latDist << " maneuverDist=" << maneuverDist << "result1=" << result << "\n";
     }
-    return MAX2(-speedBound, MIN2(speedBound,
-                                  MSAbstractLaneChangeModel::computeSpeedLat(latDist, maneuverDist)));
+    if (myLeftSpace > POSITION_EPS) {
+        double speedBound = myMaxSpeedLatStanding + myMaxSpeedLatFactor * myVehicle.getSpeed();
+        if (isChangingLanes()) {
+            speedBound = MAX2(LC_RESOLUTION_SPEED_LAT, speedBound);
+        }
+        result = MAX2(-speedBound, MIN2(speedBound, result));
+    }
+    return result;
 }
 
 double
@@ -2186,5 +2040,5 @@ MSLCM_LC2013::setParameter(const std::string& key, const std::string& value) {
     initDerivedParameters();
 }
 
-/****************************************************************************/
 
+/****************************************************************************/

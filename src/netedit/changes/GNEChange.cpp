@@ -19,26 +19,34 @@
 // inherits from FXCommand and is used to for undo/redo
 /****************************************************************************/
 
-// ===========================================================================
-// included modules
-// ===========================================================================
-#include <config.h>
-
-
 #include "GNEChange.h"
 
 // ===========================================================================
 // FOX-declarations
 // ===========================================================================
+
 FXIMPLEMENT_ABSTRACT(GNEChange, FXCommand, nullptr, 0)
 
 // ===========================================================================
 // member method definitions
 // ===========================================================================
 
-GNEChange::GNEChange(GNENet* net, bool forward) :
-    myNet(net),
-    myForward(forward) {}
+GNEChange::GNEChange(bool forward, const bool selectedElement) :
+    myForward(forward),
+    mySelectedElement(selectedElement) {}
+
+
+GNEChange::GNEChange(GNEHierarchicalElement* hierarchicalElement, bool forward, const bool selectedElement) :
+    myForward(forward),
+    mySelectedElement(selectedElement),
+    myOriginalHierarchicalContainer(hierarchicalElement->getHierarchicalContainer()) {
+    // get all hierarchical elements (Parents and children)
+    const auto hierarchicalElements = hierarchicalElement->getAllHierarchicalElements();
+    // save all hierarchical containers
+    for (const auto& element : hierarchicalElements) {
+        myHierarchicalContainers[element] = element->getHierarchicalContainer();
+    }
+}
 
 
 GNEChange::~GNEChange() {}
@@ -69,5 +77,13 @@ GNEChange::undo() {}
 void
 GNEChange::redo() {}
 
+
+void
+GNEChange::restoreHierarchicalContainers() {
+    // iterate over all parents and children container and restore it
+    for (const auto& container : myHierarchicalContainers) {
+        container.first->restoreHierarchicalContainer(container.second);
+    }
+}
 
 /****************************************************************************/

@@ -20,13 +20,7 @@
 ///
 // A 2D- or 3D-polygon
 /****************************************************************************/
-#ifndef Polygon_h
-#define Polygon_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/geom/PositionVector.h>
@@ -48,8 +42,11 @@ class OutputDevice;
  * @brief A 2D- or 3D-polygon
  */
 class SUMOPolygon : public Shape, public Parameterised {
-    friend class PolygonDynamics;
+
 public:
+    /// @brief friend class
+    friend class PolygonDynamics;
+
     /** @brief Constructor
      * @param[in] id The name of the polygon
      * @param[in] type The (abstract) type of the polygon
@@ -144,8 +141,3 @@ protected:
     /// @brief The line width for drawing an unfilled polygon
     double myLineWidth;
 };
-
-
-#endif
-
-/****************************************************************************/

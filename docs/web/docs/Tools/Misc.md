@@ -3,7 +3,7 @@ title: Tools/Misc
 permalink: /Tools/Misc/
 ---
 
-# createVehTypeDistributions.py
+# createVehTypeDistribution.py
 
 Creates a vehicle type distribution by sampling from configurable value
 distributions for the [desired `vType`-parameters](../Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#vehicle_types).
@@ -11,7 +11,7 @@ distributions for the [desired `vType`-parameters](../Definition_of_Vehicles,_Ve
 Example use
 
 ```
-<SUMO_HOME>/tools/createVehTypeDistributions.py config.txt
+<SUMO_HOME>/tools/createVehTypeDistribution.py config.txt
 ```
 
 The only required parameter is the configuration file in the format
@@ -96,8 +96,8 @@ Additional options:
 
 - **--parking-id** defines the name/id of the parking lot
 - **--parking-spaces** defines the number of the parking spaces
-- **--start-position** defines the begin position of the enterance/exit of the parking lot
-- **--end-position** defines the end position of the enterance/exit of the parking lot
+- **--start-position** defines the begin position of the entrance/exit of the parking lot
+- **--end-position** defines the end position of the entrance/exit of the parking lot
 - **--space-length** defines the length of each parking space
 - **--space-angle** defines the angle of the parking spaces
 - **--x-space-distance** defines the lateral distance (x-direction) between the locations of
@@ -127,7 +127,7 @@ python <SUMO_HOME>/tools/generateStationEdges.py rail.net.xml stops.xml
 
 # generateContinuousRerouters.py
 
-This script generates rerouter definitions for a continously running simulation. Rerouters are placed ahead of each intersection with routes leading up to the next intersection and configurable turning ratios. Vehicles that enter the simulation will circulate continuously (unless hitting a dead-end).
+This script generates rerouter definitions for a continuously running simulation. Rerouters are placed ahead of each intersection with routes leading up to the next intersection and configurable turning ratios. Vehicles that enter the simulation will circulate continuously (unless hitting a dead-end).
 
 Example use
 ```
@@ -158,4 +158,10 @@ Example use (retrieving data from the public ArcGIS online instance)
 ```
 python <SUMO_HOME>/tools/tileGet.py -n test.net.xml -t 10
 sumo-gui -n test.net.xml -g settings.xml
+```
+
+Retrieving satellite data from Google or MapQuest (Requires obtaining an API-key first):
+```
+python <SUMO_HOME>/tools/tileGet.py -n test.net.xml -t 10 --url maps.googleapis.com/maps/api/staticmap --key YOURKEY
+python <SUMO_HOME>/tools/tileGet.py -n test.net.xml -t 10 --url open.mapquestapi.com/staticmap/v4/getmap --key YOURKEY
 ```

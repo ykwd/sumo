@@ -18,13 +18,7 @@
 ///
 // A SAX-Handler for loading options
 /****************************************************************************/
-#ifndef OptionsLoader_h
-#define OptionsLoader_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <xercesc/sax/HandlerBase.hpp>
@@ -176,9 +170,3 @@ private:
     std::string myValue;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

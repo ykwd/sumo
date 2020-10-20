@@ -17,13 +17,7 @@
 ///
 // An induction loop for mesoscopic simulation
 /****************************************************************************/
-#ifndef MEInductLoop_h
-#define MEInductLoop_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -111,8 +105,3 @@ private:
     /// Hidden assignment operator.
     MEInductLoop& operator=(const MEInductLoop&);
 };
-
-#endif
-
-/****************************************************************************/
-

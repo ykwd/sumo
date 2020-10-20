@@ -17,13 +17,7 @@
 ///
 // An enumeration of gifs used by the gui applications
 /****************************************************************************/
-#ifndef GUITextures_h
-#define GUITextures_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 
@@ -57,9 +51,3 @@ enum GUITexture {
     GNETEXTURE_LANEPEDESTRIAN,
     GIF_MAX
 };
-
-
-#endif
-
-/****************************************************************************/
-

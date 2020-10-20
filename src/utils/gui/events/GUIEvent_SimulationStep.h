@@ -17,13 +17,7 @@
 ///
 // Event send when the a simulation step has been performed by GUIRunThread
 /****************************************************************************/
-#ifndef GUIEvent_SimulationStep_h
-#define GUIEvent_SimulationStep_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "GUIEvent.h"
@@ -47,9 +41,3 @@ public:
     ~GUIEvent_SimulationStep() { }
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

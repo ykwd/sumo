@@ -21,13 +21,7 @@
 ///
 // A fixed traffic light logic
 /****************************************************************************/
-#ifndef MSSimpleTrafficLightLogic_h
-#define MSSimpleTrafficLightLogic_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utility>
@@ -210,9 +204,3 @@ private:
     void deletePhases();
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

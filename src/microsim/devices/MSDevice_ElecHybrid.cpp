@@ -18,11 +18,6 @@
 ///
 // A device ElecHybrid ===description here===
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/common/StringUtils.h>
@@ -909,7 +904,8 @@ MSDevice_ElecHybrid::acceleration(SUMOVehicle& veh, double power, double oldSpee
 double
 MSDevice_ElecHybrid::consumption(SUMOVehicle& veh, double a, double newSpeed) {
     myParam[SUMO_ATTR_ANGLE] =  ISNAN(myLastAngle) ? 0. : GeomHelper::angleDiff(myLastAngle, veh.getAngle());
-    return PollutantsInterface::getEnergyHelper().compute(0, PollutantsInterface::ELEC, newSpeed, a, veh.getSlope(), &myParam);
+    return PollutantsInterface::getEnergyHelper().compute(0, PollutantsInterface::ELEC, newSpeed, a, veh.getSlope(), &myParam) * TS;
 }
-/****************************************************************************/
 
+
+/****************************************************************************/

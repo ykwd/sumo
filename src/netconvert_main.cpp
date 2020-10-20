@@ -19,11 +19,6 @@
 ///
 // Main for NETCONVERT
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #ifdef HAVE_VERSION_H
@@ -75,7 +70,6 @@ fillOptions() {
     oc.addOptionSubTopic("Bicycle");
     oc.addOptionSubTopic("Railway");
     oc.addOptionSubTopic("Formats");
-    SystemFrame::addReportOptions(oc); // this subtopic is filled here, too
 
     NIFrame::fillOptions();
     NBFrame::fillOptions(false);
@@ -113,7 +107,7 @@ main(int argc, char** argv) {
             SystemFrame::close();
             return 0;
         }
-        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"));
+        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"), "never");
         if (oc.isDefault("aggregate-warnings")) {
             oc.set("aggregate-warnings", "5");
         }
@@ -131,9 +125,8 @@ main(int argc, char** argv) {
         // load data
         NILoader nl(nb);
         nl.load(oc);
-        if (oc.getBool("ignore-errors")) {
-            MsgHandler::getErrorInstance()->clear();
-        }
+        // flush aggregated errors and optionally ignore them
+        MsgHandler::getErrorInstance()->clear(oc.getBool("ignore-errors"));
         // check whether any errors occurred
         if (MsgHandler::getErrorInstance()->wasInformed()) {
             throw ProcessError();
@@ -145,6 +138,7 @@ main(int argc, char** argv) {
         }
         NWFrame::writeNetwork(oc, nb);
     } catch (const ProcessError& e) {
+        MsgHandler::getErrorInstance()->clear(false);
         if (std::string(e.what()) != std::string("Process Error") && std::string(e.what()) != std::string("")) {
             WRITE_ERROR(e.what());
         }
@@ -152,12 +146,14 @@ main(int argc, char** argv) {
         ret = 1;
 #ifndef _DEBUG
     } catch (const std::exception& e) {
+        MsgHandler::getErrorInstance()->clear(false);
         if (std::string(e.what()) != std::string("")) {
             WRITE_ERROR(e.what());
         }
         MsgHandler::getErrorInstance()->inform("Quitting (on error).", false);
         ret = 1;
     } catch (...) {
+        MsgHandler::getErrorInstance()->clear(false);
         MsgHandler::getErrorInstance()->inform("Quitting (on unknown error).", false);
         ret = 1;
 #endif
@@ -172,6 +168,4 @@ main(int argc, char** argv) {
 }
 
 
-
 /****************************************************************************/
-

@@ -20,13 +20,7 @@
 ///
 // Some static methods performing geometrical operations
 /****************************************************************************/
-#ifndef GeomHelper_h
-#define GeomHelper_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <cmath>
@@ -40,6 +34,7 @@
 
 #define DEG2RAD(x) static_cast<double>((x) * M_PI / 180.)
 #define RAD2DEG(x) static_cast<double>((x) * 180. / M_PI)
+#define GRAVITY 9.80665
 
 
 // ===========================================================================
@@ -161,8 +156,3 @@ public:
     static PositionVector makeRing(const double radius1, const double radius2, const Position& center, unsigned int nPoints);
 
 };
-
-
-#endif
-
-/****************************************************************************/

@@ -19,13 +19,7 @@
 ///
 // Base class for additional objects (detectors etc.)
 /****************************************************************************/
-#ifndef GUIGlObject_AbstractAdd_h
-#define GUIGlObject_AbstractAdd_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "GUIGlObjectTypes.h"
@@ -71,9 +65,3 @@ protected:
     /// @brief The list of all addtional objects currently loaded
     static std::vector<GUIGlObject_AbstractAdd*> myObjectList;
 };
-
-
-#endif
-
-/****************************************************************************/
-

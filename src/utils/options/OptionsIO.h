@@ -18,13 +18,7 @@
 ///
 // Helper for parsing command line arguments and reading configuration files
 /****************************************************************************/
-#ifndef OptionsIO_h
-#define OptionsIO_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -95,7 +89,6 @@ public:
     static void loadConfiguration();
 
 
-private:
     /** @brief Retrieves the XML root element of a supposed configuration or net
      *
      * @param[in] filename the XML file to parse
@@ -109,9 +102,3 @@ private:
     static char** myArgV;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

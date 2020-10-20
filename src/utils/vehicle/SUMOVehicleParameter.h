@@ -20,13 +20,7 @@
 ///
 // Structure representing possible vehicle parameter
 /****************************************************************************/
-#ifndef SUMOVehicleParameter_h
-#define SUMOVehicleParameter_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -71,6 +65,7 @@ const int VEHPARS_DEPARTPOSLAT_SET = 2 << 20;
 const int VEHPARS_ARRIVALPOSLAT_SET = 2 << 21;
 const int VEHPARS_VIA_SET = 2 << 22;
 const int VEHPARS_SPEEDFACTOR_SET = 2 << 23;
+const int VEHPARS_DEPARTEDGE_SET = 2 << 24;
 
 const int STOP_INDEX_END = -1;
 const int STOP_INDEX_FIT = -2;
@@ -90,6 +85,7 @@ const int STOP_LINE_SET = 2 << 10;
 const int STOP_SPEED_SET = 2 << 11;
 const int STOP_SPLIT_SET = 2 << 12;
 const int STOP_JOIN_SET = 2 << 13;
+const int STOP_ARRIVAL_SET = 2 << 14;
 
 const double MIN_STOP_LENGTH = 2 * POSITION_EPS;
 
@@ -121,23 +117,21 @@ enum DepartDefinition {
  * @enum DepartLaneDefinition
  * @brief Possible ways to choose a lane on depart
  */
-enum DepartLaneDefinition {
+enum class DepartLaneDefinition {
     /// @brief No information given; use default
-    DEPART_LANE_DEFAULT,
+    DEFAULT,
     /// @brief The lane is given
-    DEPART_LANE_GIVEN,
+    GIVEN,
     /// @brief The lane is chosen randomly
-    DEPART_LANE_RANDOM,
+    RANDOM,
     /// @brief The least occupied lane is used
-    DEPART_LANE_FREE,
+    FREE,
     /// @brief The least occupied lane from lanes which allow the continuation
-    DEPART_LANE_ALLOWED_FREE,
+    ALLOWED_FREE,
     /// @brief The least occupied lane from best lanes
-    DEPART_LANE_BEST_FREE,
+    BEST_FREE,
     /// @brief The rightmost lane the vehicle may use
-    DEPART_LANE_FIRST_ALLOWED,
-    /// @brief Tag for the last element in the enum for safe int casting
-    DEPART_LANE_DEF_MAX
+    FIRST_ALLOWED
 };
 
 
@@ -145,25 +139,23 @@ enum DepartLaneDefinition {
  * @enum DepartPosDefinition
  * @brief Possible ways to choose the departure position
  */
-enum DepartPosDefinition {
+enum class DepartPosDefinition {
     /// @brief No information given; use default
-    DEPART_POS_DEFAULT,
+    DEFAULT,
     /// @brief The position is given
-    DEPART_POS_GIVEN,
+    GIVEN,
     /// @brief The position is chosen randomly
-    DEPART_POS_RANDOM,
+    RANDOM,
     /// @brief A free position is chosen
-    DEPART_POS_FREE,
+    FREE,
     /// @brief Back-at-zero position
-    DEPART_POS_BASE,
-    /// @brief Insert behind the last vehicle as close as possible to still allow the specified departSpeed. Fallback to DEPART_POS_BASE if there is no vehicle on the departLane yet.
-    DEPART_POS_LAST,
+    BASE,
+    /// @brief Insert behind the last vehicle as close as possible to still allow the specified departSpeed. Fallback to DepartPosDefinition::BASE if there is no vehicle on the departLane yet.
+    LAST,
     /// @brief If a fixed number of random choices fails, a free position is chosen
-    DEPART_POS_RANDOM_FREE,
+    RANDOM_FREE,
     /// @brief depart position is endPos of first stop
-    DEPART_POS_STOP,
-    /// @brief Tag for the last element in the enum for safe int casting
-    DEPART_POS_DEF_MAX
+    STOP
 };
 
 
@@ -171,25 +163,23 @@ enum DepartPosDefinition {
  * @enum DepartPosDefinition
  * @brief Possible ways to choose the departure position
  */
-enum DepartPosLatDefinition {
+enum class DepartPosLatDefinition {
     /// @brief No information given; use default
-    DEPART_POSLAT_DEFAULT,
+    DEFAULT,
     /// @brief The position is given
-    DEPART_POSLAT_GIVEN,
+    GIVEN,
     /// @brief At the rightmost side of the lane
-    DEPART_POSLAT_RIGHT,
+    RIGHT,
     /// @brief At the center of the lane
-    DEPART_POSLAT_CENTER,
+    CENTER,
     /// @brief At the leftmost side of the lane
-    DEPART_POSLAT_LEFT,
+    LEFT,
     /// @brief The lateral position is chosen randomly
-    DEPART_POSLAT_RANDOM,
+    RANDOM,
     /// @brief A free lateral position is chosen
-    DEPART_POSLAT_FREE,
+    FREE,
     /// @brief If a fixed number of random choices fails, a free lateral position is chosen
-    DEPART_POSLAT_RANDOM_FREE,
-    /// @brief Tag for the last element in the enum for safe int casting
-    DEPART_POSLAT_DEF_MAX
+    RANDOM_FREE
 };
 
 
@@ -197,21 +187,33 @@ enum DepartPosLatDefinition {
  * @enum DepartSpeedDefinition
  * @brief Possible ways to choose the departure speed
  */
-enum DepartSpeedDefinition {
+enum class DepartSpeedDefinition {
     /// @brief No information given; use default
-    DEPART_SPEED_DEFAULT,
+    DEFAULT,
     /// @brief The speed is given
-    DEPART_SPEED_GIVEN,
+    GIVEN,
     /// @brief The speed is chosen randomly
-    DEPART_SPEED_RANDOM,
+    RANDOM,
     /// @brief The maximum safe speed is used
-    DEPART_SPEED_MAX,
+    MAX,
     /// @brief The maximum lane speed is used (speedLimit * speedFactor)
-    DEPART_SPEED_DESIRED,
+    DESIRED,
     /// @brief The maximum lane speed is used (speedLimit)
-    DEPART_SPEED_LIMIT,
-    /// @brief Tag for the last element in the enum for safe int casting
-    DEPART_SPEED_DEF_MAX
+    LIMIT
+};
+
+
+/**
+ * @enum DepartEdgeDefinition
+ * @brief Possible ways to choose the departure edge
+ */
+enum class DepartEdgeDefinition {
+    /// @brief No information given; use default
+    DEFAULT,
+    /// @brief The edge index is given
+    GIVEN,
+    /// @brief The edge is chosen randomly
+    RANDOM,
 };
 
 
@@ -219,15 +221,13 @@ enum DepartSpeedDefinition {
  * @enum ArrivalLaneDefinition
  * @brief Possible ways to choose the arrival lane
  */
-enum ArrivalLaneDefinition {
+enum class ArrivalLaneDefinition {
     /// @brief No information given; use default
-    ARRIVAL_LANE_DEFAULT,
+    DEFAULT,
     /// @brief The arrival lane is given
-    ARRIVAL_LANE_GIVEN,
+    GIVEN,
     /// @brief The current lane shall be used
-    ARRIVAL_LANE_CURRENT,
-    /// @brief Tag for the last element in the enum for safe int casting
-    ARRIVAL_LANE_DEF_MAX
+    CURRENT
 };
 
 
@@ -235,19 +235,17 @@ enum ArrivalLaneDefinition {
  * @enum ArrivalPosDefinition
  * @brief Possible ways to choose the arrival position
  */
-enum ArrivalPosDefinition {
+enum class ArrivalPosDefinition {
     /// @brief No information given; use default
-    ARRIVAL_POS_DEFAULT,
+    DEFAULT,
     /// @brief The arrival position is given
-    ARRIVAL_POS_GIVEN,
+    GIVEN,
     /// @brief The arrival position is chosen randomly
-    ARRIVAL_POS_RANDOM,
+    RANDOM,
     /// @brief Half the road length
-    ARRIVAL_POS_CENTER,
+    CENTER,
     /// @brief The maximum arrival position is used
-    ARRIVAL_POS_MAX,
-    /// @brief Tag for the last element in the enum for safe int casting
-    ARRIVAL_POS_DEF_MAX
+    MAX
 };
 
 
@@ -255,19 +253,17 @@ enum ArrivalPosDefinition {
  * @enum ArrivalPosLatDefinition
  * @brief Possible ways to choose the departure position
  */
-enum ArrivalPosLatDefinition {
+enum class ArrivalPosLatDefinition {
     /// @brief No information given; use default
-    ARRIVAL_POSLAT_DEFAULT,
+    DEFAULT,
     /// @brief The position is given
-    ARRIVAL_POSLAT_GIVEN,
+    GIVEN,
     /// @brief At the rightmost side of the lane
-    ARRIVAL_POSLAT_RIGHT,
+    RIGHT,
     /// @brief At the center of the lane
-    ARRIVAL_POSLAT_CENTER,
+    CENTER,
     /// @brief At the leftmost side of the lane
-    ARRIVAL_POSLAT_LEFT,
-    /// @brief Tag for the last element in the enum for safe int casting
-    ARRIVAL_POSLAT_DEF_MAX
+    LEFT
 };
 
 
@@ -275,15 +271,13 @@ enum ArrivalPosLatDefinition {
  * @enum ArrivalSpeedDefinition
  * @brief Possible ways to choose the arrival speed
  */
-enum ArrivalSpeedDefinition {
+enum class ArrivalSpeedDefinition {
     /// @brief No information given; use default
-    ARRIVAL_SPEED_DEFAULT,
+    DEFAULT,
     /// @brief The speed is given
-    ARRIVAL_SPEED_GIVEN,
+    GIVEN,
     /// @brief The current speed is used
-    ARRIVAL_SPEED_CURRENT,
-    /// @brief Tag for the last element in the enum for safe int casting
-    ARRIVAL_SPEED_DEF_MAX
+    CURRENT
 };
 
 
@@ -317,20 +311,22 @@ public:
      * @brief Definition of vehicle stop (position and duration)
      */
     class Stop : public Parameterised {
-
     public:
-        /// @brief constructor
-        Stop();
+        /// @brief Destructor
+        virtual ~Stop() {}
 
         /** @brief Writes the stop as XML
          *
          * @param[in, out] dev The device to write into
          * @exception IOError not yet implemented
          */
-        void write(OutputDevice& dev) const;
+        void write(OutputDevice& dev, bool close = true) const;
 
         /// @brief write trigger attribute
         void writeTriggers(OutputDevice& dev) const;
+
+        /// @brief The edge to stop at (used only in NETEDIT)
+        std::string edge;
 
         /// @brief The lane to stop at
         std::string lane;
@@ -351,31 +347,34 @@ public:
         std::string overheadWireSegment;
 
         /// @brief The stopping position start
-        double startPos;
+        double startPos = 0.;
 
         /// @brief The stopping position end
-        double endPos;
+        double endPos = 0.;
+
+        /// @brief The (expected) time at which the vehicle reaches the stop
+        SUMOTime arrival = -1;
 
         /// @brief The stopping duration
-        SUMOTime duration;
+        SUMOTime duration = -1;
 
         /// @brief The time at which the vehicle may continue its journey
-        SUMOTime until;
+        SUMOTime until = -1;
 
         /// @brief The maximum time extension for boarding / loading
-        SUMOTime extension;
+        SUMOTime extension = -1;
 
         /// @brief whether an arriving person lets the vehicle continue
-        bool triggered;
+        bool triggered = false;
 
         /// @brief whether an arriving container lets the vehicle continue
-        bool containerTriggered;
+        bool containerTriggered = false;
 
         /// @brief whether an joined vehicle lets this vehicle continue
-        bool joinTriggered;
+        bool joinTriggered = false;
 
         /// @brief whether the vehicle is removed from the net while stopping
-        bool parking;
+        bool parking = false;
 
         /// @brief IDs of persons the vehicle has to wait for until departing
         std::set<std::string> awaitedPersons;
@@ -384,7 +383,7 @@ public:
         std::set<std::string> awaitedContainers;
 
         /// @brief enable or disable friendly position (used by NETEDIT)
-        bool friendlyPos;
+        bool friendlyPos = false;
 
         /// @brief act Type (only used by Persons) (used by NETEDIT)
         std::string actType;
@@ -402,13 +401,19 @@ public:
         std::string join;
 
         /// @brief the speed at which this stop counts as reached (waypoint mode)
-        double speed;
+        double speed = 0.;
+
+        /// @brief the time at which this stop was reached
+        mutable SUMOTime actualArrival = -1;
+
+        /// @brief the time at which this stop was ended
+        SUMOTime depart = -1;
 
         /// @brief lanes and positions connected to this stop (only used by duarouter where Stop is used to store stopping places)
         std::vector<std::tuple<std::string, double, double> > accessPos;
 
         /// @brief at which position in the stops list
-        int index;
+        int index = 0;
 
         /// @brief Information for the output which parameter were set
         int parametersSet = 0;
@@ -503,6 +508,18 @@ public:
     static bool parseDepartSpeed(const std::string& val, const std::string& element, const std::string& id,
                                  double& speed, DepartSpeedDefinition& dsd, std::string& error);
 
+    /** @brief Validates a given departEdge value
+     * @param[in] val The departEdge value to parse
+     * @param[in] element The name of the type of the parsed element, for building the error message
+     * @param[in] id The id of the parsed element, for building the error message
+     * @param[out] edgeIndex The parsed edge index, if given
+     * @param[out] ded The parsed departEdge definition
+     * @param[out] error Error message, if an error occures
+     * @return Whether the given value is a valid departEdge definition
+     */
+    static bool parseDepartEdge(const std::string& val, const std::string& element, const std::string& id,
+                                 int& edgeIndex, DepartEdgeDefinition& ded, std::string& error);
+
     /** @brief Validates a given arrivalLane value
      * @param[in] val The arrivalLane value to parse
      * @param[in] element The name of the type of the parsed element, for building the error message
@@ -560,7 +577,7 @@ public:
      * @param[in] id The id of the object to which this attribute belongs
      * @return Whether the interpreted position
      */
-    static double interpretEdgePos(double pos, double maximumValue, SumoXMLAttr attr, const std::string& id);
+    static double interpretEdgePos(double pos, double maximumValue, SumoXMLAttr attr, const std::string& id, bool silent = false);
 
     /** @brief Validates a given person modes value
      * @param[in] modes The modes value to parse
@@ -621,6 +638,12 @@ public:
 
     /// @brief Information how the vehicle's initial speed shall be chosen
     DepartSpeedDefinition departSpeedProcedure;
+
+    /// @brief (optional) The initial edge within the route of the vehicle
+    int departEdge;
+
+    /// @brief Information how the vehicle's initial edge shall be chosen
+    DepartEdgeDefinition departEdgeProcedure;
 
     /// @}
 
@@ -695,7 +718,7 @@ public:
     /// @brief individual speedFactor (overriding distribution from vType)
     double speedFactor;
 
-    /// @brief Information for the router which parameter were set, TraCI may modify this (whe changing color)
+    /// @brief Information for the router which parameter were set, TraCI may modify this (when changing color)
     mutable int parametersSet;
 
 protected:
@@ -714,6 +737,9 @@ protected:
     /// @brief obtain depart speed parameter in string format
     std::string getDepartSpeed() const;
 
+    /// @brief obtain depart edge parameter in string format
+    std::string getDepartEdge() const;
+
     /// @brief obtain arrival lane parameter in string format
     std::string getArrivalLane() const;
 
@@ -726,9 +752,3 @@ protected:
     /// @brief obtain arrival speed parameter in string format
     std::string getArrivalSpeed() const;
 };
-
-#endif
-
-/****************************************************************************/
-
-

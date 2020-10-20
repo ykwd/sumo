@@ -81,6 +81,7 @@ def check(vehID):
     print("length", traci.vehicle.getLength(vehID))
     print("maxSpeed", traci.vehicle.getMaxSpeed(vehID))
     print("speedFactor", traci.vehicle.getSpeedFactor(vehID))
+    print("speedDeviation", traci.vehicle.getSpeedDeviation(vehID))
     print("allowedSpeed", traci.vehicle.getAllowedSpeed(vehID))
     print("accel", traci.vehicle.getAccel(vehID))
     print("decel", traci.vehicle.getDecel(vehID))
@@ -96,21 +97,28 @@ def check(vehID):
     print("MinGap", traci.vehicle.getMinGap(vehID))
     print("width", traci.vehicle.getWidth(vehID))
     print("height", traci.vehicle.getHeight(vehID))
-    print("lcStrategic", traci.vehicle.getParameter(vehID, "laneChangeModel.lcStrategic"))
-    print("lcCooperative", traci.vehicle.getParameter(vehID, "laneChangeModel.lcCooperative"))
-    print("lcSpeedGain", traci.vehicle.getParameter(vehID, "laneChangeModel.lcSpeedGain"))
+    print("stopDelay", traci.vehicle.getStopDelay(vehID))
+    try:
+        print("lcStrategic", traci.vehicle.getParameter(vehID, "laneChangeModel.lcStrategic"))
+        print("lcCooperative", traci.vehicle.getParameter(vehID, "laneChangeModel.lcCooperative"))
+        print("lcSpeedGain", traci.vehicle.getParameter(vehID, "laneChangeModel.lcSpeedGain"))
+    except traci.TraCIException:
+        # meso
+        pass
     print("maxSpeedLat", traci.vehicle.getMaxSpeedLat(vehID))
     print("minGapLat", traci.vehicle.getMinGapLat(vehID))
     print("lateralAlignment", traci.vehicle.getLateralAlignment(vehID))
     print("lanePosLat", traci.vehicle.getLateralLanePosition(vehID))
     print("person number", traci.vehicle.getPersonNumber(vehID))
+    print("person IDs", traci.vehicle.getPersonIDList(vehID))
     print("personCapacity", traci.vehicle.getPersonCapacity(vehID))
     print("waiting time", traci.vehicle.getWaitingTime(vehID))
     print("accumulated waiting time", traci.vehicle.getAccumulatedWaitingTime(vehID))
     print("driving dist", traci.vehicle.getDrivingDistance(vehID, "4fi", 2.))
-    print("driving dist 2D", traci.vehicle.getDrivingDistance2D(vehID, 100., 100.))
+    print("driving dist 2D", traci.vehicle.getDrivingDistance2D(vehID, 99., 100.))
     print("line", traci.vehicle.getLine(vehID))
     print("via", traci.vehicle.getVia(vehID))
+    print("dist", traci.vehicle.getDistance(vehID))
     print("lane change state right", traci.vehicle.getLaneChangeState(vehID, -1))
     print("lane change state left", traci.vehicle.getLaneChangeState(vehID, 1))
     print("lane change able right", traci.vehicle.couldChangeLane(vehID, -1))
@@ -135,9 +143,10 @@ def checkOffRoad(vehID):
 traci.start([sumolib.checkBinary('sumo'), "-c", "sumo.sumocfg",
              '--ignore-route-errors',
              '--vehroute-output', 'vehroutes.xml',
+             '--tripinfo-output', 'tripinfo.xml',
              '--additional-files',
              'input_additional.add.xml,input_additional2.add.xml',
-             "--default.speeddev", "0"])
+             "--default.speeddev", "0"] + sys.argv[1:])
 for i in range(3):
     print("step", step())
 vehID = "horiz"
@@ -180,7 +189,10 @@ if not traci.isLibsumo():
     traci.vehicle.setAdaptedTraveltime(vehID, 0, 1000, "1o", 55)
     traci.vehicle.setEffort(vehID, 0, 1000, "1o", 54)
 traci.vehicle.setParameter(vehID, "foo", "bar")
-traci.vehicle.setParameter(vehID, "laneChangeModel.lcStrategic", "2.0")
+try:
+    traci.vehicle.setParameter(vehID, "laneChangeModel.lcStrategic", "2.0")
+except traci.TraCIException:
+    pass
 traci.vehicle.setSignals(vehID, 12)
 traci.vehicle.setRoutingMode(vehID, traci.constants.ROUTING_MODE_AGGREGATED)
 traci.vehicle.setStop(vehID, "2fi", pos=55.0, laneIndex=0, duration=2, flags=1)
@@ -225,6 +237,23 @@ print("speedmode", traci.vehicle.getSpeedMode(vehID))
 print("lanechangemode", traci.vehicle.getLaneChangeMode(vehID))
 print("slope", traci.vehicle.getSlope(vehID))
 print("leader", traci.vehicle.getLeader("2"))
+leaderID, dist = traci.vehicle.getLeader("2")
+
+print("followSpeed", traci.vehicle.getFollowSpeed("2",
+                                                  traci.vehicle.getSpeed("2"),
+                                                  dist,
+                                                  traci.vehicle.getSpeed(leaderID),
+                                                  traci.vehicle.getDecel(leaderID),
+                                                  leaderID))
+
+print("secureGap", traci.vehicle.getSecureGap("2",
+                                              traci.vehicle.getSpeed("2") * 3,  # return something other than 0
+                                              traci.vehicle.getSpeed(leaderID),
+                                              traci.vehicle.getDecel(leaderID),
+                                              leaderID))
+
+print("stopSpeed", traci.vehicle.getStopSpeed("2", 15, 20))
+
 traci.vehicle.subscribeLeader("2")
 for i in range(6):
     print("step", step())
@@ -251,10 +280,13 @@ print(traci.vehicle.getSubscriptionResults(vehID))
 print("speed before moveToXY", traci.vehicle.getSpeed(vehID))
 traci.vehicle.moveToXY(vehID, "1o", 0, 482.49, 501.31, 0)
 print("step", step())
-print("speed after moveToVTD", traci.vehicle.getSpeed(vehID))
+print("speed after moveToXY", traci.vehicle.getSpeed(vehID))
 print(traci.vehicle.getSubscriptionResults(vehID))
 print("step", step())
 print(traci.vehicle.getSubscriptionResults(vehID))
+print("speed", traci.vehicle.getSpeed(vehID))
+traci.vehicle.setPreviousSpeed(vehID, 19)
+print("speed", traci.vehicle.getSpeed(vehID))
 # test different departure options
 traci.vehicle.addLegacy("departInThePast", "horizontal", depart=5)
 print("step", step())

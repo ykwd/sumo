@@ -20,13 +20,8 @@
 ///
 // with one ore more logics.
 /****************************************************************************/
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
-#include "MSLinkCont.h"
 #include "MSLogicJunction.h"
 #include "MSLane.h"
 
@@ -41,10 +36,10 @@ MSLogicJunction::MSLogicJunction(const std::string& id,
                                  SumoXMLNodeType type,
                                  const Position& position,
                                  const PositionVector& shape,
-                                 std::vector<MSLane*> incoming
-                                 , std::vector<MSLane*> internal
-                                ):
-    MSJunction(id, type, position, shape),
+                                 const std::string& name,
+                                 std::vector<MSLane*> incoming,
+                                 std::vector<MSLane*> internal):
+    MSJunction(id, type, position, shape, name),
     myIncomingLanes(incoming),
     myInternalLanes(internal) {
 }
@@ -106,6 +101,4 @@ MSLogicJunction::getInternalLanes() const {
 }
 
 
-
 /****************************************************************************/
-

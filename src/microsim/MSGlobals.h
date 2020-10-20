@@ -20,13 +20,7 @@
 ///
 // Some static variables for faster access
 /****************************************************************************/
-#ifndef MSGlobals_h
-#define MSGlobals_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <map>
@@ -102,6 +96,9 @@ public:
     /** scaling factor for macroscopic time penalty when passing tls controlled intersection */
     static double gMesoTLSPenalty;
 
+    /** scaling factor for macroscopic headway penalty when passing tls controlled intersection */
+    static double gMesoTLSFlowPenalty;
+
     /** penalty time for passing a minor link */
     static SUMOTime gMesoMinorPenalty;
 
@@ -150,9 +147,3 @@ public:
     /// @brief Whether lefthand-drive is being simulated
     static bool gLefthand;
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -20,13 +20,7 @@
 // While we don't actually need MDI for netedit it is easier to adapt existing
 // structures than to write everything from scratch.
 /****************************************************************************/
-#ifndef GNEViewParent_h
-#define GNEViewParent_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/gui/windows/GUIGlChildWindow.h>
@@ -35,29 +29,41 @@
 // ===========================================================================
 // class declarations
 // ===========================================================================
-class GNEAdditionalFrame;
+
 class GNEApplicationWindow;
+class GNEDialogACChooser;
+class GNEFrame;
+class GNEViewNet;
+class GNENet;
+class GNEUndoList;
+// common frames
+class GNEDeleteFrame;
+class GNEInspectorFrame;
+class GNESelectorFrame;
+class GNEMoveFrame;
+// network frames
+class GNEAdditionalFrame;
 class GNEConnectorFrame;
 class GNECreateEdgeFrame;
 class GNECrossingFrame;
-class GNEDeleteFrame;
-class GNEDialogACChooser;
-class GNEInspectorFrame;
-class GNENet;
-class GNEFrame;
 class GNEPolygonFrame;
 class GNEProhibitionFrame;
-class GNERouteFrame;
-class GNESelectorFrame;
 class GNETAZFrame;
 class GNETLSEditorFrame;
-class GNEUndoList;
-class GNEVehicleFrame;
-class GNEVehicleTypeFrame;
-class GNEStopFrame;
-class GNEPersonTypeFrame;
+// demand frames
 class GNEPersonFrame;
 class GNEPersonPlanFrame;
+class GNEPersonTypeFrame;
+class GNERouteFrame;
+class GNEStopFrame;
+class GNEVehicleFrame;
+class GNEVehicleTypeFrame;
+// data frames
+class GNEGenericDataFrame;
+class GNEEdgeDataFrame;
+class GNEEdgeRelDataFrame;
+class GNETAZRelDataFrame;
+
 
 // ===========================================================================
 // class declarations
@@ -107,59 +113,71 @@ public:
     /// @brief get current frame (note: it can be null)
     GNEFrame* getCurrentShownFrame() const;
 
-    /// @brief get frame for GNE_NMODE_INSPECT
+    /// @brief get frame for inspect elements
     GNEInspectorFrame* getInspectorFrame() const;
 
-    /// @brief get frame for GNE_NMODE_SELECT
-    GNESelectorFrame* getSelectorFrame() const;
-
-    /// @brief get frame for GNE_NMODE_CONNECT
-    GNEConnectorFrame* getConnectorFrame() const;
-
-    /// @brief get frame for GNE_NMODE_TLS
-    GNETLSEditorFrame* getTLSEditorFrame() const;
-
-    /// @brief get frame for GNE_NMODE_ADDITIONAL
-    GNEAdditionalFrame* getAdditionalFrame() const;
-
-    /// @brief get frame for GNE_NMODE_CROSSING
-    GNECrossingFrame* getCrossingFrame() const;
-
-    /// @brief get frame for GNE_NMODE_TAZ
-    GNETAZFrame* getTAZFrame() const;
-
-    /// @brief get frame for GNE_NMODE_DELETE
+    /// @brief get frame for delete elements
     GNEDeleteFrame* getDeleteFrame() const;
 
-    /// @brief get frame for GNE_NMODE_POLYGON
+    /// @brief get frame for select elements
+    GNESelectorFrame* getSelectorFrame() const;
+
+    /// @brief get frame for move elements
+    GNEMoveFrame* getMoveFrame() const;
+
+    /// @brief get frame for NETWORK_CONNECT
+    GNEConnectorFrame* getConnectorFrame() const;
+
+    /// @brief get frame for NETWORK_TLS
+    GNETLSEditorFrame* getTLSEditorFrame() const;
+
+    /// @brief get frame for NETWORK_ADDITIONAL
+    GNEAdditionalFrame* getAdditionalFrame() const;
+
+    /// @brief get frame for NETWORK_CROSSING
+    GNECrossingFrame* getCrossingFrame() const;
+
+    /// @brief get frame for NETWORK_TAZ
+    GNETAZFrame* getTAZFrame() const;
+
+    /// @brief get frame for NETWORK_POLYGON
     GNEPolygonFrame* getPolygonFrame() const;
 
-    /// @brief get frame for GNE_NMODE_PROHIBITION
+    /// @brief get frame for NETWORK_PROHIBITION
     GNEProhibitionFrame* getProhibitionFrame() const;
 
-    /// @brief get frame for GNE_NMODE_CREATEEDGE
+    /// @brief get frame for NETWORK_CREATEEDGE
     GNECreateEdgeFrame* getCreateEdgeFrame() const;
 
-    /// @brief get frame for GNE_DMODE_ROUTE
+    /// @brief get frame for DEMAND_ROUTE
     GNERouteFrame* getRouteFrame() const;
 
-    /// @brief get frame for GNE_DMODE_VEHICLE
+    /// @brief get frame for DEMAND_VEHICLE
     GNEVehicleFrame* getVehicleFrame() const;
 
-    /// @brief get frame for GNE_DMODE_VEHICLETYPE
+    /// @brief get frame for DEMAND_VEHICLETYPE
     GNEVehicleTypeFrame* getVehicleTypeFrame() const;
 
-    /// @brief get frame for GNE_DMODE_STOP
+    /// @brief get frame for DEMAND_STOP
     GNEStopFrame* getStopFrame() const;
 
-    /// @brief get frame for GNE_DMODE_PERSONTYPE
+    /// @brief get frame for DEMAND_PERSONTYPE
     GNEPersonTypeFrame* getPersonTypeFrame() const;
 
-    /// @brief get frame for GNE_DMODE_PERSON
+    /// @brief get frame for DEMAND_PERSON
     GNEPersonFrame* getPersonFrame() const;
 
-    /// @brief get frame for GNE_DMODE_PERSONFRAME
+    /// @brief get frame for DEMAND_PERSONFRAME
     GNEPersonPlanFrame* getPersonPlanFrame() const;
+
+    /// @brief get frame for DATA_EDGEDATA
+    GNEEdgeDataFrame* getEdgeDataFrame() const;
+
+    /// @brief get frame for DATA_EDGERELDATA
+    GNEEdgeRelDataFrame* getEdgeRelDataFrame() const;
+
+    /// @brief get frame for DATA_TAZRELDATA
+    GNETAZRelDataFrame* getTAZRelDataFrame() const;
 
     /// @brief show frames area if at least a GNEFrame is showed
     /// @note this function is called in GNEFrame::Show();
@@ -205,81 +223,168 @@ public:
 protected:
     FOX_CONSTRUCTOR(GNEViewParent)
 
-private:
-    /// @brief struct for Frames
-    struct Frames {
+    /// @brief class for common frames
+    class CommonFrames {
+
+    public:
         /// @brief constructor
-        Frames();
+        CommonFrames();
 
-        /// @brief hide frames
-        void hideFrames();
+        /// @brief build common frames
+        void buildCommonFrames(GNEViewParent* viewParent, GNEViewNet* viewNet);
 
-        /// @brief set new width in all frames
-        void setWidth(int frameWidth);
+        /// @brief hide common frames
+        void hideCommonFrames();
 
-        /// @brief return true if at least there is a frame shown
-        bool isFrameShown() const;
+        /// @brief set new width in all common frames
+        void setCommonFramesWidth(int frameWidth);
 
-        /// @brief get current frame show
+        /// @brief return true if at least there is a common frame shown
+        bool isCommonFrameShown() const;
+
+        /// @brief get current common frame show
         GNEFrame* getCurrentShownFrame() const;
 
-        /// @brief frame for GNE_NMODE_INSPECT
+        /// @brief frame for inspect elements
         GNEInspectorFrame* inspectorFrame;
 
-        /// @brief frame for GNE_NMODE_SELECT
-        GNESelectorFrame* selectorFrame;
-
-        /// @brief frame for GNE_NMODE_CONNECT
-        GNEConnectorFrame* connectorFrame;
-
-        /// @brief frame for GNE_NMODE_TLS
-        GNETLSEditorFrame* TLSEditorFrame;
-
-        /// @brief frame for GNE_NMODE_ADDITIONAL
-        GNEAdditionalFrame* additionalFrame;
-
-        /// @brief frame for GNE_NMODE_CROSSING
-        GNECrossingFrame* crossingFrame;
-
-        /// @brief frame for GNE_NMODE_TAZ
-        GNETAZFrame* TAZFrame;
-
-        /// @brief frame for GNE_NMODE_DELETE
+        /// @brief frame for delete elemetns
         GNEDeleteFrame* deleteFrame;
 
-        /// @brief frame for GNE_NMODE_POLYGON
+        /// @brief frame for select elements
+        GNESelectorFrame* selectorFrame;
+
+        /// @brief frame for move elements
+        GNEMoveFrame* moveFrame;
+    };
+
+    /// @brief class for network frames
+    class NetworkFrames {
+
+    public:
+        /// @brief constructor
+        NetworkFrames();
+
+        /// @brief build network frames
+        void buildNetworkFrames(GNEViewParent* viewParent, GNEViewNet* viewNet);
+
+        /// @brief hide network frames
+        void hideNetworkFrames();
+
+        /// @brief set new width in all network frames
+        void setNetworkFramesWidth(int frameWidth);
+
+        /// @brief return true if at least there is a network frame shown
+        bool isNetworkFrameShown() const;
+
+        /// @brief get current network frame show
+        GNEFrame* getCurrentShownFrame() const;
+
+        /// @brief frame for NETWORK_CONNECT
+        GNEConnectorFrame* connectorFrame;
+
+        /// @brief frame for NETWORK_TLS
+        GNETLSEditorFrame* TLSEditorFrame;
+
+        /// @brief frame for NETWORK_ADDITIONAL
+        GNEAdditionalFrame* additionalFrame;
+
+        /// @brief frame for NETWORK_CROSSING
+        GNECrossingFrame* crossingFrame;
+
+        /// @brief frame for NETWORK_TAZ
+        GNETAZFrame* TAZFrame;
+
+        /// @brief frame for NETWORK_POLYGON
         GNEPolygonFrame* polygonFrame;
 
-        /// @brief frame for GNE_NMODE_PROHIBITION
+        /// @brief frame for NETWORK_PROHIBITION
         GNEProhibitionFrame* prohibitionFrame;
 
-        /// @brief frame for GNE_NMODE_CREATEDGE
+        /// @brief frame for NETWORK_CREATEDGE
         GNECreateEdgeFrame* createEdgeFrame;
+    };
 
-        /// @brief frame for GNE_DMODE_ROUTE
+    /// @brief class for demand frames
+    class DemandFrames {
+
+    public:
+        /// @brief constructor
+        DemandFrames();
+
+        /// @brief build demand frames
+        void buildDemandFrames(GNEViewParent* viewParent, GNEViewNet* viewNet);
+
+        /// @brief hide demand frames
+        void hideDemandFrames();
+
+        /// @brief set new width in all demand frames
+        void setDemandFramesWidth(int frameWidth);
+
+        /// @brief return true if at least there is a demand frame shown
+        bool isDemandFrameShown() const;
+
+        /// @brief get current demand frame show
+        GNEFrame* getCurrentShownFrame() const;
+
+        /// @brief frame for DEMAND_ROUTE
         GNERouteFrame* routeFrame;
 
-        /// @brief frame for GNE_DMODE_VEHICLE
+        /// @brief frame for DEMAND_VEHICLE
         GNEVehicleFrame* vehicleFrame;
 
-        /// @brief frame for GNE_DMODE_VEHICLETYPE
+        /// @brief frame for DEMAND_VEHICLETYPE
         GNEVehicleTypeFrame* vehicleTypeFrame;
 
-        /// @brief frame for GNE_DMODE_STOP
+        /// @brief frame for DEMAND_STOP
         GNEStopFrame* stopFrame;
 
-        /// @brief frame for GNE_DMODE_PERSON
+        /// @brief frame for DEMAND_PERSON
         GNEPersonFrame* personFrame;
 
-        /// @brief frame for GNE_DMODE_PERSONTYPE
+        /// @brief frame for DEMAND_PERSONTYPE
         GNEPersonTypeFrame* personTypeFrame;
 
-        /// @brief frame for GNE_DMODE_PERSONPLAN
+        /// @brief frame for DEMAND_PERSONPLAN
         GNEPersonPlanFrame* personPlanFrame;
     };
 
+    /// @brief class for data frames
+    class DataFrames {
+
+    public:
+        /// @brief constructor
+        DataFrames();
+
+        /// @brief build data frames
+        void buildDataFrames(GNEViewParent* viewParent, GNEViewNet* viewNet);
+
+        /// @brief hide data frames
+        void hideDataFrames();
+
+        /// @brief set new width in all data frames
+        void setDataFramesWidth(int frameWidth);
+
+        /// @brief return true if at least there is a data frame shown
+        bool isDataFrameShown() const;
+
+        /// @brief get current data frame show
+        GNEFrame* getCurrentShownFrame() const;
+
+        /// @brief frame for DATA_EDGEDATA
+        GNEEdgeDataFrame* edgeDataFrame;
+
+        /// @brief frame for DATA_EDGERELDATA
+        GNEEdgeRelDataFrame* edgeRelDataFrame;
+
+        /// @brief frame for DATA_TAZRELDATA
+        GNETAZRelDataFrame* TAZRelDataFrame;
+    };
+
     /// @brief struct for ACChoosers dialog
-    struct ACChoosers {
+    class ACChoosers {
+
+    public:
         /// @brief constructor
         ACChoosers();
 
@@ -320,6 +425,7 @@ private:
         GNEDialogACChooser* ACChooserProhibition;
     };
 
+private:
     /// @brief pointer to GNEApplicationWindow
     GNEApplicationWindow* myGNEAppWindows;
 
@@ -338,14 +444,18 @@ private:
     /// @brief Splitter to divide ViewNet und GNEFrames
     FXSplitter* myFramesSplitter;
 
-    /// @brief struct for frames
-    Frames myFrames;
+    /// @brief struct for common frames
+    CommonFrames myCommonFrames;
+
+    /// @brief struct for network frames
+    NetworkFrames myNetworkFrames;
+
+    /// @brief struct for demand frames
+    DemandFrames myDemandFrames;
+
+    /// @brief struct for data frames
+    DataFrames myDataFrames;
 
     /// @brief struct for ACChoosers
     ACChoosers myACChoosers;
 };
-
-
-#endif
-
-/****************************************************************************/

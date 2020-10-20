@@ -19,11 +19,6 @@
 ///
 // Structure representing possible vehicle parameter
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <algorithm>
@@ -44,7 +39,7 @@
 // ===========================================================================
 
 SUMOVTypeParameter::VClassDefaultValues::VClassDefaultValues(SUMOVehicleClass vclass) :
-    length(5./*4.3*/),
+    length(getDefaultVehicleLength(vclass)),
     minGap(2.5),
     maxSpeed(200. / 3.6),
     width(1.8),
@@ -60,7 +55,6 @@ SUMOVTypeParameter::VClassDefaultValues::VClassDefaultValues(SUMOVehicleClass vc
     // update default values
     switch (vclass) {
         case SVC_PEDESTRIAN:
-            length = 0.215;
             minGap = 0.25;
             maxSpeed = DEFAULT_PEDESTRIAN_SPEED;
             width = 0.478;
@@ -70,7 +64,6 @@ SUMOVTypeParameter::VClassDefaultValues::VClassDefaultValues(SUMOVehicleClass vc
             speedFactor.getParameter()[1] = 0.1;
             break;
         case SVC_BICYCLE:
-            length = 1.6;
             minGap = 0.5;
             maxSpeed = 20. / 3.6;
             width = 0.65;
@@ -81,7 +74,6 @@ SUMOVTypeParameter::VClassDefaultValues::VClassDefaultValues(SUMOVehicleClass vc
             speedFactor.getParameter()[1] = 0.1;
             break;
         case SVC_MOPED:
-            length = 2.1;
             maxSpeed = 60. / 3.6;
             width = 0.8;
             height = 1.7;
@@ -91,7 +83,6 @@ SUMOVTypeParameter::VClassDefaultValues::VClassDefaultValues(SUMOVehicleClass vc
             speedFactor.getParameter()[1] = 0.1;
             break;
         case SVC_MOTORCYCLE:
-            length = 2.2;
             width = 0.9;
             height = 1.5;
             shape = SVS_MOTORCYCLE;
@@ -100,7 +91,6 @@ SUMOVTypeParameter::VClassDefaultValues::VClassDefaultValues(SUMOVehicleClass vc
             speedFactor.getParameter()[1] = 0.1;
             break;
         case SVC_TRUCK:
-            length = 7.1;
             maxSpeed = 130. / 3.6;
             width = 2.4;
             height = 2.4;
@@ -112,7 +102,6 @@ SUMOVTypeParameter::VClassDefaultValues::VClassDefaultValues(SUMOVehicleClass vc
             speedFactor.getParameter()[1] = 0.05;
             break;
         case SVC_TRAILER:
-            length = 16.5;
             maxSpeed = 130. / 3.6;
             width = 2.55;
             height = 4.;
@@ -124,7 +113,6 @@ SUMOVTypeParameter::VClassDefaultValues::VClassDefaultValues(SUMOVehicleClass vc
             speedFactor.getParameter()[1] = 0.05;
             break;
         case SVC_BUS:
-            length = 12.;
             maxSpeed = 100. / 3.6;
             width = 2.5;
             height = 3.4;
@@ -134,7 +122,6 @@ SUMOVTypeParameter::VClassDefaultValues::VClassDefaultValues(SUMOVehicleClass vc
             emissionClass = PollutantsInterface::getClassByName(EMPREFIX + "Bus", vclass);
             break;
         case SVC_COACH:
-            length = 14.;
             maxSpeed = 100. / 3.6;
             width = 2.6;
             height = 4.;
@@ -145,19 +132,19 @@ SUMOVTypeParameter::VClassDefaultValues::VClassDefaultValues(SUMOVehicleClass vc
             speedFactor.getParameter()[1] = 0.05;
             break;
         case SVC_TRAM:
-            length = 22.;
             maxSpeed = 80. / 3.6;
             width = 2.4;
             height = 3.2;
             shape = SVS_RAIL_CAR;
+            osgFile = "tram.obj";
             carriageLength = 5.71; // http://de.wikipedia.org/wiki/Bombardier_Flexity_Berlin
             locomotiveLength = 5.71;
             personCapacity = 120;
             emissionClass = PollutantsInterface::getClassByName(EMPREFIX + "zero", vclass);
             break;
         case SVC_RAIL_URBAN:
-            length = 36.5 * 3;
             maxSpeed = 100. / 3.6;
+            minGap = 5;
             width = 3.0;
             height = 3.6;
             shape = SVS_RAIL_CAR;
@@ -167,8 +154,8 @@ SUMOVTypeParameter::VClassDefaultValues::VClassDefaultValues(SUMOVehicleClass vc
             emissionClass = PollutantsInterface::getClassByName(EMPREFIX + "zero", vclass);
             break;
         case SVC_RAIL:
-            length = 67.5 * 2;
             maxSpeed = 160. / 3.6;
+            minGap = 5;
             width = 2.84;
             height = 3.75;
             shape = SVS_RAIL;
@@ -179,8 +166,8 @@ SUMOVTypeParameter::VClassDefaultValues::VClassDefaultValues(SUMOVehicleClass vc
             emissionClass = PollutantsInterface::getClassByName(EMPREFIX + "HDV_D_EU0", vclass);
             break;
         case SVC_RAIL_ELECTRIC:
-            length = 25. * 8;
             maxSpeed = 220. / 3.6;
+            minGap = 5;
             width = 2.95;
             height = 3.89;
             shape = SVS_RAIL;
@@ -190,8 +177,8 @@ SUMOVTypeParameter::VClassDefaultValues::VClassDefaultValues(SUMOVehicleClass vc
             emissionClass = PollutantsInterface::getClassByName(EMPREFIX + "zero", vclass);
             break;
         case SVC_RAIL_FAST:
-            length = 25. * 8;
             maxSpeed = 330. / 3.6;
+            minGap = 5;
             width = 2.95;
             height = 3.89;
             shape = SVS_RAIL;
@@ -201,7 +188,6 @@ SUMOVTypeParameter::VClassDefaultValues::VClassDefaultValues(SUMOVehicleClass vc
             emissionClass = PollutantsInterface::getClassByName(EMPREFIX + "zero", vclass);
             break;
         case SVC_DELIVERY:
-            length = 6.5;
             width = 2.16;
             height = 2.86;
             shape = SVS_DELIVERY;
@@ -210,7 +196,6 @@ SUMOVTypeParameter::VClassDefaultValues::VClassDefaultValues(SUMOVehicleClass vc
             speedFactor.getParameter()[1] = 0.05;
             break;
         case SVC_EMERGENCY:
-            length = 6.5;
             width = 2.16;
             height = 2.86;
             shape = SVS_DELIVERY;
@@ -236,7 +221,6 @@ SUMOVTypeParameter::VClassDefaultValues::VClassDefaultValues(SUMOVehicleClass vc
             speedFactor.getParameter()[1] = 0.1;
             break;
         case SVC_SHIP:
-            length = 17;
             width = 4;
             maxSpeed = 8 / 1.94; // 8 knots
             height = 4;
@@ -700,7 +684,6 @@ SUMOVTypeParameter::getDefaultImperfection(const SUMOVehicleClass vc) {
             return 0.5;
     }
 }
-
 
 const SUMOVTypeParameter&
 SUMOVTypeParameter::getDefault() {

@@ -18,13 +18,7 @@
 ///
 // Abstract base class for output formatters
 /****************************************************************************/
-#ifndef OutputFormatter_h
-#define OutputFormatter_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -109,9 +103,3 @@ public:
     virtual void writePadding(std::ostream& into, const std::string& val) = 0;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

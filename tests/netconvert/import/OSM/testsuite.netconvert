@@ -4,6 +4,9 @@ railway
 # direction of bus stops imported correctly based on pt lines
 bus_stop_direction_from_pt_lines
 
+# route relations are defined with platforms only
+bus_stops_from_line_platforms
+
 # merge osm files that contain the same ptline information
 duplicate_lines
 
@@ -34,6 +37,12 @@ bus_stop_position_numerical_ids
 
 # import bus stops that are not part of the round network by matching to the nearest line edge
 bus_stop_match_line
+
+# import bus stops that use a non-redundant mix of stop and platform members in the route relation
+bus_stop_mix_stops_platforms
+
+# import bus stops that use a non-redundant mix of stop and platform members in the route relation
+bus_stop_mix_stops_platforms_lefthand
 
 # Area around the ITS in Berlin, Adlershof (13.52494,52.42582,13.53625,52.43026)
 adlershof_dlr
@@ -111,4 +120,10 @@ sidewalks
 
 # motorway without speed limit
 motorway
+
+# test import of maxspeed:forward and maxspeed:backward
+maxspeed_directional
+
+# test option edges.join-tram-dist
+join_tram
 bugs

@@ -19,13 +19,7 @@
 ///
 // Changes the speed allowed on a set of lanes (gui version)
 /****************************************************************************/
-#ifndef GUILaneSpeedTrigger_h
-#define GUILaneSpeedTrigger_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -203,9 +197,3 @@ private:
     mutable std::string myLastValueString;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

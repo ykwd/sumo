@@ -18,17 +18,13 @@
 // An algorithm that performs dispatch for the taxi device
 /****************************************************************************/
 #pragma once
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <set>
 #include <vector>
 #include <map>
 #include <utils/common/SUMOTime.h>
-#include "MSDispatch.h"
+#include "MSDispatch_Greedy.h"
 #include "MSDevice_Taxi.h"
 
 
@@ -46,7 +42,7 @@ public:
 
 protected:
     /// @brief trigger taxi dispatch. @note: method exists so subclasses can inject code at this point (ride sharing)
-    virtual int dispatch(MSDevice_Taxi* taxi, Reservation* res, SUMOAbstractRouter<MSEdge, SUMOVehicle>& router, std::vector<Reservation*>& reservations);
+    virtual int dispatch(MSDevice_Taxi* taxi, std::vector<Reservation*>::iterator& resIt, SUMOAbstractRouter<MSEdge, SUMOVehicle>& router, std::vector<Reservation*>& reservations);
 
     /// @brief absolute time threshold for declining shared ride in s
     const double myAbsoluteLossThreshold;
@@ -54,6 +50,3 @@ protected:
     /// @brief relative time threshold for declining shared ride
     const double myRelativeLossThreshold;
 };
-
-/****************************************************************************/
-

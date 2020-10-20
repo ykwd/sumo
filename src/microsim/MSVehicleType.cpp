@@ -21,15 +21,9 @@
 ///
 // The car-following model and parameter
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <cassert>
-#include <utils/iodevices/BinaryInputDevice.h>
 #include <utils/options/OptionsCont.h>
 #include <utils/common/FileHelpers.h>
 #include <utils/common/RandHelper.h>
@@ -515,5 +509,5 @@ MSVehicleType::initRailVisualizationParameters() {
     }
 }
 
-/****************************************************************************/
 
+/****************************************************************************/

@@ -20,11 +20,6 @@
 ///
 // A VISUM network importer
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <string>
@@ -210,7 +205,7 @@ NIImporter_VISUM::load() {
                 if (line.substr(0, dataName.length()) == dataName) {
                     (*i).position = myLineReader.getPosition();
                     (*i).pattern = line.substr(dataName.length());
-                    WRITE_MESSAGE("Found: " + dataName + " at " + toString<int>(myLineReader.getPosition()));
+                    WRITE_MESSAGE("Found: " + dataName + " at line " + toString<int>(myLineReader.getLineNumber()));
                 }
             }
         }
@@ -424,7 +419,7 @@ NIImporter_VISUM::parse_Edges() {
     NBEdge* previous = myNetBuilder.getEdgeCont().retrieve(myCurrentID);
     if (previous != nullptr) {
         myCurrentID = '-' + myCurrentID;
-        previous->setLaneSpreadFunction(LANESPREAD_RIGHT);
+        previous->setLaneSpreadFunction(LaneSpreadFunction::RIGHT);
         oneway_checked = false;
     }
     if (find(myTouchedEdges.begin(), myTouchedEdges.end(), myCurrentID) != myTouchedEdges.end()) {
@@ -434,7 +429,7 @@ NIImporter_VISUM::parse_Edges() {
     if (find(myTouchedEdges.begin(), myTouchedEdges.end(), tmpid) != myTouchedEdges.end()) {
         previous = myNetBuilder.getEdgeCont().retrieve(tmpid);
         if (previous != nullptr) {
-            previous->setLaneSpreadFunction(LANESPREAD_RIGHT);
+            previous->setLaneSpreadFunction(LaneSpreadFunction::RIGHT);
         }
         oneway_checked = false;
     }
@@ -442,7 +437,7 @@ NIImporter_VISUM::parse_Edges() {
     const SVCPermissions permissions = getPermissions(KEYS.getString(VISUM_TYPES), false, myNetBuilder.getTypeCont().getPermissions(type));
     int prio = myUseVisumPrio ? myNetBuilder.getTypeCont().getPriority(type) : -1;
     if (nolanes != 0 && speed != 0) {
-        LaneSpreadFunction lsf = oneway_checked ? LANESPREAD_CENTER : LANESPREAD_RIGHT;
+        LaneSpreadFunction lsf = oneway_checked ? LaneSpreadFunction::CENTER : LaneSpreadFunction::RIGHT;
         // @todo parse name from visum files
         NBEdge* e = new NBEdge(myCurrentID, from, to, type, speed, nolanes, prio,
                                NBEdge::UNSPECIFIED_WIDTH, NBEdge::UNSPECIFIED_OFFSET, "", lsf);
@@ -460,7 +455,7 @@ NIImporter_VISUM::parse_Edges() {
     // add the opposite edge
     myCurrentID = '-' + myCurrentID;
     if (nolanes != 0 && speed != 0) {
-        LaneSpreadFunction lsf = oneway_checked ? LANESPREAD_CENTER : LANESPREAD_RIGHT;
+        LaneSpreadFunction lsf = oneway_checked ? LaneSpreadFunction::CENTER : LaneSpreadFunction::RIGHT;
         // @todo parse name from visum files
         NBEdge* e = new NBEdge(myCurrentID, from, to, type, speed, nolanes, prio,
                                NBEdge::UNSPECIFIED_WIDTH, NBEdge::UNSPECIFIED_OFFSET, "", lsf);
@@ -583,7 +578,7 @@ NIImporter_VISUM::parse_Connectors_legacy() {
                                       OptionsCont::getOptions().getFloat("visum.connector-speeds"),
                                       OptionsCont::getOptions().getInt("visum.connectors-lane-number"),
                                       -1, NBEdge::UNSPECIFIED_WIDTH, NBEdge::UNSPECIFIED_OFFSET,
-                                      "", LANESPREAD_RIGHT);
+                                      "", LaneSpreadFunction::RIGHT);
             edge->setAsMacroscopicConnector();
             if (!myNetBuilder.getEdgeCont().insert(edge)) {
                 WRITE_ERROR("A duplicate edge id occurred (ID='" + id + "').");
@@ -618,7 +613,7 @@ NIImporter_VISUM::parse_Connectors_legacy() {
                                       OptionsCont::getOptions().getFloat("visum.connector-speeds"),
                                       OptionsCont::getOptions().getInt("visum.connectors-lane-number"),
                                       -1, NBEdge::UNSPECIFIED_WIDTH, NBEdge::UNSPECIFIED_OFFSET,
-                                      "", LANESPREAD_RIGHT);
+                                      "", LaneSpreadFunction::RIGHT);
             edge->setAsMacroscopicConnector();
             if (!myNetBuilder.getEdgeCont().insert(edge)) {
                 WRITE_ERROR("A duplicate edge id occurred (ID='" + id + "').");
@@ -1142,7 +1137,7 @@ void NIImporter_VISUM::parse_LanesConnections() {
         return;
     }
     //
-    fromEdge->addLane2LaneConnection(fromLane, toEdge, toLane, NBEdge::L2L_VALIDATED);
+    fromEdge->addLane2LaneConnection(fromLane, toEdge, toLane, NBEdge::Lane2LaneInfoType::VALIDATED);
 }
 
 
@@ -1512,5 +1507,6 @@ NIImporter_VISUM::loadLanguage(const std::string& file) {
     }
 
 }
+
 
 /****************************************************************************/

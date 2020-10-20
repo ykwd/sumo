@@ -8,14 +8,14 @@ freely available (this does **not** mean "open source") tools.
 Instructions on how to build SUMO on Windows using an Open Source
 toolchain are included in our [building on
 Linux](../Installing/Linux_Build.md) pages. Please note that you
-may also [download pre-built Windows binaries](../Downloads.md).
+may also [download pre-build Windows binaries](../Downloads.md).
 
 ## Recommended Windows setup
 
-- Download [Visual C++ Community Edition](https://www.visualstudio.com/vs/community/)
+- Download [Visual Studio Community Edition](https://www.visualstudio.com/vs/community/)
   - Start the installer and select:
-    - Python Development (including native tools)
-    - C++ for desktop
+    - Python development (including native tools)
+    - Desktop development with C++
 
 ![](../images/VSInstall.png)
 
@@ -24,76 +24,51 @@ may also [download pre-built Windows binaries](../Downloads.md).
   - choose Manage Connections, then "Local Git"->Clone https://github.com/DLR-TS/SUMOLibraries
 - now be patient until CMake starts configuring
   - if it does not or you want to reconfigure choose Project->"Generate Cache" (if this option is not there you may need to wait a little longer until Visual Studio has picked up everything)
-- build all
+- Select Build->BuildAll (CMake->BuildAll in earlier versions)
 - set SUMO_HOME
-- Install Texttest https://ci.appveyor.com/project/behrisch/texttest/builds/29385437/job/04q4i1p60276g82u/artifacts
+- Install Texttest https://sourceforge.net/projects/texttest/files/latest/download
 
 ### optional but still recommended steps
 
 - Install notepad++
 - Install TortoiseGit
-- Install Git command line tools (this is mandatory if you install TortoiseGit)
+- Install [Git command line tools](https://git-scm.com/download/win) (this is mandatory if you install TortoiseGit)
 - If you decide to use the Python which comes with Visual Studio
   - Test start a python script and add association
   - Add Python to the path (also the Scripts dir), find it at C:\Program Files (x86)\Microsoft Visual Studio\Shared\Python37_64
   - Install pyautogui, matplotlib, rtree, pyproj, lxml following the instructions https://docs.microsoft.com/en-us/visualstudio/python/tutorial-working-with-python-in-visual-studio-step-05-installing-packages?view=vs-2019
-- If not use `pip install pyautogui, matplotlib, rtree, pyproj, lxml`
+- If not use `pip install pyautogui, matplotlib, pyproj, lxml`
+- Download [rtree from here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#rtree) and install it using pip or Visual Studio
 - (after 30 days) Setup a Microsoft account (if you do not already have one) and register your Visual Studio
 
-## Short overview
+## Further notes
 
-- Download [Visual C++ Community
-  Edition](https://www.visualstudio.com/vs/community/). SUMO is only
-  compatible with Visual Studio 2013 or higher. If you are using
-  Windows 8 or later be sure to download Visual Studio for Windows
-  *Desktop*. Please install all the available Service Packs for Visual
-  Studio as well. Note that with Visual Studio Community 2017 SUMO
-  only can be compiled **in Release Mode**.
-- [Download Python for Windows](http://www.python.org/download/) and
-  install it. Our most preferred version is Python 2.7.x for the 32
-  bit platform, but you may try Python 3 and / or 64bit as well.
-  Please be aware that the test environment needs Python 2.7 32bit
+If you need a different python version or want to test with multiple pythons you can either install them directly from Visual Studio or [Download Python for Windows](http://www.python.org/download/) and install it. Most SUMO tools should work with Python 2 and 3. Please make sure that you install the recommend python modules as above.
 
-  !!! note
-      If you have Visual Studio 2017 you may skip the following steps and jump to [Installing/Windows_Build#Doing_everything_inside_Visual_Studio](#doing_everything_inside_visual_studio_2017_or_later)
+If you want to clone / checkout a special sumo version, you can of course do it from the ommand line (if you have installed the command line tools)
+using `git clone --recursive https://github.com/eclipse/sumo` or download and extract a source package, see [Downloads](../Downloads.md)
 
-- Download and install [CMake](https://cmake.org/download/)
-- Download and install [Git](https://git-scm.com/download/win)
-- Clone the sumo repository using ` git clone https://github.com/eclipse/sumo` or download and extract a source
-  package, see [Downloads](../Downloads.md)
-  - set SUMO_HOME to the cloned directory
-- Install the [\#Libraries](#libraries) using ` git clone https://github.com/DLR-TS/SUMOLibraries` and set the
-  SUMO_LIBRARIES environment variable
-- Run the CMake-GUI and set the source path and define a build
-  directory, for more details see
-  [Installing/Windows_CMake](../Installing/Windows_CMake.md)
-- Press Configure, select the Visual Studio 2017 Win64 Generator, then
-  press Generate and Open Project
-- Compile SUMO in the opened Visual Studio
+The command for the [\#Libraries](#libraries) is: `git clone --recursive https://github.com/DLR-TS/SUMOLibraries`. If you do not place the libraries in the same folder as sumo, you will need to set the SUMO_LIBRARIES environment variable to the directory.
 
-## Doing everything inside Visual Studio 2017 (or later)
+It Visual Studio fails at first try (maybe SUMOLibraries are not cloned yet or are in an unusual location, the errors talk about not finding Xerces)
+  - Select Project->"Generate Cache" to try again (it is CMake->Generate in earlier Visual Studio versions) or see below
 
-Visual Studio 2017 already brings git and CMake support, so you can
+### Adapting settings
 
-- Team-\>Manage Connections and then choose Clone under Local Git
-repositories (see here for an [Introduction to Git usage with Visual
-Studio](https://docs.microsoft.com/en-us/azure/devops/repos/git/gitquickstart)
-including updating and comitting)
-  - once for <https://github.com/eclipse/sumo>
-  - then for <https://github.com/DLR-TS/SUMOLibraries>
-- Visual Studio will try to generate the solutions using CMake
-automatically
-  - will fail at first try if SUMOLibraries is not cloned yet or is in an unusual location (it does not find Xerces)
-  - Select CMake->Generate to try again (it is Project->"Generate Cache" in VS 2019)
-    - If it still fails, edit CMakeCache.txt from the CMake menu and set the path (e.g. SUMO_LIBRARIES:PATH=C:/Users/testus/source/repos/SUMOLibraries) and retry
-- Select CMake->"Build All" (Build->"BuildAll" in VS 2019)
+If you need to modify settings, you can edit the CMakeCache.txt by opening it in your favorite text editor or via the Project->Cmake-Cache menu. The following things might be useful
+
+  - If the libraries are not found, set SUMO_LIBRARIES:PATH to something like C:/Users/testus/source/repos/SUMOLibraries) and retry
+  - If the wrong python interpreter or library is found, edit the PYTHON_* variables
+  - If you want to disable the build of the GUI (Fox) or usage of Proj, set the according library entries to the empty string
+
+To make a debug build, you should *not* change CMAKE_BUILD_TYPE in the cache file. You should choose a different configuration in the GUI instead.
 
 ## Libraries
 
 We provide a central location for getting all dependent libraries at
 <https://github.com/DLR-TS/SUMOLibraries>. The easiest way is to clone
 this repository and define an environment variable `SUMO_LIBRARIES`
-pointing to the resulting directory. They are built with Visual Studio
+pointing to the resulting directory. They are build with Visual Studio
 2017, but may be used with earlier and later versions as well. You may
 need to install the Visual C++ 2017 Runtime Distributable for running
 SUMO then (tested with Visual Studio 2013). 
@@ -160,7 +135,7 @@ Install Microsoft [Visual C++ Redistributable Packages for Visual
 Studio 2012](https://www.microsoft.com/en-US/download/details.aspx?id=30679)
 (for MSVCR120.dll) or [Microsoft Visual C++ Redistributable Packages for
 Visual Studio 2015](https://www.visualstudio.com/downloads/) (for
-MSVCR140.dll). You can check if all dependences are correct using
+MSVCR140.dll). You can check if all dependencies are correct using
 [Dependencies](https://lucasg.github.io/Dependencies/)
 
 ![](../images/Dependencies.png)

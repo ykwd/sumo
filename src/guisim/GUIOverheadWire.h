@@ -18,13 +18,7 @@
 ///
 // The gui-version of a MSOverheadWire
 /****************************************************************************/
-#ifndef GUIOverheadWire_h
-#define GUIOverheadWire_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -190,5 +184,4 @@ private:
     PositionVector myFGShape;
 };
 
-#endif
 

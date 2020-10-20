@@ -19,13 +19,7 @@
 ///
 // A window displaying the phase diagram of a tl-logic
 /****************************************************************************/
-#ifndef GUITLLogicPhasesTrackerWindow_h
-#define GUITLLogicPhasesTrackerWindow_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -116,13 +110,13 @@ public:
     /// {
 
     /// @brief called on size change
-    long onConfigure(FXObject* sender, FXSelector sel, void* data);
+    long onConfigure(FXObject* sender, FXSelector sel, void* ptr);
 
     /// @brief called if the widget shall be repainted
-    long onPaint(FXObject* sender, FXSelector sel, void* data);
+    long onPaint(FXObject* sender, FXSelector sel, void* ptr);
 
     /// @brief called on a simulation step
-    long onSimStep(FXObject* sender, FXSelector sel, void* data);
+    long onSimStep(FXObject* sender, FXSelector sel, void* ptr);
     /// }
 
 
@@ -247,8 +241,3 @@ protected:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/

@@ -18,17 +18,13 @@
 ///
 // A lane area vehicles can halt at
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <cassert>
 #include <map>
 #include <utils/vehicle/SUMOVehicle.h>
 #include <utils/geom/Position.h>
+#include <microsim/MSGlobals.h>
 #include <microsim/MSVehicleType.h>
 #include <microsim/MSNet.h>
 #include "MSLane.h"
@@ -42,11 +38,13 @@ MSStoppingPlace::MSStoppingPlace(const std::string& id,
                                  const std::vector<std::string>& lines,
                                  MSLane& lane,
                                  double begPos, double endPos, const std::string name,
-                                 int capacity) :
+                                 int capacity,
+                                 double parkingLength) :
     Named(id), myLines(lines), myLane(lane),
     myBegPos(begPos), myEndPos(endPos), myLastFreePos(endPos),
     myName(name),
-    myTransportableCapacity(capacity) {
+    myTransportableCapacity(capacity),
+    myParkingFactor(parkingLength <= 0 ? 1 : (endPos - begPos) / parkingLength) {
     computeLastFreePos();
     for (int i = 0; i < capacity; i++) {
         myWaitingSpots.insert(i);
@@ -76,8 +74,10 @@ MSStoppingPlace::getEndLanePosition() const {
 
 
 void
-MSStoppingPlace::enter(SUMOVehicle* what, double beg, double end) {
-    myEndPositions[what] = std::pair<double, double>(beg, end);
+MSStoppingPlace::enter(SUMOVehicle* veh, bool parking) {
+    double beg = veh->getPositionOnLane() + veh->getVehicleType().getMinGap();
+    double end = beg - veh->getVehicleType().getLengthWithGap() * (parking ? myParkingFactor : 1);
+    myEndPositions[veh] = std::make_pair(beg, end);
     computeLastFreePos();
 }
 
@@ -87,6 +87,9 @@ MSStoppingPlace::getLastFreePos(const SUMOVehicle& forVehicle) const {
     if (myLastFreePos != myEndPos) {
         const double vehGap = forVehicle.getVehicleType().getMinGap();
         double pos = myLastFreePos - vehGap;
+        if (forVehicle.getLane() == &myLane && forVehicle.getPositionOnLane() < myEndPos && forVehicle.getPositionOnLane() > myBegPos && forVehicle.getSpeed() <= SUMO_const_haltingSpeed) {
+            return forVehicle.getPositionOnLane();
+        }
         if (!fits(pos, forVehicle)) {
             // try to find a place ahead of the waiting vehicles
             const double vehLength = forVehicle.getVehicleType().getLength();
@@ -119,7 +122,7 @@ bool
 MSStoppingPlace::fits(double pos, const SUMOVehicle& veh) const {
     // always fit at the default position or if at least half the vehicle length
     // is within the stop range (debatable)
-    return pos + POSITION_EPS >= myEndPos || (pos - myBegPos >= veh.getVehicleType().getLength() / 2);
+    return pos + POSITION_EPS >= myEndPos || (pos - myBegPos >= veh.getVehicleType().getLength() * myParkingFactor / 2);
 }
 
 double
@@ -156,14 +159,15 @@ MSStoppingPlace::getWaitPosition(MSTransportable* t) const {
             row = 1 + myTransportableCapacity / getPersonsAbreast();
         }
     }
+    const double lefthandSign = (MSGlobals::gLefthand ? -1 : 1);
     return myLane.getShape().positionAtOffset(myLane.interpolateLanePosToGeometryPos(lanePos),
-            myLane.getWidth() / 2 + row * SUMO_const_waitingPersonDepth);
+            lefthandSign * (myLane.getWidth() / 2 + row * SUMO_const_waitingPersonDepth));
 }
 
 
 double
 MSStoppingPlace::getStoppingPosition(const SUMOVehicle* veh) const {
-    std::map<const SUMOVehicle*, std::pair<double, double> >::const_iterator i = myEndPositions.find(veh);
+    auto i = myEndPositions.find(veh);
     if (i != myEndPositions.end()) {
         return i->second.second;
     } else {
@@ -221,8 +225,7 @@ MSStoppingPlace::leaveFrom(SUMOVehicle* what) {
 void
 MSStoppingPlace::computeLastFreePos() {
     myLastFreePos = myEndPos;
-    std::map<const SUMOVehicle*, std::pair<double, double> >::iterator i;
-    for (i = myEndPositions.begin(); i != myEndPositions.end(); i++) {
+    for (auto i = myEndPositions.begin(); i != myEndPositions.end(); i++) {
         if (myLastFreePos > (*i).second.second) {
             myLastFreePos = (*i).second.second;
         }
@@ -281,6 +284,32 @@ MSStoppingPlace::addAccess(MSLane* lane, const double pos, const double length) 
     }
     myAccessPos.push_back(std::make_tuple(lane, pos, length));
     return true;
+}
+
+std::vector<const SUMOVehicle*>
+MSStoppingPlace::getStoppedVehicles() const {
+    std::vector<const SUMOVehicle*> result;
+    for (auto item : myEndPositions) {
+        result.push_back(item.first);
+    }
+    return result;
+}
+
+
+void
+MSStoppingPlace::getWaitingPersonIDs(std::vector<std::string>& into) const {
+    for (auto item : myWaitingTransportables) {
+        into.push_back(item.first->getID());
+    }
+    std::sort(into.begin(), into.end());
+}
+
+
+void
+MSStoppingPlace::clearState() {
+    myEndPositions.clear();
+    myWaitingTransportables.clear();
+    myLastFreePos = myEndPos;
 }
 
 

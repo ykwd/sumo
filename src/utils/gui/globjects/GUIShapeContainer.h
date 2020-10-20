@@ -19,13 +19,7 @@
 ///
 // Storage for geometrical objects extended by mutexes
 /****************************************************************************/
-#ifndef GUIShapeContainer_h
-#define GUIShapeContainer_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <fx.h>
@@ -162,8 +156,3 @@ private:
     /// @brief whether existing ids shall be replaced
     bool myAllowReplacement;
 };
-
-
-#endif
-
-/****************************************************************************/

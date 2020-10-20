@@ -44,17 +44,17 @@ netedit.inspectMode()
 netedit.leftClick(referencePosition, 320, 255)
 
 # Change boolean parameter blockmove
-netedit.modifyBoolAttribute(11, True)
+netedit.modifyBoolAttribute(12, True)
 
 # Check undo redo
 netedit.undo(referencePosition, 3)
 netedit.redo(referencePosition, 3)
 
-# save additionals
-netedit.saveAdditionals(referencePosition)
-
 # save network
 netedit.saveNetwork(referencePosition)
+
+# save additionals
+netedit.saveAdditionals(referencePosition)
 
 # quit netedit
 netedit.quit(neteditProcess)

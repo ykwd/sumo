@@ -19,13 +19,7 @@
 ///
 // A handler which converts occuring elements and attributes into enums
 /****************************************************************************/
-#ifndef GenericSAXHandler_h
-#define GenericSAXHandler_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -255,10 +249,6 @@ protected:
     virtual void myEndElement(int element);
 
 
-    void setSchemaSeen(const bool schemaSeen = true) {
-        mySchemaSeen = schemaSeen;
-    }
-
 private:
     /**
      * @brief converts from c++-string into unicode
@@ -286,13 +276,13 @@ private:
     //@{
 
     // the type of the map from ids to their unicode-string representation
-    typedef std::map<int, XMLCh*> AttrMap;
+    typedef std::vector<XMLCh*> AttrMap;
 
     // the map from ids to their unicode-string representation
     AttrMap myPredefinedTags;
 
     /// the map from ids to their string representation
-    std::map<int, std::string> myPredefinedTagsMML;
+    std::vector<std::string> myPredefinedTagsMML;
     //@}
 
 
@@ -321,8 +311,8 @@ private:
     /// @brief The root element to expect, empty string disables the check
     std::string myExpectedRoot;
 
-    /// @brief whether the reader has already seen a schema
-    bool mySchemaSeen;
+    /// @brief whether the reader has already seen the root element
+    bool myRootSeen;
 
 private:
     /// @brief invalidated copy constructor
@@ -332,8 +322,3 @@ private:
     const GenericSAXHandler& operator=(const GenericSAXHandler& s);
 
 };
-
-#endif
-
-/****************************************************************************/
-

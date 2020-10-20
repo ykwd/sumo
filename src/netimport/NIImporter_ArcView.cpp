@@ -21,11 +21,6 @@
 ///
 // Importer for networks stored in ArcView-shape format
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <string>
@@ -146,14 +141,19 @@ NIImporter_ArcView::load() {
     OGRSpatialReference destTransf;
     // use wgs84 as destination
     destTransf.SetWellKnownGeogCS("WGS84");
+#if GDAL_VERSION_MAJOR > 2
+    if (myOptions.getBool("shapefile.traditional-axis-mapping")) {
+        destTransf.SetAxisMappingStrategy(OAMS_TRADITIONAL_GIS_ORDER);
+    }
+#endif
     OGRCoordinateTransformation* poCT = OGRCreateCoordinateTransformation(origTransf, &destTransf);
-    if (poCT == NULL) {
+    if (poCT == nullptr) {
         if (myOptions.isSet("shapefile.guess-projection")) {
             OGRSpatialReference origTransf2;
             origTransf2.SetWellKnownGeogCS("WGS84");
             poCT = OGRCreateCoordinateTransformation(&origTransf2, &destTransf);
         }
-        if (poCT == 0) {
+        if (poCT == nullptr) {
             WRITE_WARNING("Could not create geocoordinates converter; check whether proj.4 is installed.");
         }
     }
@@ -210,7 +210,7 @@ NIImporter_ArcView::load() {
             type = poFeature->GetFieldAsString("ST_TYP_AFT");
         }
         if ((type != "" || myOptions.isSet("shapefile.type-id")) && !myTypeCont.knows(type)) {
-            WRITE_WARNING("Unknown type '" + type + "' for edge '" + id + "'");
+            WRITE_WARNINGF("Unknown type '%' for edge '%'", type, id);
         }
         double width = myTypeCont.getWidth(type);
         bool oneway = myTypeCont.knows(type) ? myTypeCont.getIsOneWay(type) : false;
@@ -244,7 +244,7 @@ NIImporter_ArcView::load() {
             return;
         }
         OGRLineString* cgeom = (OGRLineString*) poGeometry;
-        if (poCT != 0) {
+        if (poCT != nullptr) {
             // try transform to wgs84
             cgeom->transform(poCT);
         }
@@ -253,7 +253,7 @@ NIImporter_ArcView::load() {
         for (int j = 0; j < cgeom->getNumPoints(); j++) {
             Position pos((double) cgeom->getX(j), (double) cgeom->getY(j), (double) cgeom->getZ(j));
             if (!NBNetBuilder::transformCoordinate(pos)) {
-                WRITE_WARNING("Unable to project coordinates for edge '" + id + "'.");
+                WRITE_WARNINGF("Unable to project coordinates for edge '%'.", id);
             }
             shape.push_back_noDoublePos(pos);
         }
@@ -288,7 +288,7 @@ NIImporter_ArcView::load() {
         }
 
         if (from == to) {
-            WRITE_WARNING("Edge '" + id + "' connects identical nodes, skipping.");
+            WRITE_WARNINGF("Edge '%' connects identical nodes, skipping.", id);
             continue;
         }
 
@@ -323,7 +323,7 @@ NIImporter_ArcView::load() {
         // add positive direction if wanted
         if (dir == "B" || dir == "F" || dir == "" || myOptions.getBool("shapefile.all-bidirectional")) {
             if (myEdgeCont.retrieve(id) == 0) {
-                LaneSpreadFunction spread = dir == "B" || dir == "FALSE" ? LANESPREAD_RIGHT : LANESPREAD_CENTER;
+                LaneSpreadFunction spread = dir == "B" || dir == "FALSE" ? LaneSpreadFunction::RIGHT : LaneSpreadFunction::CENTER;
                 NBEdge* edge = new NBEdge(id, from, to, type, speed, nolanes, priority, width, NBEdge::UNSPECIFIED_OFFSET, shape, name, origID, spread);
                 edge->setPermissions(myTypeCont.getPermissions(type));
                 myEdgeCont.insert(edge);
@@ -336,7 +336,7 @@ NIImporter_ArcView::load() {
         // add negative direction if wanted
         if ((dir == "B" || dir == "T" || myOptions.getBool("shapefile.all-bidirectional")) && !oneway) {
             if (myEdgeCont.retrieve("-" + id) == 0) {
-                LaneSpreadFunction spread = dir == "B" || dir == "FALSE" ? LANESPREAD_RIGHT : LANESPREAD_CENTER;
+                LaneSpreadFunction spread = dir == "B" || dir == "FALSE" ? LaneSpreadFunction::RIGHT : LaneSpreadFunction::CENTER;
                 NBEdge* edge = new NBEdge("-" + id, to, from, type, speed, nolanes, priority, width, NBEdge::UNSPECIFIED_OFFSET, shape.reverse(), name, origID, spread);
                 edge->setPermissions(myTypeCont.getPermissions(type));
                 myEdgeCont.insert(edge);
@@ -469,8 +469,8 @@ void
 NIImporter_ArcView::checkSpread(NBEdge* e) {
     NBEdge* ret = e->getToNode()->getConnectionTo(e->getFromNode());
     if (ret != 0) {
-        e->setLaneSpreadFunction(LANESPREAD_RIGHT);
-        ret->setLaneSpreadFunction(LANESPREAD_RIGHT);
+        e->setLaneSpreadFunction(LaneSpreadFunction::RIGHT);
+        ret->setLaneSpreadFunction(LaneSpreadFunction::RIGHT);
     }
 }
 
@@ -517,6 +517,4 @@ NIImporter_ArcView::addParams(NBEdge* edge, OGRFeature* poFeature, const std::ve
 #endif
 
 
-
 /****************************************************************************/
-

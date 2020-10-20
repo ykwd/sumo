@@ -18,13 +18,7 @@
 ///
 // A reader of pois and polygons from shape files
 /****************************************************************************/
-#ifndef PCLoaderArcView_h
-#define PCLoaderArcView_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -88,9 +82,3 @@ private:
     PCLoaderArcView& operator=(const PCLoaderArcView&);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

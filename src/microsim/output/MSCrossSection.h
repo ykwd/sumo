@@ -19,13 +19,7 @@
 ///
 // A simple description of a position on a lane (crossing of a lane)
 /****************************************************************************/
-#ifndef MSCrossSection_h
-#define MSCrossSection_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -67,9 +61,3 @@ public:
 typedef std::vector< MSCrossSection > CrossSectionVector;
 typedef CrossSectionVector::iterator CrossSectionVectorIt;
 typedef CrossSectionVector::const_iterator CrossSectionVectorConstIt;
-
-
-#endif
-
-/****************************************************************************/
-

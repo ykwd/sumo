@@ -18,13 +18,7 @@
 ///
 // Emission data collector for edges/lanes
 /****************************************************************************/
-#ifndef MSMeanData_Emissions_h
-#define MSMeanData_Emissions_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -95,7 +89,7 @@ public:
          * @param[in] length The length of the object for which the data was collected
          * @exception IOError If an error on writing occurs (!!! not yet implemented)
          */
-        void write(OutputDevice& dev, const SUMOTime period,
+        void write(OutputDevice& dev, long long int attributeMask, const SUMOTime period,
                    const double numLanes, const double defaultTravelTime,
                    const int numVehicles = -1) const;
 
@@ -105,6 +99,17 @@ public:
          *  @see MSMoveReminder::notifyMoveInternal()
          */
         void notifyMoveInternal(const SUMOTrafficObject& veh, const double /* frontOnLane */, const double timeOnLane, const double /*meanSpeedFrontOnLane*/, const double meanSpeedVehicleOnLane, const double travelledDistanceFrontOnLane, const double travelledDistanceVehicleOnLane, const double /* meanLengthOnLane */);
+
+        /** @brief Computes idling emission values and adds them to the aggregate emission sums
+        *
+        * Idling implied by zero velocity, acceleration and slope
+        *
+        * @param[in] veh The vehicle
+        *
+        * @see MSMoveReminder::notifyMove
+        * @see PollutantsInterface
+        */
+        bool notifyIdle(SUMOTrafficObject& veh);
 
 
     private:
@@ -134,7 +139,8 @@ public:
                          const bool printDefaults, const bool withInternal,
                          const bool trackVehicles,
                          const double minSamples, const double maxTravelTime,
-                         const std::string& vTypes);
+                         const std::string& vTypes,
+                         const std::string& writeAttributes);
 
 
     /// @brief Destructor
@@ -160,9 +166,3 @@ private:
     MSMeanData_Emissions& operator=(const MSMeanData_Emissions&);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

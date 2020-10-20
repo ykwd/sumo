@@ -21,22 +21,25 @@ from setuptools import setup, find_packages
 import os
 import version
 
-SUMO_VERSION = version.get_version(padZero=False)[1:-11].replace("_", ".").replace("+", ".")
+SUMO_VERSION = version.get_pep440_version()
 package_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 setup(
     name='sumolib',
     version=SUMO_VERSION,
     url='https://sumo.dlr.de/docs/Tools/Sumolib.html',
+    download_url='https://sumo.dlr.de/download',
     author='DLR and contributors',
     author_email='sumo@dlr.de',
     license='EPL-2.0',
+    description=("Python helper modules to read networks, parse output data and " +
+                 "do other useful stuff related to the traffic simulation SUMO"),
 
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
-        'LICENSE :: OSI Approved :: Eclipse Public License v2 (EPL-2.0)',
+        'License :: OSI Approved :: Eclipse Public License 2.0 (EPL-2.0)',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
@@ -45,6 +48,7 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ],
     keywords='traffic simulation traci sumo',
 

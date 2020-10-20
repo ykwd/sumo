@@ -18,12 +18,7 @@
 // C++ TraCI client API implementation
 /****************************************************************************/
 
-#ifndef SUMO_Edge_H
-#define SUMO_Edge_H
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -78,6 +73,7 @@ public:
     static int getLaneNumber(const std::string& id);
     static std::string getStreetName(const std::string& id);
     static std::string getParameter(const std::string& id, const std::string& paramName);
+    LIBSUMO_GET_PARAMETER_WITH_KEY_API
     static void setAllowedVehicleClasses(const std::string& id, std::vector<std::string> vector);
     static void setDisallowedVehicleClasses(const std::string& id, std::vector<std::string> classes);
     static void setAllowedSVCPermissions(const std::string& id, int permissions);
@@ -112,8 +108,3 @@ private:
 };
 
 }
-
-
-#endif //SUMO_Edge_H
-
-/****************************************************************************/

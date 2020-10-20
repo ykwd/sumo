@@ -17,13 +17,7 @@
 ///
 // Event send when a message (message, warning, error) has to besubmitted
 /****************************************************************************/
-#ifndef GUIEvent_Message_h
-#define GUIEvent_Message_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "GUIEvent.h"
@@ -84,9 +78,3 @@ protected:
     std::string myMsg;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -20,11 +20,6 @@
 ///
 // A wrapper for tl-logics to allow their visualisation and interaction
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <cassert>
@@ -41,6 +36,8 @@
 #include <microsim/traffic_lights/MSTrafficLightLogic.h>
 #include <microsim/traffic_lights/MSTLLogicControl.h>
 #include <microsim/traffic_lights/MSActuatedTrafficLightLogic.h>
+#include <microsim/traffic_lights/MSDelayBasedTrafficLightLogic.h>
+#include <microsim/traffic_lights/MSRailSignal.h>
 #include <microsim/logging/FunctionBinding.h>
 #include <microsim/logging/FuncBinding_StringParam.h>
 #include <gui/GUIApplicationWindow.h>
@@ -106,8 +103,13 @@ GUITrafficLightLogicWrapper::GUITrafficLightLogicWrapperPopupMenu::onCmdShowDete
     assert(myObject->getType() == GLO_TLLOGIC);
     GUITrafficLightLogicWrapper* w = static_cast<GUITrafficLightLogicWrapper*>(myObject);
     MSActuatedTrafficLightLogic* act = dynamic_cast<MSActuatedTrafficLightLogic*>(&w->getTLLogic());
-    assert(act != 0);
-    act->setShowDetectors(!act->showDetectors());
+    if (act == nullptr) {
+        MSDelayBasedTrafficLightLogic* db = dynamic_cast<MSDelayBasedTrafficLightLogic*>(&w->getTLLogic());
+        assert(db != 0);
+        db->setShowDetectors(!db->showDetectors());
+    } else {
+        act->setShowDetectors(!act->showDetectors());
+    }
     return 1;
 }
 
@@ -158,17 +160,21 @@ GUITrafficLightLogicWrapper::getPopUpMenu(GUIMainWindow& app,
         for (i = logics.begin(); i != logics.end(); ++i, ++index) {
             if (!vars.isActive(*i)) {
                 new FXMenuCommand(ret, ("Switch to '" + (*i)->getProgramID() + "'").c_str(),
-                                  GUIIconSubSys::getIcon(ICON_FLAG_MINUS), ret, (FXSelector)(MID_SWITCH + index));
+                                  GUIIconSubSys::getIcon(GUIIcon::FLAG_MINUS), ret, (FXSelector)(MID_SWITCH + index));
             }
         }
         new FXMenuSeparator(ret);
     }
-    new FXMenuCommand(ret, "Switch off", GUIIconSubSys::getIcon(ICON_FLAG_MINUS), ret, MID_SWITCH_OFF);
+    new FXMenuCommand(ret, "Switch off", GUIIconSubSys::getIcon(GUIIcon::FLAG_MINUS), ret, MID_SWITCH_OFF);
     new FXMenuCommand(ret, "Track Phases", nullptr, ret, MID_TRACKPHASES);
     new FXMenuCommand(ret, "Show Phases", nullptr, ret, MID_SHOWPHASES);
     MSActuatedTrafficLightLogic* act = dynamic_cast<MSActuatedTrafficLightLogic*>(&myTLLogic);
     if (act != nullptr) {
         new FXMenuCommand(ret, act->showDetectors() ? "Hide Detectors" : "Show Detectors", nullptr, ret, MID_SHOW_DETECTORS);
+    }
+    MSDelayBasedTrafficLightLogic* db = dynamic_cast<MSDelayBasedTrafficLightLogic*>(&myTLLogic);
+    if (db != nullptr) {
+        new FXMenuCommand(ret, db->showDetectors() ? "Hide Detectors" : "Show Detectors", nullptr, ret, MID_SHOW_DETECTORS);
     }
     new FXMenuSeparator(ret);
     MSTrafficLightLogic* tll = getActiveTLLogic();
@@ -213,6 +219,7 @@ GUITrafficLightLogicWrapper::getParameterWindow(GUIMainWindow& app,
         GUISUMOAbstractView&) {
     GUIParameterTableWindow* ret = new GUIParameterTableWindow(app, *this);
     ret->mkItem("tlLogic [id]", false, myTLLogic.getID());
+    ret->mkItem("type", false, toString(myTLLogic.getLogicType()));
     ret->mkItem("program", false, myTLLogic.getProgramID());
     ret->mkItem("phase", true, new FunctionBinding<GUITrafficLightLogicWrapper, int>(this, &GUITrafficLightLogicWrapper::getCurrentPhase));
     ret->mkItem("phase name", true, new FunctionBindingString<GUITrafficLightLogicWrapper>(this, &GUITrafficLightLogicWrapper::getCurrentPhaseName));
@@ -220,6 +227,13 @@ GUITrafficLightLogicWrapper::getParameterWindow(GUIMainWindow& app,
     ret->mkItem("minDur", true, new FunctionBinding<GUITrafficLightLogicWrapper, int>(this, &GUITrafficLightLogicWrapper::getCurrentMinDur));
     ret->mkItem("maxDur", true, new FunctionBinding<GUITrafficLightLogicWrapper, int>(this, &GUITrafficLightLogicWrapper::getCurrentMaxDur));
     ret->mkItem("running duration", true, new FunctionBinding<GUITrafficLightLogicWrapper, int>(this, &GUITrafficLightLogicWrapper::getRunningDuration));
+    MSRailSignal* rs = dynamic_cast<MSRailSignal*>(&myTLLogic);
+    if (rs != nullptr) {
+        ret->mkItem("blocking", true, new FunctionBindingString<MSRailSignal>(rs, &MSRailSignal::getBlockingVehicleIDs));
+        ret->mkItem("rival", true, new FunctionBindingString<MSRailSignal>(rs, &MSRailSignal::getRivalVehicleIDs));
+        ret->mkItem("priority", true, new FunctionBindingString<MSRailSignal>(rs, &MSRailSignal::getPriorityVehicleIDs));
+        ret->mkItem("constraint", true, new FunctionBindingString<MSRailSignal>(rs, &MSRailSignal::getConstraintInfo));
+    }
     // close building
     ret->closeBuilding(&myTLLogic);
     return ret;
@@ -344,4 +358,3 @@ GUITrafficLightLogicWrapper::getRunningDuration() const {
 
 
 /****************************************************************************/
-

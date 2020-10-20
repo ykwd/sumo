@@ -34,48 +34,45 @@ netedit.supermodeDemand()
 # go to vehicle mode
 netedit.vehicleMode()
 
-# go to vehicle mode
-netedit.vehicleMode()
-
 # select flow
-netedit.changeElement("flow")
+netedit.changeElement("flow (from-to)")
 
 # set invalid arrival lane
-netedit.changeDefaultValue(11, "dummyLane")
+netedit.changeDefaultValue(10, "dummyLane")
 
 # try to create flow
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create flow
 netedit.typeEnter()
 
 # set invalid arrival lane
-netedit.changeDefaultValue(11, "-12")
+netedit.changeDefaultValue(10, "-12")
 
 # try to create flow
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create flow
 netedit.typeEnter()
 
 # set valid arrival lane
-netedit.changeDefaultValue(11, "random")
+netedit.changeDefaultValue(10, "random")
 
 # create flow
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create flow
 netedit.typeEnter()
 
 # set valid arrival lane
-netedit.changeDefaultValue(11, "20")
+netedit.changeDefaultValue(10, "20")
 
 # create flow
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create flow
 netedit.typeEnter()

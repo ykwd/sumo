@@ -19,13 +19,7 @@
 ///
 // Abstract base class for vehicle representations
 /****************************************************************************/
-#ifndef SUMOVehicle_h
-#define SUMOVehicle_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -91,6 +85,9 @@ public:
     /// Returns the current route
     virtual const MSRoute& getRoute() const = 0;
 
+    /// @brief return index of edge within route
+    virtual int getRoutePosition() const = 0;
+
     /** @brief Returns the nSuccs'th successor of edge the vehicle is currently at
      *
      * If the rest of the route (counted from the current edge) than nSuccs,
@@ -134,18 +131,16 @@ public:
      * @return Whether the vehicle's current route is valid
      */
     virtual bool hasValidRoute(std::string& msg, const MSRoute* route = 0) const = 0;
+    /// @brief checks wether the vehicle can depart on the first edge
+    virtual bool hasValidRouteStart(std::string& msg) = 0;
 
+    /// @brief computes validity attributes for the current route
+    virtual int getRouteValidity(bool update = true, bool silent = false) = 0;
 
     /** @brief Returns an iterator pointing to the current edge in this vehicles route
      * @return The current route pointer
      */
     virtual const ConstMSEdgeVector::const_iterator& getCurrentRouteEdge() const = 0;
-
-    /** @brief Returns the vehicle's parameter (including departure definition)
-     *
-     * @return The vehicle's parameter
-     */
-    virtual const SUMOVehicleParameter& getParameter() const = 0;
 
     /** @brief Returns the vehicle's emission model parameter
      *
@@ -168,6 +163,11 @@ public:
      * @return Whether the vehicle is simulated
      */
     virtual bool isOnRoad() const = 0;
+
+    /** @brief Returns whether the vehicle is idling (waiting to re-enter the net
+     * @return true if the vehicle is waiting to enter the net (eg after parking)
+    */
+    virtual bool isIdling() const = 0;
 
     /** @brief Returns the information whether the front of the vehhicle is on the given lane
      * @return Whether the vehicle's front is on that lane
@@ -214,6 +214,11 @@ public:
     /** @brief Returns whether this vehicle has departed
      */
     virtual bool hasDeparted() const = 0;
+
+    /** @brief Returns the distance that was already driven by this vehicle
+     * @return the distance driven [m]
+     */
+    virtual double getOdometer() const = 0;
 
     /** @brief Returns the number of new routes this vehicle got
      * @return the number of new routes this vehicle got
@@ -265,6 +270,12 @@ public:
     /// @brief return list of route indices and stop positions for the remaining stops
     virtual std::vector<std::pair<int, double> > getStopIndices() const = 0;
 
+    /// @brief returns whether the vehicle serves a public transport line that serves the given stop
+    virtual bool isLineStop(double position) const = 0;
+
+    /// @brief deletes the next stop at the given index if it exists
+    virtual bool abortNextStop(int nextStopIndex = 0) = 0;
+
 
     /**
     * returns the next imminent stop in the stop queue
@@ -296,11 +307,16 @@ public:
     /** @brief Returns whether the vehicle stops at the given edge */
     virtual bool stopsAtEdge(const MSEdge* edge) const = 0;
 
+    /** @brief Returns parameters of the next stop or nullptr **/
+    virtual const SUMOVehicleParameter::Stop* getNextStopParameter() const = 0;
+
     virtual void setChosenSpeedFactor(const double factor) = 0;
 
     virtual SUMOTime getAccumulatedWaitingTime() const = 0;
 
     virtual SUMOTime getDepartDelay() const = 0;
+
+    virtual SUMOTime getTimeLoss() const = 0;
 
     /// @brief get distance for coming to a stop (used for rerouting checks)
     virtual double getBrakeGap() const = 0;
@@ -322,14 +338,12 @@ public:
     /// @brief @return The index of the vehicle's associated RNG
     virtual int getRNGIndex() const = 0;
 
-    /** @brief Returns the associated RNG for this vehicle
-    * @return The vehicle's associated RNG
-    */
-    virtual std::mt19937* getRNG() const = 0;
-
     /// @brief return the numerical ID which is only for internal usage
     //  (especially fast comparison in maps which need vehicles as keys)
     virtual NumericalID getNumericalID() const = 0;
+
+    /// @brief Returns the vehicles's length
+    virtual double getLength() const = 0;
 
     /// @name state io
     //@{
@@ -342,8 +356,3 @@ public:
     virtual void loadState(const SUMOSAXAttributes& attrs, const SUMOTime offset) = 0;
     //@}
 };
-
-
-#endif
-
-/****************************************************************************/

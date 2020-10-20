@@ -17,13 +17,7 @@
 ///
 //
 /****************************************************************************/
-#ifndef NIVissimSingleTypeParser_Querverkehrsstoerungsdefinition_h
-#define NIVissimSingleTypeParser_Querverkehrsstoerungsdefinition_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <iostream>
@@ -62,9 +56,3 @@ private:
     NIVissimExtendedEdgePoint parsePos(std::istream& from);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

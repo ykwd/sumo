@@ -24,13 +24,7 @@
 ///
 // The simulated network and simulation performer
 /****************************************************************************/
-#ifndef MSNet_h
-#define MSNet_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <typeinfo>
@@ -74,7 +68,6 @@ class MSDetectorControl;
 class ShapeContainer;
 class MSDynamicShapeUpdater;
 class PolygonDynamics;
-class BinaryInputDevice;
 class MSEdgeWeightsStorage;
 class SUMOVehicle;
 class MSTractionSubstation;
@@ -257,6 +250,8 @@ public:
      */
     const std::string generateStatistics(SUMOTime start);
 
+    /// @brief write statistic output to (xml) file
+    void writeStatistics() const;
 
     /** @brief Closes the simulation (all files, connections, etc.)
      *
@@ -304,6 +299,11 @@ public:
         myStep = step;
     }
 
+
+    /** @brief Resets events when quick-loading state
+     * @param step The new simulation step
+     */
+    void clearState(const SUMOTime step);
 
     /** @brief Write netstate, summary and detector output
      * @todo Which exceptions may occur?
@@ -889,9 +889,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

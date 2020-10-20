@@ -19,11 +19,6 @@
 ///
 // Helper methods for HBEFA3-based emission computation
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <limits>
@@ -450,7 +445,6 @@ HelpersHBEFA3::myFunctionParameter[45][6][6] = {
 // ===========================================================================
 HelpersHBEFA3::HelpersHBEFA3() : PollutantsInterface::Helper("HBEFA3") {
     int index = HBEFA3_BASE;
-    myEmissionClassStrings.insert("zero", index++);
     std::string light[] = { "LDV", "LDV_G_EU0", "LDV_G_EU1", "LDV_G_EU2", "LDV_G_EU3", "LDV_G_EU4", "LDV_G_EU5", "LDV_G_EU6", "LDV_G_East",
                             "LDV_D_EU0", "LDV_D_EU1", "LDV_D_EU2", "LDV_D_EU3", "LDV_D_EU4", "LDV_D_EU5", "LDV_D_EU6",
                             "PC", "PC_Alternative", "PC_G_EU0", "PC_G_EU1", "PC_G_EU2", "PC_G_EU3", "PC_G_EU4", "PC_G_EU5", "PC_G_EU6", "PC_G_East",
@@ -470,6 +464,7 @@ HelpersHBEFA3::HelpersHBEFA3() : PollutantsInterface::Helper("HBEFA3") {
         index++;
     }
     myEmissionClassStrings.addAlias("unknown", myEmissionClassStrings.get("PC_G_EU4"));
+    myEmissionClassStrings.addAlias("default", myEmissionClassStrings.get("PC_G_EU4"));
 }
 
 
@@ -564,4 +559,3 @@ HelpersHBEFA3::getEuroClass(const SUMOEmissionClass c) const {
 
 
 /****************************************************************************/
-

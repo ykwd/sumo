@@ -35,44 +35,44 @@ netedit.supermodeDemand()
 netedit.vehicleMode()
 
 # select flow
-netedit.changeElement("flow")
+netedit.changeElement("flow (from-to)")
 
 # set invalid arrival lane
-netedit.changeDefaultValue(13, "dummySpeed")
+netedit.changeDefaultValue(12, "dummySpeed")
 
 # try to create flow
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create flow
 netedit.typeEnter()
 
 # set invalid arrival speed
-netedit.changeDefaultValue(13, "-12")
+netedit.changeDefaultValue(12, "-12")
 
 # create flow
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create flow
 netedit.typeEnter()
 
 # set valid arrival speed
-netedit.changeDefaultValue(13, "max")
+netedit.changeDefaultValue(12, "max")
 
 # create flow
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create flow
 netedit.typeEnter()
 
 # set valid arrival speed
-netedit.changeDefaultValue(13, "20")
+netedit.changeDefaultValue(12, "20")
 
 # create flow
-netedit.leftClick(referencePosition, 274, 414)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 274, 392)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create flow
 netedit.typeEnter()

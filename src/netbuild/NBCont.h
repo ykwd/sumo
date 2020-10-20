@@ -18,15 +18,10 @@
 ///
 // Some typedef definitions fir containers
 /****************************************************************************/
-#ifndef NBCont_h
-#define NBCont_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <vector>
 #include <set>
+#include <utils/common/Named.h>
 
 #include <config.h>
 
@@ -35,6 +30,7 @@
 // class declarations
 // ===========================================================================
 class NBEdge;
+class NBNode;
 class NBRouterEdge;
 
 
@@ -52,11 +48,15 @@ typedef std::vector<std::pair<const NBRouterEdge*, const NBRouterEdge*> > NBViaS
 /// @brief container for unique edges
 typedef std::set<NBEdge*> EdgeSet;
 
+typedef std::set<NBNode*, ComparatorIdLess> NodeSet;
+
 /// @brief container for (sorted) lanes. The lanes are sorted from rightmost (id=0) to leftmost (id=nolanes-1)
 typedef std::vector<int> LaneVector;
 
-
-#endif
-
-/****************************************************************************/
+/// @brief keepClear status of connections
+enum KeepClear {
+    KEEPCLEAR_FALSE = 0,
+    KEEPCLEAR_TRUE = 1,
+    KEEPCLEAR_UNSPECIFIED = -1
+};
 

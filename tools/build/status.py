@@ -22,8 +22,14 @@ from __future__ import print_function
 import sys
 import smtplib
 import re
+import io
 from os.path import basename, commonprefix
 from datetime import datetime
+
+
+def printLog(msg, log):
+    print(u"%s: %s" % (datetime.now(), msg), file=log)
+    log.flush()
 
 
 def findErrors(line, warnings, errors, failed):
@@ -47,7 +53,7 @@ def printStatus(makeLog, makeAllLog, smtpServer="localhost", out=sys.stdout, toA
     warnings = 0
     errors = 0
     svnLocked = False
-    for l in open(makeLog):
+    for l in io.open(makeLog, errors="replace"):
         if ("svn: Working copy" in l and "locked" in l) or "svn: Failed" in l:
             svnLocked = True
             failed += l
@@ -62,7 +68,7 @@ def printStatus(makeLog, makeAllLog, smtpServer="localhost", out=sys.stdout, toA
     print(basename(makeAllLog), file=out)
     warnings = 0
     errors = 0
-    for l in open(makeAllLog):
+    for l in io.open(makeAllLog, errors="replace"):
         warnings, errors, failed = findErrors(l, warnings, errors, failed)
     print(warnings, "warnings", file=out)
     if errors:

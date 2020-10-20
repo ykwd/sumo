@@ -19,13 +19,7 @@
 ///
 // The class responsible for building and deletion of vehicles (gui-version)
 /****************************************************************************/
-#ifndef GUIVehicleControl_h
-#define GUIVehicleControl_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -137,9 +131,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

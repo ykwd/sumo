@@ -19,13 +19,7 @@
 ///
 // A class that stores a 2D geometrical boundary
 /****************************************************************************/
-#ifndef Boundary_h
-#define Boundary_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <iostream>
@@ -158,9 +152,3 @@ private:
     /// @brief Information whether the boundary was initialised
     bool myWasInitialised;
 };
-
-
-#endif
-
-/****************************************************************************/
-

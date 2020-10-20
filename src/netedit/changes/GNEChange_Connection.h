@@ -17,26 +17,10 @@
 ///
 // A network change in which a single connection is created or deleted
 /****************************************************************************/
-#ifndef GNEChange_Connection_h
-#define GNEChange_Connection_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
-#include <fx.h>
-#include <string>
-#include <utils/foxtools/fxexdefs.h>
-#include <netbuild/NBEdge.h>
 #include "GNEChange.h"
-
-// ===========================================================================
-// class declarations
-// ===========================================================================
-class GNEEdge;
-class GNEConnection;
 
 // ===========================================================================
 // class definitions
@@ -83,10 +67,4 @@ private:
 
     /// @brief the data which must be copied because the original reference does not persist
     NBEdge::Connection myNBEdgeConnection;
-
-    /// @brief flag to indicates if crossing was previously selected
-    bool mySelected;
 };
-
-#endif
-/****************************************************************************/

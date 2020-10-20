@@ -19,13 +19,7 @@
 ///
 // Importer for edge connections stored in XML
 /****************************************************************************/
-#ifndef NIXMLConnectionsHandler_h
-#define NIXMLConnectionsHandler_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/xml/SUMOSAXHandler.h>
@@ -165,9 +159,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

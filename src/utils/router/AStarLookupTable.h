@@ -17,13 +17,7 @@
 ///
 // Precomputed landmark distances to speed up the A* routing algorithm
 /****************************************************************************/
-#ifndef AStarLookupTable_h
-#define AStarLookupTable_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <iostream>
@@ -74,11 +68,11 @@ class FullLookupTable : public AbstractLookupTable<E, V> {
 public:
     FullLookupTable(const std::string& filename, const int size) :
         myTable(size) {
-        BinaryInputDevice dev(filename);
+        std::ifstream strm(filename.c_str());
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
                 double val;
-                dev >> val;
+                strm >> val;
                 myTable[i].push_back(val);
             }
         }
@@ -414,11 +408,3 @@ private:
         return "";
     }
 };
-
-
-
-
-#endif
-
-/****************************************************************************/
-

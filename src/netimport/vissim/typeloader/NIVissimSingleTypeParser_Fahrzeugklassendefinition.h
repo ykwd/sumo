@@ -17,13 +17,7 @@
 ///
 //
 /****************************************************************************/
-#ifndef NIVissimSingleTypeParser_Fahrzeugklassendefinition_h
-#define NIVissimSingleTypeParser_Fahrzeugklassendefinition_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <iostream>
@@ -55,9 +49,3 @@ private:
     NIImporter_Vissim::ColorMap& myColorMap;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

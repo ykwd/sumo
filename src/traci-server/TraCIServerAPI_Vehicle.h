@@ -18,13 +18,7 @@
 ///
 // APIs for getting/setting vehicle values via TraCI
 /****************************************************************************/
-#ifndef TraCIServerAPI_Vehicle_h
-#define TraCIServerAPI_Vehicle_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <microsim/MSEdgeWeightsStorage.h>
@@ -59,7 +53,10 @@ public:
      */
     static bool processSet(TraCIServer& server, tcpip::Storage& inputStorage,
                            tcpip::Storage& outputStorage);
+private:
 
+    /// @brief helper function to write the response for VAR_NEXT_STOPS and VAR_NEXT_STOPS2
+    static void writeNextStops(TraCIServer& server, const std::string& id, int limit, bool full);
 
 private:
     /// @brief invalidated copy constructor
@@ -70,8 +67,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/

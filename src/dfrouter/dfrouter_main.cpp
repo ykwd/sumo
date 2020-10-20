@@ -22,11 +22,6 @@
 ///
 // Main for the DFROUTER
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #ifdef HAVE_VERSION_H
@@ -270,9 +265,10 @@ main(int argc, char** argv) {
             SystemFrame::close();
             return 0;
         }
-        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"));
+        SystemFrame::checkOptions();
+        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"), "never");
         MsgHandler::initOutputOptions();
-        if (!(RODFFrame::checkOptions() && SystemFrame::checkOptions())) {
+        if (!RODFFrame::checkOptions()) {
             throw ProcessError();
         }
         RandHelper::initRandGlobal();
@@ -320,6 +316,4 @@ main(int argc, char** argv) {
 }
 
 
-
 /****************************************************************************/
-

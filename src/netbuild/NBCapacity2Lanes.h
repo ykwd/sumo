@@ -18,13 +18,7 @@
 ///
 // A helper class which computes the lane number from given capacity
 /****************************************************************************/
-#ifndef NBCapacity2Lanes_h
-#define NBCapacity2Lanes_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 
@@ -78,9 +72,3 @@ private:
     double myDivider;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -17,13 +17,7 @@
 ///
 // Exporter writing networks using the Amitran format
 /****************************************************************************/
-#ifndef NWWriter_Amitran_h
-#define NWWriter_Amitran_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 
@@ -52,9 +46,3 @@ public:
     static void writeNetwork(const OptionsCont& oc, NBNetBuilder& nb);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

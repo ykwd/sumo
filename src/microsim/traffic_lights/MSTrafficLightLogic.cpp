@@ -19,11 +19,6 @@
 ///
 // The parent class for traffic light logics
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <cassert>
@@ -95,6 +90,18 @@ MSTrafficLightLogic::SwitchCommand::deschedule(MSTrafficLightLogic* tlLogic) {
     }
 }
 
+SUMOTime
+MSTrafficLightLogic::SwitchCommand::shiftTime(SUMOTime currentTime, SUMOTime execTime, SUMOTime newTime) {
+    if (myTLLogic->getDefaultCycleTime() == DELTA_T) {
+        // MSRailSignal
+        return newTime;
+    } else {
+        UNUSED_PARAMETER(currentTime);
+        UNUSED_PARAMETER(execTime);
+        // XXX changeStepAndDuration (computed as in NLJunctionControlBuilder::closeTrafficLightLogic
+        return newTime;
+    }
+}
 
 /* -------------------------------------------------------------------------
  * member method definitions
@@ -116,7 +123,7 @@ MSTrafficLightLogic::MSTrafficLightLogic(MSTLLogicControl& tlcontrol, const std:
 void
 MSTrafficLightLogic::init(NLDetectorBuilder&) {
     const Phases& phases = getPhases();
-    if (phases.size() > 0 && MSGlobals::gMesoTLSPenalty > 0) {
+    if (phases.size() > 0 && (MSGlobals::gMesoTLSPenalty > 0 || MSGlobals::gMesoTLSFlowPenalty > 0)) {
         initMesoTLSPenalties();
     }
     if (phases.size() > 1) {
@@ -260,6 +267,7 @@ MSTrafficLightLogic::init(NLDetectorBuilder&) {
             }
         }
     }
+    myNumLinks = (int)myLinks.size();
 }
 
 
@@ -362,12 +370,15 @@ MSTrafficLightLogic::getNextSwitchTime() const {
 
 
 SUMOTime
-MSTrafficLightLogic::getSpentDuration() const {
+MSTrafficLightLogic::getSpentDuration(SUMOTime simStep) const {
+    if (simStep == -1) {
+        simStep = SIMSTEP;
+    }
     const SUMOTime nextSwitch = getNextSwitchTime();
     if (nextSwitch == -1) {
         return -1;
     } else {
-        const SUMOTime remaining = nextSwitch - MSNet::getInstance()->getCurrentTimeStep();
+        const SUMOTime remaining = nextSwitch - simStep;
         return getCurrentPhaseDef().duration - remaining;
     }
 }
@@ -422,8 +433,17 @@ void MSTrafficLightLogic::initMesoTLSPenalties() {
     std::set<const MSJunction*> controlledJunctions;
     for (int j = 0; j < numLinks; ++j) {
         for (int k = 0; k < (int)myLinks[j].size(); ++k) {
+            double greenFraction = (durationSeconds - totalRedDuration[j]) / durationSeconds;
+            if (MSGlobals::gMesoTLSFlowPenalty == 0) {
+                greenFraction = 1;
+            } else {
+                greenFraction = MAX2(MIN2(greenFraction / MSGlobals::gMesoTLSFlowPenalty, 1.0), 0.01);
+            }
+            if (greenFraction == 0.01) {
+                WRITE_WARNINGF("Green fraction is only 1% for link % in tlLogic '%', program '%'.", "%", j, getID(), getProgramID());
+            }
             myLinks[j][k]->setMesoTLSPenalty(TIME2STEPS(MSGlobals::gMesoTLSPenalty * penalty[j] / durationSeconds));
-            myLinks[j][k]->setGreenFraction(MAX2((durationSeconds - MSGlobals::gMesoTLSPenalty * totalRedDuration[j]) / durationSeconds, NUMERICAL_EPS)); // avoid zero capacity (warning issued before)
+            myLinks[j][k]->setGreenFraction(greenFraction);
             controlledJunctions.insert(myLinks[j][k]->getLane()->getEdge().getFromJunction()); // MSLink::myJunction is not yet initialized
             //std::cout << " tls=" << getID() << " i=" << j << " link=" << myLinks[j][k]->getViaLaneOrLane()->getID() << " penalty=" << penalty[j] / durationSeconds << " durSecs=" << durationSeconds << " greenTime=" << " gF=" << myLinks[j][k]->getGreenFraction() << "\n";
         }
@@ -462,5 +482,6 @@ void
 MSTrafficLightLogic::deactivateProgram() {
     myAmActive = false;
 }
-/****************************************************************************/
 
+
+/****************************************************************************/

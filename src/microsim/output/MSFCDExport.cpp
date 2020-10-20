@@ -20,11 +20,6 @@
 ///
 // Realises dumping Floating Car Data (FCD) Data
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/iodevices/OutputDevice.h>
@@ -56,6 +51,7 @@ MSFCDExport::write(OutputDevice& of, SUMOTime timestep, bool elevation) {
     const bool signals = OptionsCont::getOptions().getBool("fcd-output.signals");
     const bool writeAccel = OptionsCont::getOptions().getBool("fcd-output.acceleration");
     const bool writeDistance = OptionsCont::getOptions().getBool("fcd-output.distance");
+    std::vector<std::string> params = OptionsCont::getOptions().getStringVector("fcd-output.params");
     const SUMOTime period = string2time(OptionsCont::getOptions().getString("device.fcd.period"));
     const SUMOTime begin = string2time(OptionsCont::getOptions().getString("begin"));
     if (period > 0 && (timestep - begin) % period != 0) {
@@ -107,6 +103,8 @@ MSFCDExport::write(OutputDevice& of, SUMOTime timestep, bool elevation) {
             of.writeAttr(SUMO_ATTR_POSITION, veh->getPositionOnLane());
             if (microVeh != nullptr) {
                 of.writeAttr(SUMO_ATTR_LANE, microVeh->getLane()->getID());
+            } else {
+                of.writeAttr(SUMO_ATTR_EDGE, veh->getEdge()->getID());
             }
             of.writeAttr(SUMO_ATTR_SLOPE, veh->getSlope());
             if (microVeh != nullptr) {
@@ -119,16 +117,26 @@ MSFCDExport::write(OutputDevice& of, SUMOTime timestep, bool elevation) {
                         of.writeAttr("accelerationLat", microVeh->getLaneChangeModel().getAccelerationLat());
                     }
                 }
-                if (writeDistance) {
-                    double distance = microVeh->getEdge()->getDistance();
+            }
+            if (writeDistance) {
+                double distance = veh->getEdge()->getDistance();
+                if (microVeh != nullptr) {
                     if (microVeh->getLane()->isInternal()) {
                         distance += microVeh->getRoute().getDistanceBetween(0, microVeh->getPositionOnLane(),
                                     microVeh->getEdge(), &microVeh->getLane()->getEdge(), true, microVeh->getRoutePosition());
                     } else {
                         distance += microVeh->getPositionOnLane();
                     }
-                    // if the kilometrage runs counter to the edge direction edge->getDistance() is negative
-                    of.writeAttr("distance", fabs(distance));
+                } else {
+                    distance += veh->getPositionOnLane();
+                }
+                // if the kilometrage runs counter to the edge direction edge->getDistance() is negative
+                of.writeAttr("distance", fabs(distance));
+            }
+            for (const std::string& key : params) {
+                const std::string value = veh->getParameter().getParameter(key);
+                if (value != "") {
+                    of.writeAttr(StringUtils::escapeXML(key), StringUtils::escapeXML(value));
                 }
             }
             of.closeTag();

@@ -20,11 +20,6 @@
 ///
 // Parser for routes during their loading
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/common/MsgHandler.h>
@@ -41,7 +36,7 @@
 // ===========================================================================
 
 SUMORouteHandler::SUMORouteHandler(const std::string& file, const std::string& expectedRoot, const bool hardFail) :
-    SUMOSAXHandler(file, XMLSubSys::isValidating() ? expectedRoot : ""),
+    SUMOSAXHandler(file, expectedRoot),
     myHardFail(hardFail),
     myVehicleParameter(nullptr),
     myLastDepart(-1),
@@ -120,11 +115,17 @@ SUMORouteHandler::myStartElement(int element, const SUMOSAXAttributes& attrs) {
                 delete myVehicleParameter;
             }
             // parse vehicle parameters
-            myVehicleParameter = SUMOVehicleParserHelper::parseFlowAttributes(attrs, myHardFail, myBeginDefault, myEndDefault);
+            myVehicleParameter = SUMOVehicleParserHelper::parseFlowAttributes(SUMO_TAG_FLOW, attrs, myHardFail, myBeginDefault, myEndDefault);
             // check if myVehicleParameter was sucesfully created
             if (myVehicleParameter) {
-                // open a flow (using openTrip function)
-                openTrip(attrs);
+                // check tag
+                if (myVehicleParameter->routeid.empty()) {
+                    // open a route flow (It could be a flow with embebbed route)
+                    openFlow(attrs);
+                } else {
+                    // open a route flow
+                    openRouteFlow(attrs);
+                }
             }
             break;
         case SUMO_TAG_PERSONFLOW:
@@ -133,7 +134,7 @@ SUMORouteHandler::myStartElement(int element, const SUMOSAXAttributes& attrs) {
                 delete myVehicleParameter;
             }
             // create a new flow
-            myVehicleParameter = SUMOVehicleParserHelper::parseFlowAttributes(attrs, myHardFail, myBeginDefault, myEndDefault, true);
+            myVehicleParameter = SUMOVehicleParserHelper::parseFlowAttributes(SUMO_TAG_PERSONFLOW, attrs, myHardFail, myBeginDefault, myEndDefault, true);
             break;
         case SUMO_TAG_VTYPE:
             // delete if myCurrentVType isn't null
@@ -173,12 +174,10 @@ SUMORouteHandler::myStartElement(int element, const SUMOSAXAttributes& attrs) {
             break;
         }
         case SUMO_TAG_PERSONTRIP:
+            addPersonTrip(attrs);
+            break;
         case SUMO_TAG_WALK:
-            if (attrs.hasAttribute(SUMO_ATTR_EDGES) || attrs.hasAttribute(SUMO_ATTR_ROUTE)) {
-                addWalk(attrs);
-            } else {
-                addPersonTrip(attrs);
-            }
+            addWalk(attrs);
             break;
         case SUMO_TAG_INTERVAL: {
             bool ok;
@@ -365,6 +364,9 @@ SUMORouteHandler::addParam(const SUMOSAXAttributes& attrs) {
 bool
 SUMORouteHandler::parseStop(SUMOVehicleParameter::Stop& stop, const SUMOSAXAttributes& attrs, std::string errorSuffix, MsgHandler* const errorOutput) {
     stop.parametersSet = 0;
+    if (attrs.hasAttribute(SUMO_ATTR_ARRIVAL)) {
+        stop.parametersSet |= STOP_ARRIVAL_SET;
+    }
     if (attrs.hasAttribute(SUMO_ATTR_DURATION)) {
         stop.parametersSet |= STOP_DURATION_SET;
     }
@@ -445,6 +447,7 @@ SUMORouteHandler::parseStop(SUMOVehicleParameter::Stop& stop, const SUMOSAXAttri
         triggers.push_back(toString(SUMO_TAG_CONTAINER));
     };
     SUMOVehicleParameter::parseStopTriggers(triggers, expectTrigger, stop);
+    stop.arrival = attrs.getOptSUMOTimeReporting(SUMO_ATTR_ARRIVAL, nullptr, ok, -1);
     stop.duration = attrs.getOptSUMOTimeReporting(SUMO_ATTR_DURATION, nullptr, ok, -1);
     stop.until = attrs.getOptSUMOTimeReporting(SUMO_ATTR_UNTIL, nullptr, ok, -1);
     if (!expectTrigger && (!ok || (stop.duration < 0 && stop.until < 0 && stop.speed == 0))) {
@@ -499,7 +502,10 @@ SUMORouteHandler::parseStop(SUMOVehicleParameter::Stop& stop, const SUMOSAXAttri
             return false;
         }
     }
+    stop.depart = attrs.getOptSUMOTimeReporting(SUMO_ATTR_DEPART, nullptr, ok, -1);
+    stop.actualArrival = attrs.getOptSUMOTimeReporting(SUMO_ATTR_ACTUALARRIVAL, nullptr, ok, -1);
     return true;
 }
+
 
 /****************************************************************************/

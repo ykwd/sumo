@@ -18,8 +18,7 @@
 ///
 // The representation of one direction of a single pt line
 /****************************************************************************/
-#ifndef SUMO_NBPTLINE_H
-#define SUMO_NBPTLINE_H
+#pragma once
 
 
 #include <string>
@@ -81,6 +80,13 @@ public:
     /// @brief replace the given stop
     void replaceStop(NBPTStop* oldStop, NBPTStop* newStop);
 
+    /// @brief replace the edge with the given edge list
+    void replaceEdge(const std::string& edgeID, const EdgeVector& replacement);
+
+    void setName(const std::string& name) {
+        myName = name;
+    }
+
 private:
     std::string myName;
     std::string myType;
@@ -97,7 +103,10 @@ private:
     std::string myCurrentWay;
     std::string myPTLineId;
     std::string myRef;
+
+    // @brief the service interval in minutes
     int myInterval;
+
     std::string myNightService;
     SUMOVehicleClass myVClass;
 
@@ -114,4 +123,3 @@ private:
 };
 
 
-#endif //SUMO_NBPTLINE_H

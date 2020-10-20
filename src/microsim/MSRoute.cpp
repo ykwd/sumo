@@ -20,11 +20,6 @@
 ///
 // A vehicle route
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <cassert>
@@ -32,7 +27,6 @@
 #include <limits>
 #include <utils/common/FileHelpers.h>
 #include <utils/common/RGBColor.h>
-#include <utils/iodevices/BinaryInputDevice.h>
 #include <utils/iodevices/OutputDevice.h>
 #include "MSEdge.h"
 #include "MSLane.h"
@@ -59,8 +53,10 @@ MSRoute::MSRoute(const std::string& id,
     Named(id), myEdges(edges), myAmPermanent(isPermanent),
     myReferenceCounter(isPermanent ? 1 : 0),
     myColor(c),
+    myPeriod(0),
     myCosts(-1),
     mySavings(0),
+    myReroute(false),
     myStops(stops) {}
 
 
@@ -286,6 +282,18 @@ MSRoute::dict_saveState(OutputDevice& out) {
     }
 }
 
+void
+MSRoute::dict_clearState() {
+#ifdef HAVE_FOX
+    FXMutexLock f(myDictMutex);
+#endif
+    for (auto item : myDict) {
+        delete item.second;
+    }
+    myDistDict.clear();
+    myDict.clear();
+}
+
 
 double
 MSRoute::getDistanceBetween(double fromPos, double toPos,
@@ -392,4 +400,3 @@ MSRoute::getStops() const {
 
 
 /****************************************************************************/
-

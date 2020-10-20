@@ -18,13 +18,7 @@
 ///
 // APIs for getting/setting edge values via TraCI
 /****************************************************************************/
-#ifndef TraCIServerAPI_Simulation_h
-#define TraCIServerAPI_Simulation_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -92,9 +86,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

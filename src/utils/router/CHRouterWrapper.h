@@ -19,13 +19,7 @@
 ///
 // Wraps multiple CHRouters for different vehicle types
 /****************************************************************************/
-#ifndef CHRouterWrapper_h
-#define CHRouterWrapper_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -127,9 +121,3 @@ private:
     const SUMOTime myWeightPeriod;
     const int myMaxNumInstances;
 };
-
-
-#endif
-
-/****************************************************************************/
-

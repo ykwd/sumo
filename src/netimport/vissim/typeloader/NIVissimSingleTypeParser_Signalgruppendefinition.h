@@ -17,13 +17,7 @@
 ///
 //
 /****************************************************************************/
-#ifndef NIVissimSingleTypeParser_Signalgruppendefinition_h
-#define NIVissimSingleTypeParser_Signalgruppendefinition_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <iostream>
@@ -83,9 +77,3 @@ private:
                               std::istream& from);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

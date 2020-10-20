@@ -17,11 +17,6 @@
 ///
 // The representation of a single pt stop
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/iodevices/OutputDevice.h>
@@ -35,13 +30,14 @@
 // method definitions
 // ===========================================================================
 NBPTStop::NBPTStop(std::string ptStopId, Position position, std::string edgeId, std::string origEdgeId, double length,
-                   std::string name, SVCPermissions svcPermissions) :
+                   std::string name, SVCPermissions svcPermissions, double parkingLength) :
     myPTStopId(ptStopId),
     myPosition(position),
     myEdgeId(edgeId),
     myOrigEdgeId(origEdgeId),
     myPTStopLength(length),
     myName(name),
+    myParkingLength(parkingLength),
     myPermissions(svcPermissions),
     myBidiStop(nullptr),
     myIsLoose(origEdgeId == ""),
@@ -76,6 +72,10 @@ NBPTStop::getPosition() const {
     return myPosition;
 }
 
+void
+NBPTStop::mirrorX() {
+    myPosition.mul(1, -1);
+}
 
 void
 NBPTStop::computeExtent(double center, double edgeLength) {
@@ -106,6 +106,9 @@ NBPTStop::write(OutputDevice& device) {
     device.writeAttr(SUMO_ATTR_FRIENDLY_POS, "true");
     if (myLines.size() > 0) {
         device.writeAttr(SUMO_ATTR_LINES, toString(myLines));
+    }
+    if (myParkingLength > 0) {
+        device.writeAttr(SUMO_ATTR_PARKING_LENGTH, myParkingLength);
     }
     if (!myAccesses.empty()) {
         std::sort(myAccesses.begin(), myAccesses.end());
@@ -197,11 +200,16 @@ NBPTStop::setMyPTStopLength(double myPTStopLength) {
     NBPTStop::myPTStopLength = myPTStopLength;
 }
 
-
 bool
 NBPTStop::findLaneAndComputeBusStopExtent(const NBEdgeCont& ec) {
     NBEdge* edge = ec.getByID(myEdgeId);
+    return findLaneAndComputeBusStopExtent(edge);
+}
+
+bool
+NBPTStop::findLaneAndComputeBusStopExtent(const NBEdge* edge) {
     if (edge != nullptr) {
+        myEdgeId = edge->getID();
         int laneNr = -1;
         for (const auto& it : edge->getLanes()) {
             if ((it.permissions & getPermissions()) == getPermissions()) {

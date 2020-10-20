@@ -19,13 +19,7 @@
 ///
 // Abstract in-vehicle device
 /****************************************************************************/
-#ifndef MSVehicleDevice_h
-#define MSVehicleDevice_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -83,6 +77,14 @@ public:
         return myHolder.getNumericalID();
     }
 
+    /// @brief Function-object for stable sorting of objects with numerical ids
+    struct ComparatorNumericalVehicleIdLess {
+        bool operator()(const MSVehicleDevice* const a, const MSVehicleDevice* const b) const {
+            return a->myHolder.getNumericalID() < b->myHolder.getNumericalID();
+        }
+    };
+
+
 protected:
     /// @brief The vehicle that stores the device
     SUMOVehicle& myHolder;
@@ -95,9 +97,3 @@ private:
     MSVehicleDevice& operator=(const MSVehicleDevice&);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

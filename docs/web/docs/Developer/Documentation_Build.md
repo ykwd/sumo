@@ -15,8 +15,12 @@ In summary, the documentation works as follows:
 # Requirements
 Building the documentation requires the python3-version of mkdocs along with several plugins. These can be installed with pip in the following manner:
 ```
- pip3 install mkdocs mkdocs-macros-plugin mkdocs-git-revision-date-plugin pymdown-extensions mdx_truly_sane_lists mdx_gh_links
- ```
+ pip3 install mkdocs mkdocs-macros-plugin mkdocs-git-revision-date-plugin pymdown-extensions mdx_truly_sane_lists mdx_gh_links plantuml_markdown
+```
+You also need to install the plantuml package
+```
+ sudo apt install plantuml
+```
 
 # Documentation Parts
 
@@ -40,7 +44,7 @@ The necessary files are as follows:
 
 ## Static HTML pages
 
-The HTML pages are being build using the Markdown files. The final pages are available to read at the [online Documentation](https://sumo.dlr.de/docs/). Altough the Documentation [Source files](#source_files) are included in the repository, the final Static HTML pages are not. In order to get a local copy of this pages, follow the [static HTML site generation](#static_html_site_generation) instructions.
+The HTML pages are being build using the Markdown files. The final pages are available to read at the [online Documentation](https://sumo.dlr.de/docs/). Although the Documentation [Source files](#source_files) are included in the repository, the final Static HTML pages are not. In order to get a local copy of this pages, follow the [static HTML site generation](#static_html_site_generation) instructions.
 
 # Static HTML site generation
 

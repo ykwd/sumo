@@ -18,13 +18,7 @@
 ///
 // Editor for the list of chosen objects
 /****************************************************************************/
-#ifndef GUIDialog_GLChosenEditor_h
-#define GUIDialog_GLChosenEditor_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -129,9 +123,3 @@ private:
     /// @brief The storage
     GUISelectedStorage* myStorage;
 };
-
-
-#endif
-
-/****************************************************************************/
-

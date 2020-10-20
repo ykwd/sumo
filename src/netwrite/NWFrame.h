@@ -19,13 +19,7 @@
 ///
 // Sets and checks options for netwrite
 /****************************************************************************/
-#ifndef NWFrame_h
-#define NWFrame_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 
@@ -62,9 +56,3 @@ public:
     static void writePositionLong(const Position& pos, OutputDevice& dev);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

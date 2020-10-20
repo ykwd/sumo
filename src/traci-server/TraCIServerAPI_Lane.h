@@ -19,13 +19,7 @@
 ///
 // APIs for getting/setting lane values via TraCI
 /****************************************************************************/
-#ifndef TraCIServerAPI_Lane_h
-#define TraCIServerAPI_Lane_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <foreign/tcpip/storage.h>
@@ -75,8 +69,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/

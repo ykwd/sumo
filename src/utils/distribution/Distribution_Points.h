@@ -18,13 +18,7 @@
 ///
 // The description of a distribution by a curve
 /****************************************************************************/
-#ifndef Distribution_Points_h
-#define Distribution_Points_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "RandomDistributor.h"
@@ -66,9 +60,3 @@ public:
     /// Returns the string representation of this distribution
     std::string toStr(std::streamsize accuracy) const;
 };
-
-
-#endif
-
-/****************************************************************************/
-

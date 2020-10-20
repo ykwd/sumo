@@ -17,30 +17,12 @@
 ///
 // A network change in which a single crossing is created or deleted
 /****************************************************************************/
-#ifndef GNEChange_Crossing_h
-#define GNEChange_Crossing_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
-#include <fx.h>
-#include <utils/foxtools/fxexdefs.h>
-#include <utils/geom/PositionVector.h>
-#include <netbuild/NBNode.h>
-#include <vector>
-#include <map>
 #include "GNEChange.h"
 
-// ===========================================================================
-// class declarations
-// ===========================================================================
-class GNENet;
 class GNEJunction;
-class GNECrossing;
-class NBEdge;
 
 // ===========================================================================
 // class definitions
@@ -108,10 +90,4 @@ private:
 
     /// @brief priority of GNECrossing
     PositionVector myCustomShape;
-
-    /// @brief flag to check if crossing is selected
-    bool mySelected;
 };
-
-#endif
-/****************************************************************************/

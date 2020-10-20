@@ -5,19 +5,19 @@ permalink: /Demand/Shortest_or_Optimal_Path_Routing/
 
 # Introduction
 
-[DUAROUTER](../DUAROUTER.md) can be used to import demand data
+[duarouter](../duarouter.md) can be used to import demand data
 given by source and destination edges (so called *trips* and ''flows
 ''). Furthermore, it can be used to repair an existing *route*-file i.e.
 if a given route has an unconnected edge list. To achieve dynamic user
-assignment, [DUAROUTER](../DUAROUTER.md) and
-[SUMO](../SUMO.md) must be called iteratively. This is described in
+assignment, [duarouter](../duarouter.md) and
+[sumo](../sumo.md) must be called iteratively. This is described in
 [Demand/Dynamic User
 Assignment](../Demand/Dynamic_User_Assignment.md). Beginning with
-version 0.29.0, [DUAROUTER](../DUAROUTER.md) also supports
+version 0.29.0, [duarouter](../duarouter.md) also supports
 [IntermodalRouting](../IntermodalRouting.md).
 
 !!! note
-    The *trip* and *flow* elements described below may also be [loaded directly](../Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#incomplete_routes_trips_and_flows) into [SUMO](../SUMO.md). This takes up-to date traffic states within the network into account when computing routes but slows down the simulation.
+    The *trip* and *flow* elements described below may also be [loaded directly](../Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#incomplete_routes_trips_and_flows) into [sumo](../sumo.md). This takes up-to date traffic states within the network into account when computing routes but slows down the simulation.
 
 # Trip Definitions
 
@@ -34,6 +34,7 @@ the router using an XML-file. The syntax of a single trip definition is:
 | via            | edge ids                                                | List of intermediate edge ids which shall be part of the route; the edges must be a part of the used network       |
 | fromTaz        | district id                                             | The name of the [district](../Demand/Importing_O/D_Matrices.md#describing_the_taz) the route starts at. [TAZ edges are selected so that travel time is minimized.](../Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#traffic_assignement_zones_taz)    |
 | toTaz          | district id                                             | The name of the [district](../Demand/Importing_O/D_Matrices.md#describing_the_taz) the route ends at. [TAZ edges are selected so that travel time is minimized.](../Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#traffic_assignement_zones_taz)       |
+| type           | type id                                                 | The type id of the vehicle to generate            |
 | color          | color                                                   | This generated vehicle's color              |
 | departLane     | int/string (≥0,"random","free","departlane")            | The lane on which the vehicle shall be inserted         |
 | departPos      | float(m)/string ("random","free","random_free","base") | The position at which the vehicle shall enter the net; "free" means the point closest to the start of the departlane where it is possible to insert the vehicle. "random_free" tries forcefully to find a free random position and if that fails, places the vehicle at the next "free" position. "base" sets the vehicle's depart position to the vehicle's length + eps (eps=.1m), this means the vehicle is completely at the begin of the depart lane. |
@@ -42,20 +43,20 @@ the router using an XML-file. The syntax of a single trip definition is:
 | arrivalPos     | float(m)/string (≥0<sup>(1)</sup>,"random","max")       | The position at which the vehicle shall leave the network<br><br>**Note:** see [Definition of Vehicles, Vehicle Types, and Routes#Vehicles and Routes](../Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#vehicles_and_routes)       |
 | arrivalSpeed   | float(m/s)/string (≥0,"current")                        | The speed with which the vehicle shall leave the network<br><br>**Note:** see [Definition of Vehicles, Vehicle Types, and Routes#Vehicles and Routes](../Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#vehicles_and_routes)         |
 | fromJunction | junction id  | The junction from which to depart [note](#Routing_between_junctions)    |
-| toJunction   | junction id  | The junction at which to arrve [note](#Routing_between_junctions)    |
+| toJunction   | junction id  | The junction at which to arrive [note](#Routing_between_junctions)    |
 | viaJunctions | junction ids | The junctions to pass along the way [note](#Routing_between_junctions)   |
 | fromXY   | float, float    | The network position from which to depart [note](#Mapmatching)    |
 | toXY   | float, float    | The network position from which to depart [note](#Mapmatching)    |
 | viaXY   | float, float [float,float]    | The network positions to pass along the way [note](#Mapmatching)   |
 | fromLonLat   | float, float    | The network position from which to depart in geo-coordinates [note](#Mapmatching)    |
 | toLonLat   | float, float    | The network position from which to depart in geo-coordinates [note](#Mapmatching)    |
-| viaLonLat   | float, float [float,float]    | The network position to pass along the way in geo-coordinates  [note](#Mapmatching)   |
+| viaLonLat   | float, float [float,float]    | The network positions to pass along the way in geo-coordinates  [note](#Mapmatching)   |
 
 ## Routing between Junctions
-Trips and flows may use the attributes `fromJunction`, `toJunction`, and `viaJunctions` to describe origin, destination and intermediate locations. This is a special form of TAZ-routing and it must be enabled by either setting the DUAROUTER option **--junction-taz** or by loading TAZ-definitions that use the respective junction IDs. When using option **--junction-taz**, all edges outgoing from a junction may be used at the origin and all edges incoming to a junction may be used to reach the intermediate and final junctions.
+Trips and flows may use the attributes `fromJunction`, `toJunction`, and `viaJunctions` to describe origin, destination and intermediate locations. This is a special form of TAZ-routing and it must be enabled by either setting the duarouter option **--junction-taz** or by loading TAZ-definitions that use the respective junction IDs. When using option **--junction-taz**, all edges outgoing from a junction may be used at the origin and all edges incoming to a junction may be used to reach the intermediate and final junctions.
 
 ## Mapmatching
-Since version 1.2 DUAROUTER supports mapping positions to roads using attributes that end with 'XY' or 'LonLat'. The latter only works in networks that are geo-referenced. The maximum distance for map-matching can be configured using option **--mapmatch.distance** (since version 1.5)
+Since version 1.2 duarouter supports mapping positions to roads using attributes that end with 'XY' or 'LonLat'. The latter only works in networks that are geo-referenced. The maximum distance for map-matching can be configured using option **--mapmatch.distance** (since version 1.5)
 
 !!! caution
     SUMO does not yet support these mapping attributes.
@@ -70,7 +71,7 @@ the *trip.xml* file or into an additionally loaded *rou.xml*-file or
 into an {{AdditionalFile}}.
 
 !!! note
-    By default, [DUAROUTER](../DUAROUTER.md) will write `vType` definitions into the output route file ahead of the first vehicle using that type. By using the option **--vtype-output** these definitions can be put into another file.
+    By default, [duarouter](../duarouter.md) will write `vType` definitions into the output route file ahead of the first vehicle using that type. By using the option **--vtype-output** these definitions can be put into another file.
 
 # Flow Definitions
 
@@ -122,8 +123,8 @@ Let's review flow parameter:
 | arrivalPos       | float(m)/string (≥0<sup>(1)</sup>,"random","max")       | The position at which the vehicle shall leave the network<br><br>**Note:** see [Definition of Vehicles, Vehicle Types, and Routes#Vehicles and Routes](../Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#vehicles_and_routes)          |
 | arrivalSpeed     | float(m/s)/string (≥0,"current")                        | The speed with which the vehicle shall leave the network<br><br>**Note:** see [Definition of Vehicles, Vehicle Types, and Routes#Vehicles and Routes](../Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#vehicles_and_routes)           |
 
-<sup>(1)</sup> [JTRROUTER](../JTRROUTER.md) does not need this
-parameter, [DUAROUTER](../DUAROUTER.md) requires it
+<sup>(1)</sup> [jtrrouter](../jtrrouter.md) does not need this
+parameter, [duarouter](../duarouter.md) requires it
 
 # Custom edge weights
 
@@ -178,7 +179,7 @@ duarouter --trip-files=<TRIP_DEFS> --net-file=<SUMO_NET> \
 ```
 
 !!! caution
-    The edge weights are ignored when using TAZ this way. Instead TAZ edges are selected so that the travel time is minimzed.
+    The edge weights are ignored when using TAZ this way. Instead TAZ edges are selected so that the travel time is minimized.
 
 As we have to read in the flow definitions completely into the memory -
 something we do not have to do necessarily with trips, an extra
@@ -201,7 +202,7 @@ duarouter --flows=<FLOW_DEFS> --trip-files=<TRIP_DEFS> --net=<SUMO_NET> \
 
 # Dealing with Errors During Routing
 
-When running [DUAROUTER](../DUAROUTER.md) you may encounter errors
+When running [duarouter](../duarouter.md) you may encounter errors
 of the type
 
 ```

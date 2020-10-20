@@ -21,13 +21,7 @@
 ///
 // Container for nodes during the netbuilding process
 /****************************************************************************/
-#ifndef NBNodeCont_h
-#define NBNodeCont_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -36,6 +30,7 @@
 #include <set>
 #include <utils/common/NamedRTree.h>
 #include <utils/geom/Position.h>
+#include "NBCont.h"
 #include "NBEdgeCont.h"
 #include "NBNode.h"
 #include <utils/common/UtilExceptions.h>
@@ -63,7 +58,6 @@ class NBPTStopCont;
 class NBNodeCont {
 public:
     /// @brief Definition of a node cluster container
-    typedef std::set<NBNode*, ComparatorIdLess> NodeSet;
     typedef std::vector<NodeSet> NodeClusters;
     typedef std::pair<NBNode*, double> NodeAndDist;
 
@@ -145,6 +139,9 @@ public:
 
     /// @brief Joins junctions that are very close together
     int joinJunctions(double maxDist, NBDistrictCont& dc, NBEdgeCont& ec, NBTrafficLightLogicCont& tlc, NBPTStopCont& sc);
+
+    /// @brief Joins junctions with the same coordinates regardless of topology
+    int joinSameJunctions(NBDistrictCont& dc, NBEdgeCont& ec, NBTrafficLightLogicCont& tlc);
 
     /// @brief remove geometry-like fringe nodes from cluster
     void pruneClusterFringe(NodeSet& cluster) const;
@@ -243,6 +240,9 @@ public:
 
     /// @brief recheck myGuessedTLS after node logics are computed
     void recheckGuessedTLS(NBTrafficLightLogicCont& tlc);
+
+    /// @brief compute keepClear status for all connections
+    void computeKeepClear();
 
     /** @brief Builds clusters of tls-controlled junctions and joins the control if possible
      * @param[changed] tlc The traffic lights control for adding/removing new/prior tls
@@ -358,8 +358,9 @@ private:
     void generateNodeClusters(double maxDist, NodeClusters& into) const;
 
     /// @brief joins the given node clusters
-    void joinNodeClusters(NodeClusters clusters, NBDistrictCont& dc, NBEdgeCont& ec, NBTrafficLightLogicCont& tlc);
-    void joinNodeCluster(NodeSet clusters, NBDistrictCont& dc, NBEdgeCont& ec, NBTrafficLightLogicCont& tlc, NBNode* predefined = nullptr);
+    void joinNodeClusters(NodeClusters clusters, NBDistrictCont& dc, NBEdgeCont& ec, NBTrafficLightLogicCont& tlc, bool resetConnections = false);
+    void joinNodeCluster(NodeSet clusters, NBDistrictCont& dc, NBEdgeCont& ec, NBTrafficLightLogicCont& tlc,
+            NBNode* predefined = nullptr, bool resetConnections = false);
 
     /// @}
 
@@ -425,9 +426,3 @@ private:
     NBNodeCont& operator=(const NBNodeCont& s);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

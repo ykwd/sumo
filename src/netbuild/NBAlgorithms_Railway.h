@@ -18,13 +18,7 @@
 ///
 // Algorithms for railways
 /****************************************************************************/
-#ifndef NBAlgorithms_Railway_h
-#define NBAlgorithms_Railway_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -57,6 +51,7 @@ public:
     static void analyzeTopology(NBNetBuilder& nb);
     static void repairTopology(NBNetBuilder& nb);
     static void makeAllBidi(NBNetBuilder& nb);
+    static void assignDirectionPriority(NBNetBuilder& nb);
 
     /// routing edge
     class Track {
@@ -80,6 +75,9 @@ public:
         }
         double getLength() const {
             return 0.;
+        }
+        const Track* getBidiEdge() const {
+            return this;
         }
         bool isInternal() const {
             return false;
@@ -146,9 +144,3 @@ private:
     static void updateTurns(NBEdge* edge);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

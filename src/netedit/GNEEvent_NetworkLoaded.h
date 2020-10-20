@@ -17,13 +17,7 @@
 ///
 // Event to send when the network has been loaded by GNELoadThread
 /****************************************************************************/
-#ifndef GNEEvent_NetworkLoaded_h
-#define GNEEvent_NetworkLoaded_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/gui/events/GUIEvent.h>
@@ -70,9 +64,3 @@ public:
     /// @brief whether loading viewport from registry
     bool myViewportFromRegistry;
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -17,13 +17,7 @@
 ///
 // -------------------
 /****************************************************************************/
-#ifndef NIVissimNodeParticipatingEdgeVector_h
-#define NIVissimNodeParticipatingEdgeVector_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 
@@ -31,9 +25,3 @@
 #include "NIVissimNodeParticipatingEdge.h"
 
 typedef std::vector<NIVissimNodeParticipatingEdge*> NIVissimNodeParticipatingEdgeVector;
-
-
-#endif
-
-/****************************************************************************/
-

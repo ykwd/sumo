@@ -17,13 +17,7 @@
 ///
 // APIs for getting/setting person values via TraCI
 /****************************************************************************/
-#ifndef TraCIServerAPI_Person_h
-#define TraCIServerAPI_Person_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <foreign/tcpip/storage.h>
@@ -73,8 +67,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/

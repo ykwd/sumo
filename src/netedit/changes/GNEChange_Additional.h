@@ -17,26 +17,11 @@
 ///
 // A network change in which a additional element is created or deleted
 /****************************************************************************/
-#ifndef GNEChange_Additional_h
-#define GNEChange_Additional_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "GNEChange.h"
 
-// ===========================================================================
-// class declarations
-// ===========================================================================
-
-class GNEViewNet;
-class GNEEdge;
-class GNELane;
-class GNEShape;
-class GNEAdditional;
-class GNEDemandElement;
 
 // ===========================================================================
 // class definitions
@@ -79,36 +64,6 @@ private:
      */
     GNEAdditional* myAdditional;
 
-    /// @brief reference to vector of parent edges
-    const std::vector<GNEEdge*>& myParentEdges;
-
-    /// @brief reference to vector of parent lanes
-    const std::vector<GNELane*>& myParentLanes;
-
-    /// @brief reference to vector of parent shapes
-    const std::vector<GNEShape*>& myParentShapes;
-
-    /// @brief reference to vector of parent additionals
-    const std::vector<GNEAdditional*>& myParentAdditionals;
-
-    /// @brief reference to vector of parent demand elements
-    const std::vector<GNEDemandElement*>& myParentDemandElements;
-
-    /// @brief reference to vector of child edges
-    const std::vector<GNEEdge*>& myChildEdges;
-
-    /// @brief reference to vector of child lanes
-    const std::vector<GNELane*>& myChildLanes;
-
-    /// @brief reference to vector of child shapes
-    const std::vector<GNEShape*>& myChildShapes;
-
-    /// @brief reference to vector of child additional
-    const std::vector<GNEAdditional*>& myChildAdditionals;
-
-    /// @brief reference to vector of child demand elements
-    const std::vector<GNEDemandElement*>& myChildDemandElements;
+    /// @brief reference to path vector
+    const std::vector<GNEPathElements::PathElement>& myPath;
 };
-
-#endif
-/****************************************************************************/

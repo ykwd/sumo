@@ -19,13 +19,7 @@
 ///
 // Dijkstra shortest path algorithm using travel time or other values
 /****************************************************************************/
-#ifndef DijkstraRouter_h
-#define DijkstraRouter_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <cassert>
@@ -291,8 +285,3 @@ private:
 
     EdgeInfoByEffortComparator myComparator;
 };
-
-
-#endif
-
-/****************************************************************************/

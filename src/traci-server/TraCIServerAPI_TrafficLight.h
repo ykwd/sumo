@@ -18,13 +18,7 @@
 ///
 // APIs for getting/setting traffic light values via TraCI
 /****************************************************************************/
-#ifndef TraCIServerAPI_TrafficLight_h
-#define TraCIServerAPI_TrafficLight_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "TraCIServer.h"
@@ -69,9 +63,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

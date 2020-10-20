@@ -17,13 +17,7 @@
 ///
 // Dialog for edit calibrator routes
 /****************************************************************************/
-#ifndef GNERouteDialog_h
-#define GNERouteDialog_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-
+#pragma once
 #include <config.h>
 
 #include "GNEDemandElementDialog.h"
@@ -98,4 +92,3 @@ private:
     GNERouteDialog& operator=(const GNERouteDialog&) = delete;
 };
 
-#endif

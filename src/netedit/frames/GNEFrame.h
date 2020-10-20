@@ -17,13 +17,7 @@
 ///
 // Abstract class for lateral frames in NetEdit
 /****************************************************************************/
-#ifndef GNEFrame_h
-#define GNEFrame_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-
+#pragma once
 #include "GNEFrameModuls.h"
 #include "GNEFrameAttributesModuls.h"
 
@@ -92,9 +86,6 @@ protected:
     /// @brief selected demand element in DemandElementSelector
     virtual void demandElementSelected();
 
-    /// @brief finish edge path creation
-    virtual void edgePathCreated();
-
     /// @brief build a shaped element using the drawed shape (can be reimplemented in frame children)
     virtual bool shapeDrawed();
 
@@ -107,19 +98,16 @@ protected:
     /// @brief open AttributesCreator extended dialog (can be reimplemented in frame children)
     virtual void selectedOverlappedElement(GNEAttributeCarrier* AC);
 
+    /// @brief create path (can be reimplemented in frame children)
+    virtual void createPath();
+
     /// @}
 
     /// @brief Open help attributes dialog
-    void openHelpAttributesDialog(const GNEAttributeCarrier::TagProperties& tagProperties) const;
-
-    /// @brief get edge candidate color
-    const RGBColor& getEdgeCandidateColor() const;
-
-    /// @brief get selected color
-    const RGBColor& getEdgeCandidateSelectedColor() const;
+    void openHelpAttributesDialog(const GNETagProperties& tagProperties) const;
 
     /// @brief get predefinedTagsMML
-    const std::map<int, std::string>& getPredefinedTagsMML() const;
+    const std::vector<std::string>& getPredefinedTagsMML() const;
 
     /// @brief View Net
     GNEViewNet* myViewNet = nullptr;
@@ -146,14 +134,8 @@ private:
     /// @brief the label for the frame's header
     FXLabel* myFrameHeaderLabel = nullptr;
 
-    /// @brief edge candidate color (used by some modulds to mark edges)
-    RGBColor myEdgeCandidateColor;
-
-    /// @brief selected edge candidate color (used by some modulds to selected mark edges)
-    RGBColor myEdgeCandidateSelectedColor;
-
     /// @brief Map of attribute ids to their (readable) string-representation (needed for SUMOSAXAttributesImpl_Cached)
-    std::map<int, std::string> myPredefinedTagsMML;
+    std::vector<std::string> myPredefinedTagsMML;
 
     /// @brief Invalidated copy constructor.
     GNEFrame(const GNEFrame&) = delete;
@@ -161,8 +143,3 @@ private:
     /// @brief Invalidated assignment operator.
     GNEFrame& operator=(const GNEFrame&) = delete;
 };
-
-
-#endif
-
-/****************************************************************************/

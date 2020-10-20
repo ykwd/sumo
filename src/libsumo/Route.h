@@ -19,13 +19,7 @@
 ///
 // C++ TraCI client API implementation
 /****************************************************************************/
-#ifndef Route_h
-#define Route_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -35,10 +29,12 @@
 // ===========================================================================
 // class declarations
 // ===========================================================================
+#ifndef LIBTRACI
 class MSRoute;
 namespace libsumo {
 class VariableWrapper;
 }
+#endif
 
 
 // ===========================================================================
@@ -48,7 +44,7 @@ class VariableWrapper;
  * @class Route
  * @brief C++ TraCI client API implementation
  */
-namespace libsumo {
+namespace LIBSUMO_NAMESPACE {
 class Route {
 public:
 
@@ -56,10 +52,12 @@ public:
     static int getIDCount();
     static std::vector<std::string> getEdges(const std::string& routeID);
     static std::string getParameter(const std::string& routeID, const std::string& param);
+    LIBSUMO_GET_PARAMETER_WITH_KEY_API
 
-    static void add(const std::string& routeID, const std::vector<std::string>& edgeIDs);
-    static void setParameter(const std::string& routeID, const std::string& key, const std::string& value); // not needed so far
+    static void add(const std::string& routeID, const std::vector<std::string>& edges);
+    static void setParameter(const std::string& routeID, const std::string& param, const std::string& value); // not needed so far
 
+#ifndef LIBTRACI
     LIBSUMO_SUBSCRIPTION_API
 
     static std::shared_ptr<VariableWrapper> makeWrapper();
@@ -68,10 +66,13 @@ public:
 
 private:
     static const MSRoute* getRoute(const std::string& id);
+#endif
 
 private:
+#ifndef LIBTRACI
     static SubscriptionResults mySubscriptionResults;
     static ContextSubscriptionResults myContextSubscriptionResults;
+#endif
 
     /// @brief invalidated standard constructor
     Route() = delete;
@@ -79,8 +80,3 @@ private:
 
 
 }
-
-
-#endif
-
-/****************************************************************************/

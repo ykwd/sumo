@@ -35,9 +35,9 @@ netedit.supermodeDemand()
 netedit.routeMode()
 
 # create route using three edges
-netedit.leftClick(referencePosition, 274, 414)
+netedit.leftClick(referencePosition, 274, 392)
 netedit.leftClick(referencePosition, 570, 250)
-netedit.leftClick(referencePosition, 280, 60)
+netedit.leftClick(referencePosition, 280, 55)
 
 # press enter to create route
 netedit.typeEnter()
@@ -46,37 +46,37 @@ netedit.typeEnter()
 netedit.vehicleMode()
 
 # change vehicle
-netedit.changeElement("routeFlow")
+netedit.changeElement("flow (over route)")
 
 # set invalid depart speed
-netedit.changeDefaultValue(10, "dummySpeed")
+netedit.changeDefaultValue(9, "dummySpeed")
 
 # try to create vehicle
-netedit.leftClick(referencePosition, 274, 414)
+netedit.leftClick(referencePosition, 274, 392)
 
 # set invalid depart speed
-netedit.changeDefaultValue(10, "-12")
+netedit.changeDefaultValue(9, "-12")
 
 # try to create vehicle
-netedit.leftClick(referencePosition, 274, 414)
+netedit.leftClick(referencePosition, 274, 392)
 
 # set invalid depart speed
-netedit.changeDefaultValue(10, "6000")
+netedit.changeDefaultValue(9, "6000")
 
 # try to create vehicle
-netedit.leftClick(referencePosition, 274, 414)
+netedit.leftClick(referencePosition, 274, 392)
 
 # set valid depart speed
-netedit.changeDefaultValue(10, "max")
+netedit.changeDefaultValue(9, "max")
 
 # create vehicle
-netedit.leftClick(referencePosition, 274, 414)
+netedit.leftClick(referencePosition, 274, 392)
 
 # set valid depart speed
-netedit.changeDefaultValue(10, "20")
+netedit.changeDefaultValue(9, "20")
 
 # create vehicle
-netedit.leftClick(referencePosition, 274, 414)
+netedit.leftClick(referencePosition, 274, 392)
 
 # Check undo redo
 netedit.undo(referencePosition, 3)

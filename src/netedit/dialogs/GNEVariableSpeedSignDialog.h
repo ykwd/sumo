@@ -17,17 +17,11 @@
 ///
 // A class for edit phases of Variable Speed Signals
 /****************************************************************************/
-#ifndef GNEVariableSpeedSignDialog_h
-#define GNEVariableSpeedSignDialog_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-
+#pragma once
 #include <config.h>
 
 #include <map>
-#include <netedit/additionals/GNEVariableSpeedSignStep.h>
+#include <netedit/elements/additional/GNEVariableSpeedSignStep.h>
 
 #include "GNEAdditionalDialog.h"
 
@@ -106,4 +100,3 @@ private:
     GNEVariableSpeedSignDialog& operator=(const GNEVariableSpeedSignDialog&) = delete;
 };
 
-#endif

@@ -17,12 +17,7 @@
 ///
 // The representation of a single pt stop
 /****************************************************************************/
-#ifndef SUMO_NBPTSTOP_H
-#define SUMO_NBPTSTOP_H
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -36,6 +31,7 @@
 // ===========================================================================
 class OutputDevice;
 class NBEdgeCont;
+class NBEdge;
 
 
 // ===========================================================================
@@ -54,7 +50,8 @@ public:
     * @param[in] edgeId The edge id of the pt stop
     * @param[in] length The length of the pt stop
     */
-    NBPTStop(std::string ptStopId, Position position, std::string edgeId, std::string origEdgeId, double length, std::string name, SVCPermissions svcPermissions);
+    NBPTStop(std::string ptStopId, Position position, std::string edgeId, std::string origEdgeId, double length, std::string name,
+             SVCPermissions svcPermissions, double parkingLength = 0);
     std::string getID() const;
 
     const std::string getEdgeId() const;
@@ -73,6 +70,8 @@ public:
     void registerAdditionalEdge(std::string wayId, std::string edgeId);
     void addPlatformCand(NBPTPlatform platform);
     bool findLaneAndComputeBusStopExtent(const NBEdgeCont& ec);
+
+    bool findLaneAndComputeBusStopExtent(const NBEdge* edge);
 
     void setMyPTStopId(std::string id);
     void addAccess(std::string laneID, double offset, double length);
@@ -95,6 +94,9 @@ public:
         return myIsLoose;
     }
 
+    /// @brief mirror coordinates along the x-axis
+    void mirrorX();
+
 private:
     void computeExtent(double center, double d);
 
@@ -115,6 +117,7 @@ public:
     void setMyPTStopLength(double myPTStopLength);
 private:
     const std::string myName;
+    const double myParkingLength;
     std::string myLaneId;
     const SVCPermissions myPermissions;
 
@@ -141,4 +144,3 @@ private:
     bool myIsMultipleStopPositions;
 };
 
-#endif //SUMO_NBPTSTOP_H

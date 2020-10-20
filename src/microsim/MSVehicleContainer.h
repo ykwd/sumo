@@ -19,13 +19,7 @@
 ///
 // vehicles sorted by their departures
 /****************************************************************************/
-#ifndef MSVehicleContainer_h
-#define MSVehicleContainer_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -97,6 +91,9 @@ public:
     friend std::ostream& operator << (std::ostream& strm,
                                       MSVehicleContainer& cont);
 
+    /** @brief Remove all vehicles before quick-loading state */
+    void clearState();
+
 private:
     /** @brief Replaces the existing single departure time vector by the one given
     */
@@ -140,9 +137,3 @@ private:
     void percolateDown(int hole);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

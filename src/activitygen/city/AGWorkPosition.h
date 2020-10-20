@@ -22,13 +22,7 @@
 ///
 // Location and schedules of a work position: linked with one adult
 /****************************************************************************/
-#ifndef AGWORKPOSITION_H
-#define AGWORKPOSITION_H
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "AGPosition.h"
@@ -76,7 +70,3 @@ private:
     int myOpeningTime;
     int myClosingTime;
 };
-
-#endif
-
-/****************************************************************************/

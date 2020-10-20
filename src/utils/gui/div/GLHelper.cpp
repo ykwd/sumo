@@ -19,11 +19,6 @@
 ///
 // Some methods which help to draw certain geometrical objects in openGL
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <cassert>
@@ -448,74 +443,6 @@ GLHelper::drawTriangleAtEnd(const Position& p1, const Position& p2,
 
 
 void
-GLHelper::drawShapeDottedContourAroundShape(const GUIVisualizationSettings& s, const int type, const PositionVector& shape, const double width) {
-    // first check that given shape isn't empty
-    if (!s.drawForRectangleSelection && !s.drawForPositionSelection && (shape.size() > 0)) {
-        // build contour using shapes of first and last lane shapes
-        PositionVector contourFront = shape;
-        // only add an contourback if width is greather of 0
-        if (width > 0) {
-            PositionVector contourback = contourFront;
-            contourFront.move2side(width);
-            contourback.move2side(-width);
-            contourback = contourback.reverse();
-            for (auto i : contourback) {
-                contourFront.push_back(i);
-            }
-            contourFront.push_back(shape.front());
-        }
-        // resample shape
-        PositionVector resampledShape = contourFront.resample(s.dottedContourSettings.segmentLength);
-        // push matrix
-        glPushMatrix();
-        // draw contour over shape
-        glTranslated(0, 0, type + 2);
-        // set custom line width
-        glLineWidth((GLfloat)s.dottedContourSettings.segmentWidth);
-        // draw contour
-        drawLine(resampledShape, getDottedcontourColors((int)resampledShape.size()));
-        //restore line width
-        glLineWidth(1);
-        // pop matrix
-        glPopMatrix();
-    }
-}
-
-
-void
-GLHelper::drawShapeDottedContourRectangle(const GUIVisualizationSettings& s, const int type, const Position& center, const double width, const double height, const double rotation, const double offsetX, const double offsetY) {
-    // first check that given width and height is valid
-    if (!s.drawForRectangleSelection && !s.drawForPositionSelection && (width > 0) && (height > 0)) {
-        // create shaperectangle around center
-        PositionVector shape;
-        shape.push_back(Position(width / 2, height / 2));
-        shape.push_back(Position(width / -2, height / 2));
-        shape.push_back(Position(width / -2, height / -2));
-        shape.push_back(Position(width / 2, height / -2));
-        shape.push_back(Position(width / 2, height / 2));
-        // resample shape
-        shape = shape.resample(s.dottedContourSettings.segmentLength);
-        // push matrix
-        glPushMatrix();
-        // translate to center
-        glTranslated(center.x(), center.y(), type + 2);
-        // set custom line width
-        glLineWidth(3);
-        // rotate
-        glRotated(rotation, 0, 0, 1);
-        // translate offset
-        glTranslated(offsetX, offsetY, 0);
-        // draw contour
-        GLHelper::drawLine(shape, getDottedcontourColors((int)shape.size()));
-        //restore line width
-        glLineWidth(1);
-        // pop matrix
-        glPopMatrix();
-    }
-}
-
-
-void
 GLHelper::setColor(const RGBColor& c) {
     glColor4ub(c.red(), c.green(), c.blue(), c.alpha());
 }
@@ -568,10 +495,8 @@ GLHelper::getDottedcontourColors(const int size) {
 
 
 void
-GLHelper::drawText(const std::string& text, const Position& pos,
-                   const double layer, const double size,
-                   const RGBColor& col, const double angle, const int align,
-                   double width) {
+GLHelper::drawText(const std::string& text, const Position& pos, const double layer, const double size,
+                   const RGBColor& col, const double angle, const int align, double width) {
     if (width <= 0) {
         width = size;
     }
@@ -606,13 +531,14 @@ GLHelper::drawTextSettings(
     const std::string& text, const Position& pos,
     const double scale,
     const double angle,
-    const double layer) {
+    const double layer,
+    const int align) {
     drawTextBox(text, pos, layer,
                 settings.scaledSize(scale),
                 settings.color,
                 settings.bgColor,
                 RGBColor::INVISIBLE,
-                angle, 0, 0.2);
+                angle, 0, 0.2, align);
 }
 
 
@@ -622,7 +548,8 @@ GLHelper::drawTextBox(const std::string& text, const Position& pos,
                       const RGBColor& txtColor, const RGBColor& bgColor, const RGBColor& borderColor,
                       const double angle,
                       const double relBorder,
-                      const double relMargin) {
+                      const double relMargin,
+                      const int align) {
     if (!initFont()) {
         return;
     };
@@ -645,7 +572,7 @@ GLHelper::drawTextBox(const std::string& text, const Position& pos,
         drawBoxLine(left, boxAngle, boxWidth - 3 * borderWidth, boxHeight - 2 * borderWidth);
         glPopMatrix();
     }
-    drawText(text, pos, layer + 0.02, size, txtColor, angle);
+    drawText(text, pos, layer + 0.02, size, txtColor, angle, align);
 }
 
 

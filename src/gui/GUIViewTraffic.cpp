@@ -21,11 +21,6 @@
 ///
 // A view on the simulation; this view is a microscopic one
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #ifdef HAVE_FFMPEG
@@ -50,6 +45,7 @@
 #include <microsim/traffic_lights/MSSimpleTrafficLightLogic.h>
 #include <utils/common/RGBColor.h>
 #include <utils/geom/PositionVector.h>
+#include <utils/shapes/ShapeContainer.h>
 #include "GUISUMOViewParent.h"
 #include "GUIViewTraffic.h"
 #include <utils/gui/windows/GUISUMOAbstractView.h>
@@ -105,62 +101,62 @@ GUIViewTraffic::~GUIViewTraffic() {
 
 
 void
-GUIViewTraffic::buildViewToolBars(GUIGlChildWindow& v) {
+GUIViewTraffic::buildViewToolBars(GUIGlChildWindow* v) {
     // build coloring tools
     {
         const std::vector<std::string>& names = gSchemeStorage.getNames();
         for (std::vector<std::string>::const_iterator i = names.begin(); i != names.end(); ++i) {
-            v.getColoringSchemesCombo()->appendItem(i->c_str());
+            v->getColoringSchemesCombo()->appendItem(i->c_str());
             if ((*i) == myVisualizationSettings->name) {
-                v.getColoringSchemesCombo()->setCurrentItem(v.getColoringSchemesCombo()->getNumItems() - 1);
+                v->getColoringSchemesCombo()->setCurrentItem(v->getColoringSchemesCombo()->getNumItems() - 1);
             }
         }
-        v.getColoringSchemesCombo()->setNumVisible(MAX2(5, (int)names.size() + 1));
+        v->getColoringSchemesCombo()->setNumVisible(MAX2(5, (int)names.size() + 1));
     }
     // for junctions
-    new FXButton(v.getLocatorPopup(),
-                 "\tLocate Junction\tLocate a junction within the network.",
-                 GUIIconSubSys::getIcon(ICON_LOCATEJUNCTION), &v, MID_LOCATEJUNCTION,
+    new FXButton(v->getLocatorPopup(),
+                 "\tLocate Junctions\tLocate a junction within the network.",
+                 GUIIconSubSys::getIcon(GUIIcon::LOCATEJUNCTION), v, MID_LOCATEJUNCTION,
                  ICON_ABOVE_TEXT | FRAME_THICK | FRAME_RAISED);
     // for edges
-    new FXButton(v.getLocatorPopup(),
-                 "\tLocate Street\tLocate a street within the network.",
-                 GUIIconSubSys::getIcon(ICON_LOCATEEDGE), &v, MID_LOCATEEDGE,
+    new FXButton(v->getLocatorPopup(),
+                 "\tLocate Edges\tLocate an edge within the network.",
+                 GUIIconSubSys::getIcon(GUIIcon::LOCATEEDGE), v, MID_LOCATEEDGE,
                  ICON_ABOVE_TEXT | FRAME_THICK | FRAME_RAISED);
-
     // for vehicles
-    new FXButton(v.getLocatorPopup(),
-                 "\tLocate Vehicle\tLocate a vehicle within the network.",
-                 GUIIconSubSys::getIcon(ICON_LOCATEVEHICLE), &v, MID_LOCATEVEHICLE,
+    new FXButton(v->getLocatorPopup(),
+                 "\tLocate Vehicles\tLocate a vehicle within the network.",
+                 GUIIconSubSys::getIcon(GUIIcon::LOCATEVEHICLE), v, MID_LOCATEVEHICLE,
                  ICON_ABOVE_TEXT | FRAME_THICK | FRAME_RAISED);
-
     // for persons
-    if (!MSGlobals::gUseMesoSim) { // there are no persons in mesosim (yet)
-        new FXButton(v.getLocatorPopup(),
-                     "\tLocate Vehicle\tLocate a person within the network.",
-                     GUIIconSubSys::getIcon(ICON_LOCATEPERSON), &v, MID_LOCATEPERSON,
-                     ICON_ABOVE_TEXT | FRAME_THICK | FRAME_RAISED);
-    }
-
+    new FXButton(v->getLocatorPopup(),
+                 "\tLocate Persons\tLocate a person within the network.",
+                 GUIIconSubSys::getIcon(GUIIcon::LOCATEPERSON), v, MID_LOCATEPERSON,
+                 ICON_ABOVE_TEXT | FRAME_THICK | FRAME_RAISED);
+    // for containers
+    new FXButton(v->getLocatorPopup(),
+                 "\tLocate Container\tLocate a container within the network.",
+                 GUIIconSubSys::getIcon(GUIIcon::LOCATECONTAINER), v, MID_LOCATECONTAINER,
+                 ICON_ABOVE_TEXT | FRAME_THICK | FRAME_RAISED);
     // for tls
-    new FXButton(v.getLocatorPopup(),
+    new FXButton(v->getLocatorPopup(),
                  "\tLocate TLS\tLocate a tls within the network.",
-                 GUIIconSubSys::getIcon(ICON_LOCATETLS), &v, MID_LOCATETLS,
+                 GUIIconSubSys::getIcon(GUIIcon::LOCATETLS), v, MID_LOCATETLS,
                  ICON_ABOVE_TEXT | FRAME_THICK | FRAME_RAISED);
     // for additional stuff
-    new FXButton(v.getLocatorPopup(),
+    new FXButton(v->getLocatorPopup(),
                  "\tLocate Additional\tLocate an additional structure within the network.",
-                 GUIIconSubSys::getIcon(ICON_LOCATEADD), &v, MID_LOCATEADD,
+                 GUIIconSubSys::getIcon(GUIIcon::LOCATEADD), v, MID_LOCATEADD,
                  ICON_ABOVE_TEXT | FRAME_THICK | FRAME_RAISED);
     // for pois
-    new FXButton(v.getLocatorPopup(),
+    new FXButton(v->getLocatorPopup(),
                  "\tLocate PoI\tLocate a PoI within the network.",
-                 GUIIconSubSys::getIcon(ICON_LOCATEPOI), &v, MID_LOCATEPOI,
+                 GUIIconSubSys::getIcon(GUIIcon::LOCATEPOI), v, MID_LOCATEPOI,
                  ICON_ABOVE_TEXT | FRAME_THICK | FRAME_RAISED);
     // for polygons
-    new FXButton(v.getLocatorPopup(),
+    new FXButton(v->getLocatorPopup(),
                  "\tLocate Polygon\tLocate a Polygon within the network.",
-                 GUIIconSubSys::getIcon(ICON_LOCATEPOLY), &v, MID_LOCATEPOLY,
+                 GUIIconSubSys::getIcon(GUIIcon::LOCATEPOLY), v, MID_LOCATEPOLY,
                  ICON_ABOVE_TEXT | FRAME_THICK | FRAME_RAISED);
 }
 
@@ -200,12 +196,18 @@ GUIViewTraffic::buildColorRainbow(const GUIVisualizationSettings& s, GUIColorSch
         for (MSEdgeVector::const_iterator it = edges.begin(); it != edges.end(); ++it) {
             if (MSGlobals::gUseMesoSim) {
                 const double val = static_cast<GUIEdge*>(*it)->getColorValue(s, active);
+                if (val == s.MISSING_DATA) {
+                    continue;
+                }
                 minValue = MIN2(minValue, val);
                 maxValue = MAX2(maxValue, val);
             } else {
                 const std::vector<MSLane*>& lanes = (*it)->getLanes();
                 for (std::vector<MSLane*>::const_iterator it_l = lanes.begin(); it_l != lanes.end(); it_l++) {
                     const double val = static_cast<GUILane*>(*it_l)->getColorValue(s, active);
+                    if (val == s.MISSING_DATA) {
+                        continue;
+                    }
                     minValue = MIN2(minValue, val);
                     maxValue = MAX2(maxValue, val);
                 }
@@ -245,8 +247,12 @@ GUIViewTraffic::buildColorRainbow(const GUIVisualizationSettings& s, GUIColorSch
     if (minValue != std::numeric_limits<double>::infinity()) {
         scheme.clear();
         // add new thresholds
+        if (scheme.getName() == GUIVisualizationSettings::SCHEME_NAME_EDGEDATA_NUMERICAL) {
+            scheme.addColor(RGBColor(204, 204, 204), std::numeric_limits<double>::max(), "missing data");
+        }
         if (hide) {
-            minValue = MAX2(hideThreshold + 1, minValue);
+            const double rawRange = maxValue - minValue;
+            minValue = MAX2(hideThreshold + MIN2(1.0, rawRange / 100.0), minValue);
             scheme.addColor(RGBColor(204, 204, 204), hideThreshold);
         }
         double range = maxValue - minValue;
@@ -304,6 +310,17 @@ GUIViewTraffic::getVehicleParamKeys(bool /*vTypeKeys*/) const {
     return std::vector<std::string>(keys.begin(), keys.end());
 }
 
+std::vector<std::string>
+GUIViewTraffic::getPOIParamKeys() const {
+    std::set<std::string> keys;
+    const ShapeContainer::POIs& pois = static_cast<ShapeContainer&>(GUINet::getInstance()->getShapeContainer()).getPOIs();
+    for (auto item : pois) {
+        for (auto kv : item.second->getParametersMap()) {
+            keys.insert(kv.first);
+        }
+    }
+    return std::vector<std::string>(keys.begin(), keys.end());
+}
 
 int
 GUIViewTraffic::doPaintGL(int mode, const Boundary& bound) {
@@ -320,12 +337,11 @@ GUIViewTraffic::doPaintGL(int mode, const Boundary& bound) {
     glEnable(GL_DEPTH_TEST);
 
     // draw decals (if not in grabbing mode)
-    if (!myUseToolTips) {
-        drawDecals();
-        if (myVisualizationSettings->showGrid) {
-            paintGLGrid();
-        }
+    drawDecals();
+    if (myVisualizationSettings->showGrid) {
+        paintGLGrid();
     }
+    
 
     glLineWidth(1);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

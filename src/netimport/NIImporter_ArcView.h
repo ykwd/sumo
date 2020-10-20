@@ -19,13 +19,7 @@
 ///
 // Importer for networks stored in ArcView-shape format
 /****************************************************************************/
-#ifndef NIImporter_ArcView_h
-#define NIImporter_ArcView_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -117,7 +111,7 @@ private:
     /** @brief Checks whether the lane spread shall be changed
      *
      * If for the given edge an edge into the vice direction is already
-     *  stored, both edges' lane spread functions are set to LANESPREAD_RIGHT.
+     *  stored, both edges' lane spread functions are set to LaneSpreadFunction::RIGHT.
      *
      * @param[in] e The edge to check
      */
@@ -182,9 +176,3 @@ private:
     NIImporter_ArcView& operator=(const NIImporter_ArcView&);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

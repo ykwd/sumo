@@ -18,13 +18,7 @@
 ///
 // Algorithms for network computation
 /****************************************************************************/
-#ifndef NBAlgorithms_h
-#define NBAlgorithms_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <map>
@@ -117,7 +111,7 @@ public:
     public:
         explicit crossing_by_junction_angle_sorter(const NBNode* node, const EdgeVector& ordering);
 
-        int operator()(const NBNode::Crossing* c1, const NBNode::Crossing* c2) const {
+        int operator()(const std::unique_ptr<NBNode::Crossing>& c1, const std::unique_ptr<NBNode::Crossing>& c2) const {
             const int r1 = getMinRank(c1->edges);
             const int r2 = getMinRank(c2->edges);
             if (r1 == r2) {
@@ -262,8 +256,3 @@ private:
     static bool hasDifferentPriorities(const EdgeVector& edges, const NBEdge* excluded);
 
 };
-
-#endif
-
-/****************************************************************************/
-

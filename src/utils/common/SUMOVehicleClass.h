@@ -21,14 +21,7 @@
 ///
 // Definitions of SUMO vehicle classes and helper functions
 /****************************************************************************/
-#ifndef SUMOVehicleClass_h
-#define SUMOVehicleClass_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-
+#pragma once
 #include <string>
 #include <set>
 #include <limits>
@@ -352,6 +345,13 @@ extern bool isSidewalk(SVCPermissions permissions);
  */
 extern bool noVehicles(SVCPermissions permissions);
 
+/** @brief Returns the default vehicle length
+ * This put into a function so it can be used by NBVehicle
+ * @param[in] vc the vehicle class
+ * @return the default length in m
+ */
+extern double getDefaultVehicleLength(const SUMOVehicleClass vc = SVC_IGNORING);
+
 // ---------------------------------------------------------------------------
 // default vehicle type parameter
 // ---------------------------------------------------------------------------
@@ -366,8 +366,3 @@ extern const double DEFAULT_VEH_PROB; // !!! does this belong here?
 extern const double DEFAULT_PEDESTRIAN_SPEED;
 
 extern const double DEFAULT_CONTAINER_TRANSHIP_SPEED;
-
-#endif
-
-/****************************************************************************/
-

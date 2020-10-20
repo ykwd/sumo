@@ -21,13 +21,7 @@
 ///
 // Generates trips to work and to school
 /****************************************************************************/
-#ifndef AGWORKANDSCHOOL_H
-#define AGWORKANDSCHOOL_H
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "../city/AGHousehold.h"
@@ -138,7 +132,3 @@ private:
     std::list<AGTrip> tempAccTrip;
     std::list<AGTrip> tempTrip;
 };
-
-#endif
-
-/****************************************************************************/

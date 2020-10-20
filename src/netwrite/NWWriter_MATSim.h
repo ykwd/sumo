@@ -18,13 +18,7 @@
 ///
 // Exporter writing networks using the MATSim format
 /****************************************************************************/
-#ifndef NWWriter_MATSim_h
-#define NWWriter_MATSim_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -64,9 +58,3 @@ public:
     static void writeNetwork(const OptionsCont& oc, NBNetBuilder& nb);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

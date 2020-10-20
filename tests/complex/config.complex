@@ -12,14 +12,17 @@ copy_test_path:input_routes2.rou.xml
 copy_test_path:input_net.net.xml
 copy_test_path:input_net2.net.xml
 copy_test_path:input_net3.net.xml
+copy_test_path:input_net4.net.xml
 copy_test_path:input_additional.add.xml
 copy_test_path:input_additional2.add.xml
+copy_test_path:input_additional4.add.xml
 copy_test_path:input_definitionA.def.xml
 copy_test_path:input_definitionB.def.xml
 copy_test_path:input_flows.flows.xml
 copy_test_path:input_turns.turns.xml
 copy_test_path:input_types.typ.xml
 copy_test_path:input_types2.typ.xml
+copy_test_path:input_state.xml
 copy_test_path:settings.xml
 copy_test_path:sumo.sumocfg
 copy_test_path:sumo_log.sumocfg
@@ -84,9 +87,14 @@ output:Parsing connections from .*{REPLACE Parsing connections from (FILE)}
 output:Loading vehicle type mappings from file.*{REPLACE Loading vehicle type mappings from file '<vtype.map>'...}
 output:Simulation.*started with{REPLACE Simulation started with}
 output:([0-9]* ms){REPLACE (TIME)}
+output:version .*SUMO .*{REPLACE version SUMO}
 log:Simulation.*started with{REPLACE Simulation started with}
 log:Starting server on port [0-9]*{REPLACE Starting server on port <PORT>}
 log:^Performance:{->}^Vehicles:
+log:traci.start(.*){REPLACE traci.start(ARGS)}
+log:traci.simulation.step(.*){REPLACE traci.simulationStep()}
+log:traci.simulation.getVersion()
+log:traci.close()
 net:<!--{[->]}-->
 vehroutes:<!--{[->]}-->
 vehroutes2:<!--{[->]}-->
@@ -116,6 +124,9 @@ errors:^Ran ([0-9]+) tests in ([0-9\.]*)s{REPLACE Ran \1 tests in <ELAPSED>s}
 errors:Traceback (most recent call last):{->}FatalTraCIError
 errors:data\\{REPLACE data/}
 errors:javax.xml.soap.FactoryFinder find
+errors:Warning: State was written with sumo version
+errors:Warning: Overhead wire solver (Eigen) not compiled in, expect errors in overhead wire simulation
+errors:Error: Overhead wire solver is on, but the Eigen library has not been compiled in!
 ps:%%CreationDate
 
 [unordered_text]

@@ -21,11 +21,6 @@
 ///
 // Krauss car-following model, changing accel and speed by slope
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/geom/GeomHelper.h>
@@ -47,11 +42,16 @@ MSCFModel_KraussPS::~MSCFModel_KraussPS() {}
 
 double
 MSCFModel_KraussPS::maxNextSpeed(double speed, const MSVehicle* const veh) const {
-    const double gravity = 9.80665;
-    const double aMax = MAX2(0., getMaxAccel() - gravity * sin(DEG2RAD(veh->getSlope())));
+    const double aMax = MAX2(0., getMaxAccel() - GRAVITY * sin(DEG2RAD(veh->getSlope())));
     // assuming drag force is proportional to the square of speed
-    const double vMax = sqrt(aMax / getMaxAccel()) * myType->getMaxSpeed();
-    return MIN2(speed + (double) ACCEL2SPEED(aMax), vMax);
+    const double vMax = MAX2(
+                            sqrt(aMax / getMaxAccel()) * myType->getMaxSpeed(),
+                            // prevent emergency braking when inclination changes suddenly (momentum)
+                            speed - ACCEL2SPEED(getMaxDecel()));
+    return MAX2(
+               // prevent stalling at low speed
+               getMaxAccel() / 2,
+               MIN2(speed + ACCEL2SPEED(aMax), vMax));
 }
 
 

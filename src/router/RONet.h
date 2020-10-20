@@ -20,13 +20,7 @@
 ///
 // The router's network representation
 /****************************************************************************/
-#ifndef RONet_h
-#define RONet_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -140,6 +134,9 @@ public:
 
     /// @brief add a taz for every junction unless a taz with the same id already exists
     void addJunctionTaz(ROAbstractEdgeBuilder& eb);
+
+    /// @brief add a taz for every junction unless a taz with the same id already exists
+    void setBidiEdges(const std::map<ROEdge*, std::string>& bidiMap);
 
     /** @brief Retrieves all TAZ (districts) from the network
      *
@@ -409,6 +406,14 @@ public:
 
     void setPermissionsFound();
 
+    /// @brief return whether the network contains bidirectional rail edges
+    bool hasBidiEdges() const {
+        return myHasBidiEdges;
+    }
+
+    /// @brief whether efforts were loaded from file
+    bool hasLoadedEffort() const;
+
     OutputDevice* getRouteOutput(const bool alternative = false) {
         if (alternative) {
             return myRouteAlternativesOutput;
@@ -435,7 +440,7 @@ public:
     public:
         BulkmodeTask(const bool value) : myValue(value) {}
         void run(FXWorkerThread* context) {
-            static_cast<WorkerThread*>(context)->getVehicleRouter().setBulkMode(myValue);
+            static_cast<WorkerThread*>(context)->getVehicleRouter(SVC_IGNORING).setBulkMode(myValue);
         }
     private:
         const bool myValue;
@@ -545,6 +550,9 @@ private:
     /// @brief whether to keep the the vtype distribution in output
     const bool myKeepVTypeDist;
 
+    /// @brief whether the network contains bidirectional railway edges
+    bool myHasBidiEdges;
+
 #ifdef HAVE_FOX
 private:
     class RoutingTask : public FXWorkerThread::Task {
@@ -575,9 +583,3 @@ private:
     RONet& operator=(const RONet& src);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -17,13 +17,7 @@
 ///
 // An algorithm that performs dispatch for the taxi device
 /****************************************************************************/
-#ifndef MSDispatch_h
-#define MSDispatch_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <set>
@@ -33,6 +27,10 @@
 #include <utils/common/SUMOTime.h>
 #include "MSDevice_Taxi.h"
 
+// ===========================================================================
+// class declarations
+// ===========================================================================
+class MSTransportable;
 
 // ===========================================================================
 // class definitions
@@ -77,9 +75,7 @@ struct Reservation {
     }
 
     /// @brief debug identification
-    std::string getID() const {
-        return toString(persons);
-    }
+    std::string getID() const;
 };
 
 /**
@@ -108,16 +104,19 @@ public:
     virtual ~MSDispatch() { }
 
     /// @brief add a new reservation
-    void addReservation(MSTransportable* person,
-                        SUMOTime reservationTime,
-                        SUMOTime pickupTime,
-                        const MSEdge* from, double fromPos,
-                        const MSEdge* to, double toPos,
-                        const std::string& group);
+    virtual Reservation* addReservation(MSTransportable* person,
+                                        SUMOTime reservationTime,
+                                        SUMOTime pickupTime,
+                                        const MSEdge* from, double fromPos,
+                                        const MSEdge* to, double toPos,
+                                        const std::string& group,
+                                        int maxCapacity);
 
     /// @brief computes dispatch and updates reservations
     virtual void computeDispatch(SUMOTime now, const std::vector<MSDevice_Taxi*>& fleet) = 0;
 
+    /// @brief retrieve all reservations
+    std::vector<Reservation*> getReservations();
 
     /// @brief check whether there are still (servable) reservations in the system
     bool hasServableReservations() {
@@ -140,8 +139,6 @@ public:
     bool myHasServableReservations = false;
 
 protected:
-    std::vector<Reservation*> getReservations();
-
     void servedReservation(const Reservation* res);
 
     /// @brief optional file output for dispatch information
@@ -151,61 +148,3 @@ private:
     std::map<std::string, std::vector<Reservation*> > myGroupReservations;
 
 };
-
-
-/**
- * @class MSDispatch_Greedy
- * @brief A dispatch algorithm that services customers in reservation order and always sends the closest available taxi
- */
-class MSDispatch_Greedy : public MSDispatch {
-public:
-    MSDispatch_Greedy(const std::map<std::string, std::string>& params) :
-        MSDispatch(params),
-        myRoutingMode(StringUtils::toInt(getParameter("routingMode", "1"))),
-        myMaximumWaitingTime(TIME2STEPS(StringUtils::toInt(getParameter("maxWaitingTime", "300")))),
-        myRecheckTime(TIME2STEPS(StringUtils::toInt(getParameter("recheckTime", "120")))),
-        myRecheckSafety(TIME2STEPS(StringUtils::toInt(getParameter("recheckSafety", "3600"))))
-    { }
-
-    virtual void computeDispatch(SUMOTime now, const std::vector<MSDevice_Taxi*>& fleet);
-
-protected:
-    /// @brief trigger taxi dispatch. @note: method exists so subclasses can inject code at this point (ride sharing)
-    virtual int dispatch(MSDevice_Taxi* taxi, Reservation* res, SUMOAbstractRouter<MSEdge, SUMOVehicle>& router, std::vector<Reservation*>& reservations);
-
-    /// @brief which router/edge weights to use
-    const int myRoutingMode;
-
-    /// @brief maximum time to arrive earlier at customer
-    const SUMOTime myMaximumWaitingTime;
-
-    /// @brief recheck interval for early reservations
-    const SUMOTime myRecheckTime;
-    const SUMOTime myRecheckSafety;
-
-private:
-    /// @brief Invalidated assignment operator.
-    MSDispatch_Greedy& operator=(const MSDispatch_Greedy&) = delete;
-
-};
-
-
-/**
- * @class MSDispatch_GreedyClosest
- * @brief A dispatch algorithm that services the reservations with the shortest traveltime-to-pickup first
- */
-class MSDispatch_GreedyClosest : public MSDispatch_Greedy {
-public:
-    MSDispatch_GreedyClosest(const std::map<std::string, std::string>& params) :
-        MSDispatch_Greedy(params)
-    {}
-
-    void computeDispatch(SUMOTime now, const std::vector<MSDevice_Taxi*>& fleet);
-
-};
-
-
-#endif
-
-/****************************************************************************/
-

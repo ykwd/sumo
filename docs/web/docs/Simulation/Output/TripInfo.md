@@ -55,7 +55,7 @@ values would not be known.
 | `arrivalSpeed` | m/s                  | The speed the vehicle had when reaching the destination               |
 | `duration`     | (simulation) seconds | The time the vehicle needed to accomplish the route             |
 | `routeLength`  | m                    | The length of the vehicle's route                        |
-| `waitingTime`  | s                    | The time in which the vehicle speed was below 0.1m/s (scheduled [stops](../../Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#stops) do not count)          |
+| `waitingTime`  | s                    | The time in which the vehicle speed was below or equal 0.1m/s (scheduled [stops](../../Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#stops) do not count)          |
 | `stopTime`     | s                    | The time in which the vehicle was taking a planned [stop](../../Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#stops)      |
 | `timeLoss`     | seconds              | The time lost due to driving below the ideal speed. (ideal speed includes [the individual speedFactor](../../Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#speed_distributions); slowdowns due to intersections etc. will incur timeLoss, scheduled [stops](../../Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#stops) do not count) |
 | `rerouteNo`    | \#                   | The number the vehicle has been rerouted              |
@@ -98,6 +98,22 @@ with units as following
 | `PMx_abs`  | mg   | The complete amount of PM<sub>x</sub> emitted by the vehicle during the trip |
 | `NOx_abs`  | mg   | The complete amount of NO<sub>x</sub> emitted by the vehicle during the trip |
 | `fuel_abs` | ml   | The complete amount of fuel the vehicle used during the trip                 |
+
+## Output for vehicles that have not arrived at simulation end
+By default, tripinfo-output is only written on vehicle arrival. This means vehicles that have not arrived at simulation end (i.e. due to option **--end**) generate no output.
+To change this, the option **--tripinfo-output.write-unfinished** can be used.
+
+## Output only for selected vehicles or vehicle types
+By default all vehicles will generated tripinfo-output. By [assigning a tripinfo device](../../Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#devices) to selected vehicles or types, this can be changed.
+
+Example:
+Setting SUMO-option **--device.tripinfo.probability false** will disable the device for all vehicles by default.
+The following definition overrides this default end enables the device for busses:
+```
+<vType id="bus">
+  <param key="has.tripinfo.device" value="true"/>
+</vType>
+```
 
 ## Person and Container Output
 

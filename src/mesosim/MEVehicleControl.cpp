@@ -17,17 +17,11 @@
 ///
 // The class responsible for building and deletion of vehicles (meso-version)
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/common/FileHelpers.h>
 #include <utils/common/MsgHandler.h>
 #include <utils/vehicle/SUMOVTypeParameter.h>
-#include <utils/iodevices/BinaryInputDevice.h>
 #include <utils/iodevices/OutputDevice.h>
 #include <microsim/MSNet.h>
 #include <microsim/MSRouteHandler.h>
@@ -51,13 +45,10 @@ SUMOVehicle*
 MEVehicleControl::buildVehicle(SUMOVehicleParameter* defs,
                                const MSRoute* route, MSVehicleType* type,
                                const bool ignoreStopErrors, const bool fromRouteFile) {
-    myLoadedVehNo++;
     MEVehicle* built = new MEVehicle(defs, route, type, type->computeChosenSpeedDeviation(fromRouteFile ? MSRouteHandler::getParsingRNG() : nullptr));
-    built->addStops(ignoreStopErrors);
-    MSNet::getInstance()->informVehicleStateListener(built, MSNet::VEHICLE_STATE_BUILT);
+    initVehicle(built, ignoreStopErrors);
     return built;
 }
 
 
 /****************************************************************************/
-

@@ -19,12 +19,7 @@
 ///
 // The Intelligent Driver Model (IDM) car-following model
 /****************************************************************************/
-#ifndef MSCFMODEL_IDM_H
-#define MSCFMODEL_IDM_H
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSCFModel.h"
@@ -215,4 +210,3 @@ private:
     MSCFModel_IDM& operator=(const MSCFModel_IDM& s);
 };
 
-#endif /* MSCFMODEL_IDM_H */

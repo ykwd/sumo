@@ -19,13 +19,7 @@
 ///
 // Abstract in-person device
 /****************************************************************************/
-#ifndef MSTransportableDevice_h
-#define MSTransportableDevice_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -89,8 +83,3 @@ private:
     MSTransportableDevice& operator=(const MSTransportableDevice&);
 
 };
-
-
-#endif
-
-/****************************************************************************/

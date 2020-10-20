@@ -19,13 +19,7 @@
 // We may wish to keep references to junctions/nodes either in the network or in the undoList
 // to clean up properly we have to resort to reference counting
 /****************************************************************************/
-#ifndef GNEReferenceCounter_h
-#define GNEReferenceCounter_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/MsgHandler.h>
@@ -42,6 +36,9 @@ class GNEReferenceCounter {
 public:
     //// @brief constructor
     GNEReferenceCounter(): myCount(0) {}
+
+    /// @brief return ID of object
+    virtual const std::string& getID() const = 0;
 
     //// @brief destructor
     ~GNEReferenceCounter() {
@@ -83,18 +80,7 @@ public:
         return myCount == 0;
     }
 
-    /// @brief return ID of object
-    virtual const std::string getID() const = 0;
-
-
 private:
     /// @brief reference counter
     int myCount;
-
 };
-
-
-#endif
-
-/****************************************************************************/
-

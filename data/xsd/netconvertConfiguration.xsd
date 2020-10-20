@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Mon Feb 10 21:16:33 2020 by Eclipse SUMO netconvert Version v1_4_0+1027-bf5720cef5
+<!-- generated on Tue Sep  8 13:06:13 2020 by Eclipse SUMO netconvert Version v1_6_0+2018-124343ba59
 -->
 
 <xsd:schema elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
@@ -135,6 +135,7 @@
             <xsd:element name="offset.z" type="floatOptionType" minOccurs="0"/>
             <xsd:element name="flip-y-axis" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="roundabouts.guess" type="boolOptionType" minOccurs="0"/>
+            <xsd:element name="roundabouts.visibility-distance" type="floatOptionType" minOccurs="0"/>
             <xsd:element name="opposites.guess" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="opposites.guess.fix-lengths" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="fringe.guess" type="boolOptionType" minOccurs="0"/>
@@ -143,6 +144,7 @@
             <xsd:element name="speed.offset" type="floatOptionType" minOccurs="0"/>
             <xsd:element name="speed.factor" type="floatOptionType" minOccurs="0"/>
             <xsd:element name="speed.minimum" type="floatOptionType" minOccurs="0"/>
+            <xsd:element name="edges.join-tram-dist" type="floatOptionType" minOccurs="0"/>
         </xsd:all>
     </xsd:complexType>
 
@@ -150,6 +152,7 @@
         <xsd:all>
             <xsd:element name="default.lanenumber" type="intOptionType" minOccurs="0"/>
             <xsd:element name="default.lanewidth" type="floatOptionType" minOccurs="0"/>
+            <xsd:element name="default.spreadtype" type="strOptionType" minOccurs="0"/>
             <xsd:element name="default.speed" type="floatOptionType" minOccurs="0"/>
             <xsd:element name="default.priority" type="intOptionType" minOccurs="0"/>
             <xsd:element name="default.type" type="strOptionType" minOccurs="0"/>
@@ -159,6 +162,7 @@
             <xsd:element name="default.disallow" type="strOptionType" minOccurs="0"/>
             <xsd:element name="default.junctions.keep-clear" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="default.junctions.radius" type="floatOptionType" minOccurs="0"/>
+            <xsd:element name="default.connection-length" type="floatOptionType" minOccurs="0"/>
             <xsd:element name="default.right-of-way" type="strOptionType" minOccurs="0"/>
         </xsd:all>
     </xsd:complexType>
@@ -283,6 +287,7 @@
             <xsd:element name="crossings.guess" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="crossings.guess.speed-threshold" type="floatOptionType" minOccurs="0"/>
             <xsd:element name="walkingareas" type="boolOptionType" minOccurs="0"/>
+            <xsd:element name="walkingareas.join-dist" type="floatOptionType" minOccurs="0"/>
         </xsd:all>
     </xsd:complexType>
 
@@ -301,8 +306,10 @@
             <xsd:element name="railway.signals.discard" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="railway.topology.repair" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="railway.topology.repair.connect-straight" type="boolOptionType" minOccurs="0"/>
+            <xsd:element name="railway.topology.repair.stop-turn" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="railway.topology.all-bidi" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="railway.topology.all-bidi.input-file" type="fileOptionType" minOccurs="0"/>
+            <xsd:element name="railway.topology.direction-priority" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="railway.access-distance" type="floatOptionType" minOccurs="0"/>
             <xsd:element name="railway.max-accesses" type="intOptionType" minOccurs="0"/>
             <xsd:element name="railway.access-factor" type="floatOptionType" minOccurs="0"/>
@@ -311,6 +318,7 @@
 
     <xsd:complexType name="formatsTopicType">
         <xsd:all>
+            <xsd:element name="discard-params" type="strArrayOptionType" minOccurs="0"/>
             <xsd:element name="osm.skip-duplicates-check" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="osm.elevation" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="osm.layer-elevation" type="floatOptionType" minOccurs="0"/>
@@ -335,6 +343,8 @@
             <xsd:element name="shapefile.use-defaults-on-failure" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="shapefile.all-bidirectional" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="shapefile.guess-projection" type="boolOptionType" minOccurs="0"/>
+            <xsd:element name="shapefile.traditional-axis-mapping" type="boolOptionType" minOccurs="0"/>
+            <xsd:element name="dlr-navteq.tolerant-permissions" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="vissim.join-distance" type="floatOptionType" minOccurs="0"/>
             <xsd:element name="vissim.default-speed" type="floatOptionType" minOccurs="0"/>
             <xsd:element name="vissim.speed-norm" type="floatOptionType" minOccurs="0"/>

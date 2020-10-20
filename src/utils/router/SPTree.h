@@ -18,13 +18,7 @@
 ///
 // Shortest Path tree of limited depth using Dijkstras algorithm
 /****************************************************************************/
-#ifndef SPTree_h
-#define SPTree_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -239,8 +233,3 @@ private:
     /// @brief vector of needed shortcuts after validation
     CHConnectionPairs myNeededShortcuts;
 };
-
-#endif
-
-/****************************************************************************/
-

@@ -17,13 +17,7 @@
 ///
 // Abstract base class for vehicle and person representations
 /****************************************************************************/
-#ifndef SUMOTrafficObject_h
-#define SUMOTrafficObject_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -37,6 +31,7 @@
 // class declarations
 // ===========================================================================
 class MSVehicleType;
+class SUMOVehicleParameter;
 class MSEdge;
 class MSLane;
 class Position;
@@ -83,6 +78,28 @@ public:
      */
     virtual const MSVehicleType& getVehicleType() const = 0;
 
+    /** @brief Replaces the current vehicle type by the one given
+    *
+    * If the currently used vehicle type is marked as being used by this object
+    *  only, it is deleted, first. The new, given type is then assigned to
+    *  "myVType".
+    * @param[in] type The new vehicle type
+    * @see MSTransportable::myVType
+    */
+    virtual void replaceVehicleType(MSVehicleType* type) = 0;
+
+
+    /** @brief Returns the vehicle's parameter (including departure definition)
+     *
+     * @return The vehicle's parameter
+     */
+    virtual const SUMOVehicleParameter& getParameter() const = 0;
+
+    /** @brief Returns the associated RNG for this object
+    * @return The vehicle's associated RNG
+    */
+    virtual std::mt19937* getRNG() const = 0;
+
     /** @brief Returns whether the object is at a stop
      * @return Whether it has stopped
      */
@@ -94,7 +111,7 @@ public:
      */
     virtual const MSEdge* getEdge() const = 0;
 
-    /** @brief Returns the slope of the road at object's position
+    /** @brief Returns the slope of the road at object's position in degrees
      * @return The slope
      */
     virtual double getSlope() const = 0;
@@ -159,8 +176,3 @@ public:
     virtual bool hasArrived() const = 0;
 
 };
-
-
-#endif
-
-/****************************************************************************/

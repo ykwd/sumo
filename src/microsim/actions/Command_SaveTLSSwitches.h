@@ -18,13 +18,7 @@
 ///
 // Writes information about the green durations of a tls
 /****************************************************************************/
-#ifndef Command_SaveTLSSwitches_h
-#define Command_SaveTLSSwitches_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -103,9 +97,3 @@ private:
     Command_SaveTLSSwitches& operator=(const Command_SaveTLSSwitches&);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

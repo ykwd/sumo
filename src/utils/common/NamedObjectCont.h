@@ -19,14 +19,7 @@
 ///
 // A map of named object pointers
 /****************************************************************************/
-#ifndef NamedObjectCont_h
-#define NamedObjectCont_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-
+#pragma once
 #include <map>
 #include <string>
 #include <vector>
@@ -159,9 +152,3 @@ private:
     /// @brief The map from key to object
     IDMap myMap;
 };
-
-
-#endif
-
-/****************************************************************************/
-

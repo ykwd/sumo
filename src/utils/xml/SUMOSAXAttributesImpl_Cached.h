@@ -17,13 +17,7 @@
 ///
 // Encapsulated xml-attributes that use a map from string-attr-names to string-attr-values as backend
 /****************************************************************************/
-#ifndef SUMOSAXAttributesImpl_Cached_h
-#define SUMOSAXAttributesImpl_Cached_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -53,7 +47,7 @@ public:
      * @param[in] objectType object type in string format
      */
     SUMOSAXAttributesImpl_Cached(const std::map<std::string, std::string>& attrs,
-                                 const std::map<int, std::string>& predefinedTagsMML,
+                                 const std::vector<std::string>& predefinedTagsMML,
                                  const std::string& objectType);
 
     /** @brief Constructor
@@ -63,7 +57,7 @@ public:
      * @param[in] objectType object type in string format
      */
     SUMOSAXAttributesImpl_Cached(const std::map<SumoXMLAttr, std::string>& attrs,
-                                 const std::map<int, std::string>& predefinedTagsMML,
+                                 const std::vector<std::string>& predefinedTagsMML,
                                  const std::string& objectType);
 
     /// @brief Destructor
@@ -289,7 +283,7 @@ private:
     std::map<std::string, std::string> myAttrs;
 
     /// @brief Map of attribute ids to their (readable) string-representation
-    const std::map<int, std::string>& myPredefinedTagsMML;
+    const std::vector<std::string>& myPredefinedTagsMML;
 
 private:
     /// @brief Invalidated copy constructor.
@@ -298,9 +292,3 @@ private:
     /// @brief Invalidated assignment operator.
     SUMOSAXAttributesImpl_Cached& operator=(const SUMOSAXAttributesImpl_Cached& src) = delete;
 };
-
-
-#endif
-
-/****************************************************************************/
-

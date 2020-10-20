@@ -20,13 +20,7 @@
 ///
 // The car-following model and parameter
 /****************************************************************************/
-#ifndef MSVehicleType_h
-#define MSVehicleType_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <cassert>
@@ -45,7 +39,6 @@
 // class declarations
 // ===========================================================================
 class MSLane;
-class BinaryInputDevice;
 class MSCFModel;
 class SUMOVTypeParameter;
 
@@ -607,9 +600,3 @@ private:
     /// @brief Invalidated assignment operator
     MSVehicleType& operator=(const MSVehicleType&) = delete;
 };
-
-
-#endif
-
-/****************************************************************************/
-

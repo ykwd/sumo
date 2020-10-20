@@ -17,15 +17,11 @@
 ///
 // A abstract class for editing additional elements
 /****************************************************************************/
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/gui/windows/GUIAppEnum.h>
 #include <utils/gui/div/GUIDesigns.h>
-#include <netedit/additionals/GNEAdditional.h>
+#include <netedit/GNENet.h>
 #include <netedit/GNEViewNet.h>
 #include <netedit/GNEUndoList.h>
 
@@ -36,12 +32,12 @@
 // ===========================================================================
 
 FXDEFMAP(GNEAdditionalDialog) GNEAdditionalDialogMap[] = {
-    FXMAPFUNC(SEL_KEYPRESS,     0,                                      GNEAdditionalDialog::onKeyPress),
-    FXMAPFUNC(SEL_KEYRELEASE,   0,                                      GNEAdditionalDialog::onKeyRelease),
-    FXMAPFUNC(SEL_CLOSE,        0,                                      GNEAdditionalDialog::onCmdCancel),
-    FXMAPFUNC(SEL_COMMAND,      MID_GNE_ADDITIONALDIALOG_BUTTONACCEPT,  GNEAdditionalDialog::onCmdAccept),
-    FXMAPFUNC(SEL_COMMAND,      MID_GNE_ADDITIONALDIALOG_BUTTONCANCEL,  GNEAdditionalDialog::onCmdCancel),
-    FXMAPFUNC(SEL_COMMAND,      MID_GNE_ADDITIONALDIALOG_BUTTONRESET,   GNEAdditionalDialog::onCmdReset),
+    FXMAPFUNC(SEL_KEYPRESS,     0,                      GNEAdditionalDialog::onKeyPress),
+    FXMAPFUNC(SEL_KEYRELEASE,   0,                      GNEAdditionalDialog::onKeyRelease),
+    FXMAPFUNC(SEL_CLOSE,        0,                      GNEAdditionalDialog::onCmdCancel),
+    FXMAPFUNC(SEL_COMMAND,      MID_GNE_BUTTON_ACCEPT,  GNEAdditionalDialog::onCmdAccept),
+    FXMAPFUNC(SEL_COMMAND,      MID_GNE_BUTTON_CANCEL,  GNEAdditionalDialog::onCmdCancel),
+    FXMAPFUNC(SEL_COMMAND,      MID_GNE_BUTTON_RESET,   GNEAdditionalDialog::onCmdReset),
 };
 
 // Object abstract implementation
@@ -52,7 +48,7 @@ FXIMPLEMENT_ABSTRACT(GNEAdditionalDialog, FXTopWindow, GNEAdditionalDialogMap, A
 // ===========================================================================
 
 GNEAdditionalDialog::GNEAdditionalDialog(GNEAdditional* editedAdditional, bool updatingElement, int width, int height) :
-    FXTopWindow(editedAdditional->getViewNet(), ("Edit '" + editedAdditional->getID() + "' data").c_str(), editedAdditional->getIcon(), editedAdditional->getIcon(), GUIDesignDialogBoxExplicit(width, height)),
+    FXTopWindow(editedAdditional->getNet()->getViewNet(), ("Edit '" + editedAdditional->getID() + "' data").c_str(), editedAdditional->getIcon(), editedAdditional->getIcon(), GUIDesignDialogBoxExplicit(width, height)),
     myEditedAdditional(editedAdditional),
     myUpdatingElement(updatingElement),
     myChangesDescription("change " + editedAdditional->getTagStr() + " values"),
@@ -64,9 +60,9 @@ GNEAdditionalDialog::GNEAdditionalDialog(GNEAdditional* editedAdditional, bool u
     // create buttons centered
     FXHorizontalFrame* buttonsFrame = new FXHorizontalFrame(mainFrame, GUIDesignHorizontalFrame);
     new FXHorizontalFrame(buttonsFrame, GUIDesignAuxiliarHorizontalFrame);
-    myAcceptButton = new FXButton(buttonsFrame, "accept\t\tclose accepting changes",  GUIIconSubSys::getIcon(ICON_ACCEPT), this, MID_GNE_ADDITIONALDIALOG_BUTTONACCEPT, GUIDesignButtonAccept);
-    myCancelButton = new FXButton(buttonsFrame, "cancel\t\tclose discarding changes", GUIIconSubSys::getIcon(ICON_CANCEL), this, MID_GNE_ADDITIONALDIALOG_BUTTONCANCEL, GUIDesignButtonCancel);
-    myResetButton = new FXButton(buttonsFrame,  "reset\t\treset to previous values",  GUIIconSubSys::getIcon(ICON_RESET),  this, MID_GNE_ADDITIONALDIALOG_BUTTONRESET,  GUIDesignButtonReset);
+    myAcceptButton = new FXButton(buttonsFrame, "accept\t\tclose accepting changes",  GUIIconSubSys::getIcon(GUIIcon::ACCEPT), this, MID_GNE_BUTTON_ACCEPT, GUIDesignButtonAccept);
+    myCancelButton = new FXButton(buttonsFrame, "cancel\t\tclose discarding changes", GUIIconSubSys::getIcon(GUIIcon::CANCEL), this, MID_GNE_BUTTON_CANCEL, GUIDesignButtonCancel);
+    myResetButton = new FXButton(buttonsFrame,  "reset\t\treset to previous values",  GUIIconSubSys::getIcon(GUIIcon::RESET),  this, MID_GNE_BUTTON_RESET,  GUIDesignButtonReset);
     new FXHorizontalFrame(buttonsFrame, GUIDesignAuxiliarHorizontalFrame);
 }
 
@@ -118,34 +114,35 @@ GNEAdditionalDialog::changeAdditionalDialogHeader(const std::string& newHeader) 
 void
 GNEAdditionalDialog::initChanges() {
     // init commandGroup
-    myEditedAdditional->getViewNet()->getUndoList()->p_begin(myChangesDescription);
+    myEditedAdditional->getNet()->getViewNet()->getUndoList()->p_begin(myChangesDescription);
     // save number of command group changes
-    myNumberOfChanges = myEditedAdditional->getViewNet()->getUndoList()->currentCommandGroupSize();
+    myNumberOfChanges = myEditedAdditional->getNet()->getViewNet()->getUndoList()->currentCommandGroupSize();
 }
 
 
 void
 GNEAdditionalDialog::acceptChanges() {
     // commit changes or abort last command group depending of number of changes did
-    if (myNumberOfChanges < myEditedAdditional->getViewNet()->getUndoList()->currentCommandGroupSize()) {
-        myEditedAdditional->getViewNet()->getUndoList()->p_end();
+    if (myNumberOfChanges < myEditedAdditional->getNet()->getViewNet()->getUndoList()->currentCommandGroupSize()) {
+        myEditedAdditional->getNet()->getViewNet()->getUndoList()->p_end();
     } else {
-        myEditedAdditional->getViewNet()->getUndoList()->p_abortLastCommandGroup();
+        myEditedAdditional->getNet()->getViewNet()->getUndoList()->p_abortLastCommandGroup();
     }
 }
 
 
 void
 GNEAdditionalDialog::cancelChanges() {
-    myEditedAdditional->getViewNet()->getUndoList()->p_abortLastCommandGroup();
+    myEditedAdditional->getNet()->getViewNet()->getUndoList()->p_abortLastCommandGroup();
 }
 
 
 void
 GNEAdditionalDialog::resetChanges() {
     // abort last command group an start editing again
-    myEditedAdditional->getViewNet()->getUndoList()->p_abortLastCommandGroup();
-    myEditedAdditional->getViewNet()->getUndoList()->p_begin(myChangesDescription);
+    myEditedAdditional->getNet()->getViewNet()->getUndoList()->p_abortLastCommandGroup();
+    myEditedAdditional->getNet()->getViewNet()->getUndoList()->p_begin(myChangesDescription);
 }
+
 
 /****************************************************************************/

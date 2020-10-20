@@ -3,12 +3,12 @@ title: Developer/Network Building Process
 permalink: /Developer/Network_Building_Process/
 ---
 
-[NETCONVERT](../NETCONVERT.md),
-[NETGENERATE](../NETGENERATE.md), and [NETEDIT](../NETEDIT.md)
+[netconvert](../netconvert.md),
+[netgenerate](../netgenerate.md), and [netedit](../netedit.md)
 share the same process of building networks which is started as soon as
-data are read (in [NETCONVERT](../NETCONVERT.md)) or after an
+data are read (in [netconvert](../netconvert.md)) or after an
 internal description is generated (in
-[NETGENERATE](../NETGENERATE.md)).
+[netgenerate](../netgenerate.md)).
 
 The process requires that at least nodes and edges are given, optionally
 also connections between edges and/or lanes and other optional
@@ -49,7 +49,7 @@ network. Optional steps are in *italics*.
   3.  Computing traffic light logics
 7.  Finishing inner edges
 
-These computation steps are perfomed within void
+These computation steps are performed within void
 NBNetBuilder::compute(OptionsCont &oc). These steps are described more
 detailed in the following.
 
@@ -77,7 +77,7 @@ The following sub-steps are done:
   **Purpose**: Join network graph nodes which form a single
   intersection.
   *post-condition*: junction joined, attributes as above
-  *affects*: removes and adds nodes, removes edges, remapps
+  *affects*: removes and adds nodes, removes edges, remaps
   connections (tbd)
   *state*: tbd
 
@@ -295,7 +295,7 @@ following three cases must be distinguished:
 | ![<File:laneShapeOutsideOfNodeShape.png>](../images/LaneShapeOutsideOfNodeShape.png "File:laneShapeOutsideOfNodeShape.png")                | The edge shape is outside the node shape. The the present algorithm extrapolates the last line of the edge shape and enlarges the edge to the new intersection point. This looks reasonable to me as well. |
 | ![<File:laneShapeInsideOfNodeShape.png>](../images/LaneShapeInsideOfNodeShape.png "File:laneShapeInsideOfNodeShape.png")                   | The edge shape is completely within the node shape. What should happen here? (The red dots show, what netconvert does at present.)                                                                         |
 
-So I am wondering, what the right behaviour of netconvert would be in
+So I am wondering, what the right behavior of netconvert would be in
 the third case.
 
 ## Steps \#20-\#22: Computing right-of-way rules

@@ -19,13 +19,7 @@
 ///
 // The class responsible for building and deletion of vehicles
 /****************************************************************************/
-#ifndef MSVehicleControl_h
-#define MSVehicleControl_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <cmath>
@@ -47,6 +41,7 @@
 // ===========================================================================
 class SUMOVehicle;
 class SUMOVehicleParameter;
+class MSBaseVehicle;
 class MSVehicle;
 class MSRoute;
 class MSVehicleType;
@@ -146,6 +141,11 @@ public:
      */
     virtual void deleteVehicle(SUMOVehicle* v, bool discard = false);
 
+    void fixVehicleCounts() {
+        myLoadedVehNo++;
+        myEndedVehNo++;
+        myDiscarded++;
+    }
 
     /** @brief Removes a vehicle after it has ended
      *
@@ -275,9 +275,10 @@ public:
      * considering that "frac" of all vehicles shall be emitted overall
      * if a negative fraction is given the demand scaling factor is used
      * (--scale)
+     * if a negative loaded number is is given, myLoadedVehNo is used
      * @return the number of vehicles to create (something between 0 and ceil(frac))
      */
-    int getQuota(double frac = -1) const;
+    int getQuota(double frac = -1, int loaded = -1) const;
 
 
     /** @brief Returns the number of build vehicles that have not been removed or
@@ -315,6 +316,11 @@ public:
     /// @brief return the number of emergency stops
     int getEmergencyStops() const {
         return myEmergencyStops;
+    }
+
+    /// @brief return the number of vehicles that are currently stopped
+    int getStoppedVehiclesCount() const {
+        return myStoppedVehicles;
     }
 
     /** @brief Returns the total departure delay
@@ -463,6 +469,16 @@ public:
         myEmergencyStops++;
     }
 
+    /// @brief register emergency stop
+    void registerStopStarted() {
+        myStoppedVehicles++;
+    }
+
+    /// @brief register emergency stop
+    void registerStopEnded() {
+        myStoppedVehicles--;
+    }
+
     /// @name State I/O
     /// @{
 
@@ -473,17 +489,16 @@ public:
     /** @brief Saves the current state into the given stream
      */
     void saveState(OutputDevice& out);
+
+    /** @brief Remove all vehicles before quick-loading state */
+    void clearState();
     /// @}
 
-    /// @brief avoid counting a vehicle twice if it was loaded from state and route input
-    void discountStateLoaded(bool removed = false) {
-        if (removed) {
-            myRunningVehNo--;
-            myDiscarded++;
-            myEndedVehNo++;
-        } else {
-            myLoadedVehNo--;
-        }
+    /// @brief discount vehicles that were removed during state loading
+    void discountStateRemoved(int n) {
+        myRunningVehNo -= n;
+        myDiscarded += n;
+        myEndedVehNo += n;
     }
 
 
@@ -521,13 +536,15 @@ private:
     bool isPendingRemoval(SUMOVehicle* veh);
 
 protected:
+    void initVehicle(MSBaseVehicle* built, const bool ignoreStopErrors);
+
+private:
     /// @name Vehicle statistics (always accessible)
     /// @{
 
     /// @brief The number of build vehicles
     int myLoadedVehNo;
 
-private:
     /// @brief The number of vehicles within the network (build and inserted but not removed)
     int myRunningVehNo;
 
@@ -552,6 +569,8 @@ private:
     /// @brief The number of emergency stops
     int myEmergencyStops;
 
+    /// @brief The number of stopped vehicles
+    int myStoppedVehicles;
     /// @}
 
 
@@ -606,6 +625,9 @@ private:
     /// @brief Whether the default bicycle type was already used or can still be replaced
     bool myDefaultBikeTypeMayBeDeleted;
 
+    /// @brief Whether the default taxi type was already used or can still be replaced
+    bool myDefaultTaxiTypeMayBeDeleted;
+
     /// the number of vehicles wainting for persons contained in myWaiting which can only continue by being triggered
     int myWaitingForPerson;
 
@@ -640,9 +662,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

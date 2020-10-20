@@ -19,13 +19,7 @@
 ///
 // Importer for network nodes stored in XML
 /****************************************************************************/
-#ifndef NIXMLNodesHandler_h
-#define NIXMLNodesHandler_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/xml/SUMOSAXHandler.h>
@@ -171,9 +165,3 @@ private:
     NIXMLNodesHandler& operator=(const NIXMLNodesHandler& s);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -18,11 +18,6 @@
 ///
 // A MSContainer extended by some values for usage within the gui
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <cmath>
@@ -150,7 +145,7 @@ GUIContainer::getPopUpMenu(GUIMainWindow& app,
 
     buildShowParamsPopupEntry(ret);
     buildShowTypeParamsPopupEntry(ret);
-    new FXMenuCommand(ret, "Show Plan", GUIIconSubSys::getIcon(ICON_APP_TABLE), ret, MID_SHOWPLAN);
+    new FXMenuCommand(ret, "Show Plan", GUIIconSubSys::getIcon(GUIIcon::APP_TABLE), ret, MID_SHOWPLAN);
     new FXMenuSeparator(ret);
     buildPositionCopyEntry(ret, false);
     return ret;
@@ -447,5 +442,6 @@ GUIContainer::drawAction_drawAsImage(const GUIVisualizationSettings& s) const {
         drawAction_drawAsPoly(s);
     }
 }
-/****************************************************************************/
 
+
+/****************************************************************************/

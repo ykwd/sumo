@@ -17,13 +17,7 @@
 ///
 // Realises dumping the complete network state
 /****************************************************************************/
-#ifndef MSAmitranTrajectories_h
-#define MSAmitranTrajectories_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/SUMOTime.h>
@@ -90,9 +84,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

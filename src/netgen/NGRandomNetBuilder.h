@@ -19,13 +19,7 @@
 ///
 // Additional structures for building random nets
 /****************************************************************************/
-#ifndef NGRandomNetBuilder_h
-#define NGRandomNetBuilder_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <map>
@@ -163,9 +157,3 @@ private:
     NGRandomNetBuilder& operator=(const NGRandomNetBuilder&);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

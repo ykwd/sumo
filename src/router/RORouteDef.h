@@ -19,13 +19,7 @@
 ///
 // Base class for a vehicle's route definition
 /****************************************************************************/
-#ifndef RORouteDef_h
-#define RORouteDef_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -194,9 +188,3 @@ private:
     RORouteDef& operator=(const RORouteDef& src);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

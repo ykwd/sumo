@@ -20,11 +20,6 @@
 ///
 // APIs for getting/setting edge values via TraCI
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/common/StdDefs.h>
@@ -281,6 +276,19 @@ TraCIServerAPI_Simulation::processGet(TraCIServer& server, tcpip::Storage& input
                 server.getWrapperStorage().writeString(libsumo::Simulation::getParameter(id, paramName));
                 break;
             }
+            case libsumo::VAR_PARAMETER_WITH_KEY: {
+                std::string paramName = "";
+                if (!server.readTypeCheckingString(inputStorage, paramName)) {
+                    return server.writeErrorStatusCmd(libsumo::CMD_GET_SIM_VARIABLE, "Retrieval of a parameter requires its name.", outputStorage);
+                }
+                server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_COMPOUND);
+                server.getWrapperStorage().writeInt(2);  /// length
+                server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_STRING);
+                server.getWrapperStorage().writeString(paramName);
+                server.getWrapperStorage().writeUnsignedByte(libsumo::TYPE_STRING);
+                server.getWrapperStorage().writeString(libsumo::Simulation::getParameter(id, paramName));
+                break;
+            }
             default:
                 return server.writeErrorStatusCmd(libsumo::CMD_GET_SIM_VARIABLE, "Get Simulation Variable: unsupported variable " + toHex(variable, 2) + " specified", outputStorage);
         }
@@ -301,6 +309,7 @@ TraCIServerAPI_Simulation::processSet(TraCIServer& server, tcpip::Storage& input
     int variable = inputStorage.readUnsignedByte();
     if (variable != libsumo::CMD_CLEAR_PENDING_VEHICLES
             && variable != libsumo::CMD_SAVE_SIMSTATE
+            && variable != libsumo::CMD_LOAD_SIMSTATE
             && variable != libsumo::CMD_MESSAGE
        ) {
         return server.writeErrorStatusCmd(libsumo::CMD_SET_SIM_VARIABLE, "Set Simulation Variable: unsupported variable " + toHex(variable, 2) + " specified", outputStorage);
@@ -326,6 +335,16 @@ TraCIServerAPI_Simulation::processSet(TraCIServer& server, tcpip::Storage& input
                     return server.writeErrorStatusCmd(libsumo::CMD_SET_SIM_VARIABLE, "A string is needed for saving simulation state.", outputStorage);
                 }
                 libsumo::Simulation::saveState(file);
+            }
+            break;
+            case libsumo::CMD_LOAD_SIMSTATE: {
+                //quick-load simulation state
+                std::string file;
+                if (!server.readTypeCheckingString(inputStorage, file)) {
+                    return server.writeErrorStatusCmd(libsumo::CMD_SET_SIM_VARIABLE, "A string is needed for loading simulation state.", outputStorage);
+                }
+                double time = libsumo::Simulation::loadState(file);
+                TraCIServer::getInstance()->stateLoaded(TIME2STEPS(time));
             }
             break;
             case libsumo::CMD_MESSAGE: {

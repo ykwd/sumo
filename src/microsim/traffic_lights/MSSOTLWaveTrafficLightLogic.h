@@ -18,12 +18,7 @@
 ///
 // The class for SOTL Platoon logics
 /****************************************************************************/
-#ifndef MSSOTLWaveTrafficLightLogic_h
-#define MSSOTLWaveTrafficLightLogic_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSSOTLTrafficLightLogic.h"
@@ -81,6 +76,3 @@ private:
     int countVehicles();
 
 };
-
-#endif
-/****************************************************************************/

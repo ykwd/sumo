@@ -20,14 +20,7 @@
 ///
 // A test execution class
 /****************************************************************************/
-#ifndef TRACITESTCLIENT_H
-#define TRACITESTCLIENT_H
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-#include <config.h>
-
+#pragma once
 #include <string>
 #include <sstream>
 #include <vector>
@@ -189,6 +182,34 @@ private:
     /// @brief call all API methods once
     void testAPI();
 
+    inline std::string joinToString(const std::vector<std::string>& s, const std::string& between) {
+        std::ostringstream oss;
+        bool connect = false;
+        for (const std::string& it : s) {
+            if (connect) {
+                oss << between;
+            } else {
+                connect = true;
+            }
+            oss << it;
+        }
+        return oss.str();
+    }
+
+    inline std::string joinToString(const std::map<std::string, std::string>& m) {
+        std::ostringstream oss;
+        bool connect = false;
+        for (const auto& it : m) {
+            if (connect) {
+                oss << " ";
+            } else {
+                connect = true;
+            }
+            oss << it.first << ":" << it.second;
+        }
+        return oss.str();
+    }
+
 private:
     /// @brief The name of the file to write the results log into
     std::string outputFileName;
@@ -198,4 +219,3 @@ private:
 
 };
 
-#endif

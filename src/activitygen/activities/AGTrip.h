@@ -23,13 +23,7 @@
 ///
 // Class containing all information of a given trip (car, bus)
 /****************************************************************************/
-#ifndef AGTRIP_H
-#define AGTRIP_H
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <list>
@@ -142,7 +136,3 @@ private:
     int myDay;
     std::list<AGPosition> myPassBy;
 };
-
-#endif
-
-/****************************************************************************/

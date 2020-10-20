@@ -19,14 +19,7 @@
 ///
 // A simple vector of doubles
 /****************************************************************************/
-#ifndef VectorHelper_h
-#define VectorHelper_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-
+#pragma once
 #include <vector>
 #include <limits>
 #include <algorithm>
@@ -161,10 +154,3 @@ std::ostream& operator<<(std::ostream& os, const std::vector<T>& v) {
     }
     return os;
 }
-
-
-
-#endif
-
-/****************************************************************************/
-

@@ -24,11 +24,6 @@
 //     Control Vehicles. Transportation Research Record: Journal of the
 //     Transportation Research Board, No. 2623, 2017. (DOI: 10.3141/2623-01).
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <stdio.h>
@@ -170,7 +165,7 @@ double MSCFModel_ACC::accelSpeedControl(double vErr) const {
     return mySpeedControlGain * vErr;
 }
 
-double MSCFModel_ACC::accelGapControl(const MSVehicle* const veh, const double gap2pred, const double speed, const double predSpeed, double vErr) const {
+double MSCFModel_ACC::accelGapControl(const MSVehicle* const /* veh */, const double gap2pred, const double speed, const double predSpeed, double vErr) const {
 
 #ifdef DEBUG_ACC
     if (DEBUG_COND) {
@@ -181,10 +176,7 @@ double MSCFModel_ACC::accelGapControl(const MSVehicle* const veh, const double g
 // Gap control law
     double gclAccel = 0.0;
     double desSpacing = myHeadwayTime * speed;
-// The argument gap2pred does not consider minGap ->  substract minGap!!
-// XXX: It does! (Leo)
-    double gap = gap2pred - veh->getVehicleType().getMinGap();
-    double spacingErr = gap - desSpacing;
+    double spacingErr = gap2pred - desSpacing;
     double deltaVel = predSpeed - speed;
 
 

@@ -19,13 +19,7 @@
 ///
 // Importer for networks stored in SUMO format
 /****************************************************************************/
-#ifndef NIImporter_SUMO_h
-#define NIImporter_SUMO_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -177,7 +171,8 @@ private:
      * @struct Connection
      * @brief A connection description.
      */
-    struct Connection : public Parameterised {
+    class Connection final : public Parameterised {
+    public:
         /// @brief The id of the target edge
         std::string toEdgeID;
         /// @brief The index of the target lane
@@ -189,7 +184,9 @@ private:
         int tlLinkIndex2;
         /// @brief Information about being definitely free to drive (on-ramps)
         bool mayDefinitelyPass;
-        /// @brief Whether the junction must be kept clear coming from this connection
+        /* @brief Whether the junction must be kept clear coming from this connection
+         * @note: The enum NBEdge::KeepClear is not needed here because data
+         *        from a .net.xml is fully specified */
         bool keepClear;
         /// @brief custom position for internal junction on this connection
         double contPos;
@@ -199,6 +196,8 @@ private:
         SVCPermissions permissions;
         /// @brief custom speed for connection
         double speed;
+        /// @brief custom length for connection
+        double customLength;
         /// @brief custom shape connection
         PositionVector customShape;
         /// @brief if set to true, This connection will not be TLS-controlled despite its node being controlled.
@@ -209,7 +208,8 @@ private:
     /** @struct LaneAttrs
      * @brief Describes the values found in a lane's definition
      */
-    struct LaneAttrs : public Parameterised {
+    class LaneAttrs final : public Parameterised {
+    public:
         /// @brief The maximum velocity allowed on this lane
         double maxSpeed;
         /// @brief This lane's shape (may be custom)
@@ -240,7 +240,8 @@ private:
     /** @struct EdgeAttrs
      * @brief Describes the values found in an edge's definition and this edge's lanes
      */
-    struct EdgeAttrs : public Parameterised {
+    class EdgeAttrs final : public Parameterised {
+    public:
         /// @brief This edge's id
         std::string id;
         /// @brief This edge's street name
@@ -393,6 +394,10 @@ private:
     bool myCheckLaneFoesRoundabout;
     /// @brief whether some right-of-way checks at traffic light junctions should be disabled
     bool myTlsIgnoreInternalJunctionJam;
+    /// @brief default spreadType defined in the network
+    std::string myDefaultSpreadType;
+    /// @brief overlap option for loaded network
+    bool myGeomAvoidOverlap;
 
     /// @brief loaded roundabout edges
     std::vector<std::vector<std::string> > myRoundabouts;
@@ -400,6 +405,10 @@ private:
     /// @brief list of node id with rail signals (no NBTrafficLightDefinition exists)
     std::set<std::string> myRailSignals;
 
+    /// @brief list of parameter keys to discard
+    std::set<std::string> myDiscardableParams;
+
+private:
     /** @brief Parses lane index from lane ID an retrieve lane from EdgeAttrs
      * @param[in] edge The EdgeAttrs* which should contain the lane
      * @param[in] lane_id The ID of the lane
@@ -417,9 +426,3 @@ private:
      */
     void parseProhibitionConnection(const std::string& attr, std::string& from, std::string& to, bool& ok);
 };
-
-
-#endif
-
-/****************************************************************************/
-

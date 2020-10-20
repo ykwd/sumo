@@ -17,13 +17,7 @@
 ///
 // Exporter writing networks using the openDRIVE format
 /****************************************************************************/
-#ifndef NWWriter_OpenDrive_h
-#define NWWriter_OpenDrive_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/StringBijection.h>
@@ -114,9 +108,3 @@ protected:
     /// @brief write road objects referenced as edge parameters
     static void writeRoadObjects(OutputDevice& device, const NBEdge* e, const ShapeContainer& shc);
 };
-
-
-#endif
-
-/****************************************************************************/
-

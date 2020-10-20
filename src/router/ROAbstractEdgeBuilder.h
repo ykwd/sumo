@@ -18,13 +18,7 @@
 ///
 // Interface for building instances of router-edges
 /****************************************************************************/
-#ifndef ROAbstractEdgeBuilder_h
-#define ROAbstractEdgeBuilder_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -101,9 +95,3 @@ private:
     ROAbstractEdgeBuilder& operator=(const ROAbstractEdgeBuilder& src);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

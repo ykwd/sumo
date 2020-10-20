@@ -19,13 +19,7 @@
 ///
 // A list of time ranges with assigned values
 /****************************************************************************/
-#ifndef ValueTimeLine_h
-#define ValueTimeLine_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <map>
 #include <cassert>
 #include <utility>
@@ -174,8 +168,3 @@ private:
     TimedValueMap myValues;
 
 };
-
-
-#endif
-
-/****************************************************************************/

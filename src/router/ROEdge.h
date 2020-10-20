@@ -22,13 +22,7 @@
 ///
 // A basic edge for routing applications
 /****************************************************************************/
-#ifndef ROEdge_h
-#define ROEdge_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -149,21 +143,21 @@ public:
 
     /// @brief return whether this edge is an internal edge
     inline bool isInternal() const {
-        return myFunction == EDGEFUNC_INTERNAL;
+        return myFunction == SumoXMLEdgeFunc::INTERNAL;
     }
 
     /// @brief return whether this edge is a pedestrian crossing
     inline bool isCrossing() const {
-        return myFunction == EDGEFUNC_CROSSING;
+        return myFunction == SumoXMLEdgeFunc::CROSSING;
     }
 
     /// @brief return whether this edge is walking area
     inline bool isWalkingArea() const {
-        return myFunction == EDGEFUNC_WALKINGAREA;
+        return myFunction == SumoXMLEdgeFunc::WALKINGAREA;
     }
 
     inline bool isTazConnector() const {
-        return myFunction == EDGEFUNC_CONNECTOR;
+        return myFunction == SumoXMLEdgeFunc::CONNECTOR;
     }
 
     void setOtherTazConnector(const ROEdge* edge) {
@@ -282,9 +276,9 @@ public:
     }
 
     /** @brief Returns whether this edge has restriction parameters forbidding the given vehicle to pass it
-    * @param[in] vehicle The vehicle for which the information has to be returned
-    * @return Whether the vehicle must not enter this edge
-    */
+     * @param[in] vehicle The vehicle for which the information has to be returned
+     * @return Whether the vehicle must not enter this edge
+     */
     inline bool restricts(const ROVehicle* const vehicle) const {
         const std::vector<double>& vTypeRestrictions = vehicle->getType()->paramRestrictions;
         assert(vTypeRestrictions.size() == myParamRestrictions.size());
@@ -429,6 +423,20 @@ public:
         return edge->getTravelTime(veh, time) * RandHelper::rand(1., gWeightsRandomFactor);
     }
 
+    /// @brief Alias for getTravelTimeStatic (there is no routing device to provide aggregated travel times)
+    static inline double getTravelTimeAggregated(const ROEdge* const edge, const ROVehicle* const veh, double time) {
+        return edge->getTravelTime(veh, time);
+    }
+
+    /// @brief Return traveltime weighted by edge priority (scaled penalty for low-priority edges)
+    static inline double getTravelTimeStaticPriorityFactor(const ROEdge* const edge, const ROVehicle* const veh, double time) {
+        double result = edge->getTravelTime(veh, time);
+        // lower priority should result in higher effort (and the edge with
+        // minimum priority receives a factor of myPriorityFactor
+        const double relativeInversePrio = 1 - ((edge->getPriority() - myMinEdgePriority) / myEdgePriorityRange);
+        result *= 1 + relativeInversePrio * myPriorityFactor;
+        return result;
+    }
 
     /** @brief Returns a lower bound for the travel time on this edge without using any stored timeLine
      *
@@ -460,6 +468,12 @@ public:
 
 
     static double getNoiseEffort(const ROEdge* const edge, const ROVehicle* const veh, double time);
+
+    static double getStoredEffort(const ROEdge* const edge, const ROVehicle* const /*veh*/, double time) {
+        double ret = 0;
+        edge->getStoredEffort(time, ret);
+        return ret;
+    }
     //@}
 
 
@@ -503,12 +517,37 @@ public:
         return myLanes;
     }
 
+    /// @brief return opposite superposable/congruent edge, if it exist and 0 else
+    inline const ROEdge* getBidiEdge() const {
+        return myBidiEdge;
+    }
+
+    /// @brief set opposite superposable/congruent edge
+    inline void setBidiEdge(const ROEdge* bidiEdge) {
+        myBidiEdge = bidiEdge;
+    }
+
     ReversedEdge<ROEdge, ROVehicle>* getReversedRoutingEdge() const {
         if (myReversedRoutingEdge == nullptr) {
             myReversedRoutingEdge = new ReversedEdge<ROEdge, ROVehicle>(this);
         }
         return myReversedRoutingEdge;
     }
+
+    RailEdge<ROEdge, ROVehicle>* getRailwayRoutingEdge() const {
+        if (myRailwayRoutingEdge == nullptr) {
+            myRailwayRoutingEdge = new RailEdge<ROEdge, ROVehicle>(this);
+        }
+        return myRailwayRoutingEdge;
+    }
+
+    /// @brief whether effort data was loaded for this edge
+    bool hasStoredEffort() const {
+        return myUsingETimeLine;
+    }
+
+    /// @brief initialize priority factor range
+    static bool initPriorityFactor(double priorityFactor);
 
 protected:
     /** @brief Retrieves the stored effort
@@ -581,6 +620,9 @@ protected:
     /// @brief the other taz-connector if this edge isTazConnector, otherwise nullptr
     const ROEdge* myOtherTazConnector;
 
+    /// @brief the bidirectional rail edge or nullpr
+    const ROEdge* myBidiEdge;
+
     /// @brief The bounding rectangle of end nodes incoming or outgoing edges for taz connectors or of my own start and end node for normal edges
     Boundary myBoundary;
 
@@ -592,6 +634,12 @@ protected:
 
     static ROEdgeVector myEdges;
 
+    /// @brief Coefficient for factoring edge priority into routing weight
+    static double myPriorityFactor;
+    /// @brief Minimum priority for all edges
+    static double myMinEdgePriority;
+    /// @brief the difference between maximum and minimum priority for all edges
+    static double myEdgePriorityRange;
 
     /// @brief The successors available for a given vClass
     mutable std::map<SUMOVehicleClass, ROEdgeVector> myClassesSuccessorMap;
@@ -601,6 +649,7 @@ protected:
 
     /// @brief a reversed version for backward routing
     mutable ReversedEdge<ROEdge, ROVehicle>* myReversedRoutingEdge = nullptr;
+    mutable RailEdge<ROEdge, ROVehicle>* myRailwayRoutingEdge = nullptr;
 
 #ifdef HAVE_FOX
     /// The mutex used to avoid concurrent updates of myClassesSuccessorMap
@@ -615,9 +664,3 @@ private:
     ROEdge& operator=(const ROEdge& src);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

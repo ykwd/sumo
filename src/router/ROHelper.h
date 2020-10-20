@@ -18,13 +18,7 @@
 ///
 // Some helping methods for router
 /****************************************************************************/
-#ifndef ROHelper_h
-#define ROHelper_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <functional>
@@ -86,8 +80,3 @@ bool noMandatory(const ConstROEdgeVector& mandatory,
                  ConstROEdgeVector::const_iterator start,
                  ConstROEdgeVector::const_iterator end);
 }
-
-#endif
-
-/****************************************************************************/
-

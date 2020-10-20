@@ -93,6 +93,9 @@
                     <xsd:enumeration value="white"/>
                     <xsd:enumeration value="black"/>
                     <xsd:enumeration value="grey"/>
+                    <xsd:enumeration value="gray"/>
+                    <xsd:enumeration value="invisible"/>
+                    <xsd:enumeration value="random"/>
                 </xsd:restriction>
             </xsd:simpleType>
             <xsd:simpleType>
@@ -324,6 +327,16 @@
                     <xsd:pattern value="&FloatPattern;:&FloatPattern;:&FloatPattern;(:&FloatPattern;)?"/>
                 </xsd:restriction>
             </xsd:simpleType> 
+        </xsd:union>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="timeTypeWithErrorValue">
+        <xsd:union memberTypes="nonNegativeFloatTypeWithErrorValue">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                    <xsd:pattern value="&FloatPattern;:&FloatPattern;:&FloatPattern;(:&FloatPattern;)?"/>
+                </xsd:restriction>
+            </xsd:simpleType>
         </xsd:union>
     </xsd:simpleType>
 

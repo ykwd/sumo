@@ -20,13 +20,7 @@
 ///
 // Class passing values from a GUIGlObject to another object
 /****************************************************************************/
-#ifndef GLObjectValuePassConnector_h
-#define GLObjectValuePassConnector_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <algorithm>
@@ -93,7 +87,9 @@ public:
      */
     static void updateAll() {
         FXMutexLock locker(myLock);
-        std::for_each(myContainer.begin(), myContainer.end(), std::mem_fun(&GLObjectValuePassConnector<T>::passValue));
+        for (GLObjectValuePassConnector<T>* const connector : myContainer) {
+            connector->passValue();
+        }
     }
 
 
@@ -171,9 +167,3 @@ template<typename T>
 std::vector< GLObjectValuePassConnector<T>* > GLObjectValuePassConnector<T>::myContainer;
 template<typename T>
 FXMutex GLObjectValuePassConnector<T>::myLock;
-
-
-#endif
-
-/****************************************************************************/
-

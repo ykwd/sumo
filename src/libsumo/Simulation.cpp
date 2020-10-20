@@ -18,12 +18,10 @@
 ///
 // C++ TraCI client API implementation
 /****************************************************************************/
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
-
+#ifdef HAVE_VERSION_H
+#include <version.h>
+#endif
 #include <utils/options/OptionsCont.h>
 #include <utils/common/MsgHandler.h>
 #include <utils/common/StdDefs.h>
@@ -42,6 +40,7 @@
 #include <microsim/MSLane.h>
 #include <microsim/MSVehicle.h>
 #include <microsim/MSVehicleControl.h>
+#include <microsim/MSVehicleTransfer.h>
 #include <microsim/transportables/MSTransportableControl.h>
 #include <microsim/MSStateHandler.h>
 #include <microsim/MSStoppingPlace.h>
@@ -49,6 +48,8 @@
 #include <microsim/devices/MSRoutingEngine.h>
 #include <microsim/trigger/MSChargingStation.h>
 #include <microsim/trigger/MSOverheadWire.h>
+#include <mesosim/MELoop.h>
+#include <mesosim/MESegment.h>
 #include <netload/NLBuilder.h>
 #include <libsumo/TraCIConstants.h>
 #include "Simulation.h"
@@ -70,6 +71,7 @@ void
 Simulation::load(const std::vector<std::string>& args) {
     close("Libsumo issued load command.");
     try {
+        gSimulation = true;
         XMLSubSys::init();
         OptionsIO::setArgs(args);
         if (NLBuilder::init(true) != nullptr) {
@@ -125,6 +127,12 @@ Simulation::subscribe(const std::vector<int>& varIDs, double begin, double end) 
 const TraCIResults
 Simulation::getSubscriptionResults() {
     return mySubscriptionResults[""];
+}
+
+
+std::pair<int, std::string>
+Simulation::getVersion() {
+    return std::make_pair(libsumo::TRACI_VERSION, "SUMO " VERSION_STRING);
 }
 
 
@@ -281,17 +289,20 @@ Simulation::getBusStopIDList() {
 }
 
 int
-Simulation::getBusStopWaiting(const std::string& id) {
-    MSStoppingPlace* s = MSNet::getInstance()->getStoppingPlace(id, SUMO_TAG_BUS_STOP);
+Simulation::getBusStopWaiting(const std::string& stopID) {
+    MSStoppingPlace* s = MSNet::getInstance()->getStoppingPlace(stopID, SUMO_TAG_BUS_STOP);
     if (s == nullptr) {
-        throw TraCIException("Unknown bus stop '" + id + "'.");
+        throw TraCIException("Unknown bus stop '" + stopID + "'.");
     }
     return s->getTransportableNumber();
 }
 
 std::vector<std::string>
-Simulation::getBusStopWaitingIDList(const std::string& id) {
-    MSStoppingPlace* s = MSNet::getInstance()->getStoppingPlace(id, SUMO_TAG_BUS_STOP);
+Simulation::getBusStopWaitingIDList(const std::string& stopID) {
+    MSStoppingPlace* s = MSNet::getInstance()->getStoppingPlace(stopID, SUMO_TAG_BUS_STOP);
+    if (s == nullptr) {
+        throw TraCIException("Unknown bus stop '" + stopID + "'.");
+    }
     std::vector<MSTransportable*> transportables = s->getTransportables();
     std::vector<std::string> result;
     for (std::vector<MSTransportable*>::iterator it = transportables.begin(); it != transportables.end(); it++) {
@@ -430,24 +441,28 @@ Simulation::findRoute(const std::string& from, const std::string& to, const std:
         throw TraCIException("Unknown to edge '" + from + "'.");
     }
     SUMOVehicle* vehicle = nullptr;
-    if (typeID != "") {
-        SUMOVehicleParameter* pars = new SUMOVehicleParameter();
-        MSVehicleType* type = MSNet::getInstance()->getVehicleControl().getVType(typeID);
-        if (type == nullptr) {
-            throw TraCIException("The vehicle type '" + typeID + "' is not known.");
+    MSVehicleType* type = MSNet::getInstance()->getVehicleControl().getVType(typeID == "" ? DEFAULT_VTYPE_ID : typeID);
+    if (type == nullptr) {
+        throw TraCIException("The vehicle type '" + typeID + "' is not known.");
+    }
+    SUMOVehicleParameter* pars = new SUMOVehicleParameter();
+    pars->id = "simulation.findRoute";
+    try {
+        const MSRoute* const routeDummy = new MSRoute("", ConstMSEdgeVector({ fromEdge }), true, nullptr, std::vector<SUMOVehicleParameter::Stop>());
+        vehicle = MSNet::getInstance()->getVehicleControl().buildVehicle(pars, routeDummy, type, false);
+        std::string msg;
+        if (!vehicle->hasValidRouteStart(msg)) {
+            MSNet::getInstance()->getVehicleControl().deleteVehicle(vehicle, true);
+            throw TraCIException("Invalid departure edge for vehicle type '" + type->getID() + "' (" + msg + ")");
         }
-        try {
-            const MSRoute* const routeDummy = new MSRoute("", ConstMSEdgeVector({ fromEdge }), false, nullptr, std::vector<SUMOVehicleParameter::Stop>());
-            vehicle = MSNet::getInstance()->getVehicleControl().buildVehicle(pars, routeDummy, type, false);
-            // we need to fix the speed factor here for deterministic results
-            vehicle->setChosenSpeedFactor(type->getSpeedFactor().getParameter()[0]);
-        } catch (ProcessError& e) {
-            throw TraCIException("Invalid departure edge for vehicle type '" + typeID + "' (" + e.what() + ")");
-        }
+        // we need to fix the speed factor here for deterministic results
+        vehicle->setChosenSpeedFactor(type->getSpeedFactor().getParameter()[0]);
+    } catch (ProcessError& e) {
+        throw TraCIException("Invalid departure edge for vehicle type '" + type->getID() + "' (" + e.what() + ")");
     }
     ConstMSEdgeVector edges;
     const SUMOTime dep = depart < 0 ? MSNet::getInstance()->getCurrentTimeStep() : TIME2STEPS(depart);
-    SUMOAbstractRouter<MSEdge, SUMOVehicle>& router = routingMode == ROUTING_MODE_AGGREGATED ? MSRoutingEngine::getRouterTT(0) : MSNet::getInstance()->getRouterTT(0);
+    SUMOAbstractRouter<MSEdge, SUMOVehicle>& router = routingMode == ROUTING_MODE_AGGREGATED ? MSRoutingEngine::getRouterTT(0, vehicle->getVClass()) : MSNet::getInstance()->getRouterTT(0);
     router.compute(fromEdge, toEdge, vehicle, dep, edges);
     for (const MSEdge* e : edges) {
         result.edges.push_back(e->getID());
@@ -486,20 +501,20 @@ Simulation::findIntermodalRoute(const std::string& from, const std::string& to,
     }
     for (StringTokenizer st(modes); st.hasNext();) {
         const std::string mode = st.next();
-        if (mode == toString(PERSONMODE_CAR)) {
+        if (mode == toString(PersonMode::CAR)) {
             pars.push_back(new SUMOVehicleParameter());
             pars.back()->vtypeid = DEFAULT_VTYPE_ID;
             pars.back()->id = mode;
             modeSet |= SVC_PASSENGER;
-        } else if (mode == toString(PERSONMODE_BICYCLE)) {
+        } else if (mode == toString(PersonMode::BICYCLE)) {
             pars.push_back(new SUMOVehicleParameter());
             pars.back()->vtypeid = DEFAULT_BIKETYPE_ID;
             pars.back()->id = mode;
             modeSet |= SVC_BICYCLE;
-        } else if (mode == toString(PERSONMODE_PUBLIC)) {
+        } else if (mode == toString(PersonMode::PUBLIC)) {
             pars.push_back(nullptr);
             modeSet |= SVC_BUS;
-        } else if (mode == toString(PERSONMODE_WALK)) {
+        } else if (mode == toString(PersonMode::WALK)) {
             // do nothing
         } else {
             throw TraCIException("Unknown person mode '" + mode + "'.");
@@ -548,7 +563,7 @@ Simulation::findIntermodalRoute(const std::string& from, const std::string& to,
             if (type->getVehicleClass() != SVC_IGNORING && (fromEdge->getPermissions() & type->getVehicleClass()) == 0) {
                 WRITE_WARNING("Ignoring vehicle type '" + type->getID() + "' when performing intermodal routing because it is not allowed on the start edge '" + from + "'.");
             } else {
-                const MSRoute* const routeDummy = new MSRoute(vehPar->id, ConstMSEdgeVector({ fromEdge }), false, nullptr, std::vector<SUMOVehicleParameter::Stop>());
+                const MSRoute* const routeDummy = new MSRoute(vehPar->id, ConstMSEdgeVector({ fromEdge }), true, nullptr, std::vector<SUMOVehicleParameter::Stop>());
                 vehicle = vehControl.buildVehicle(vehPar, routeDummy, type, !MSGlobals::gCheckRoutes);
                 // we need to fix the speed factor here for deterministic results
                 vehicle->setChosenSpeedFactor(type->getSpeedFactor().getParameter()[0]);
@@ -660,6 +675,9 @@ Simulation::getParameter(const std::string& objectID, const std::string& key) {
 }
 
 
+LIBSUMO_GET_PARAMETER_WITH_KEY_IMPLEMENTATION(Simulation)
+
+
 void
 Simulation::clearPending(const std::string& routeID) {
     MSNet::getInstance()->getInsertionControl().clearPendingVehicles(routeID);
@@ -669,6 +687,27 @@ Simulation::clearPending(const std::string& routeID) {
 void
 Simulation::saveState(const std::string& fileName) {
     MSStateHandler::saveState(fileName, MSNet::getInstance()->getCurrentTimeStep());
+}
+
+double
+Simulation::loadState(const std::string& fileName) {
+    long before = PROGRESS_BEGIN_TIME_MESSAGE("Loading state from '" + fileName + "'");
+    // XXX reset transportable state
+    // load time only
+    MSStateHandler hTime(fileName, 0, true);
+    XMLSubSys::runParser(hTime, fileName);
+    const SUMOTime newTime = hTime.getTime();
+    // clean up state
+    MSNet::getInstance()->clearState(newTime);
+    // load state
+    MSStateHandler h(fileName, 0);
+    XMLSubSys::runParser(h, fileName);
+    if (MsgHandler::getErrorInstance()->wasInformed()) {
+        throw TraCIException("Loading state from '" + fileName + "' failed.");
+    }
+    Helper::clearVehicleStates();
+    PROGRESS_TIME_MESSAGE(before);
+    return STEPS2TIME(newTime);
 }
 
 void
@@ -744,8 +783,6 @@ Simulation::handleVariable(const std::string& objID, const int variable, Variabl
             return false;
     }
 }
-
-
 }
 
 

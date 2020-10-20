@@ -19,13 +19,7 @@
 ///
 // A connnection between lanes
 /****************************************************************************/
-#ifndef MSLink_h
-#define MSLink_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -77,15 +71,17 @@ public:
     static const double ZIPPER_ADAPT_DIST;
 
     struct LinkLeader {
-        LinkLeader(MSVehicle* _veh, double _gap, double _distToCrossing, bool _fromLeft = true) :
+        LinkLeader(MSVehicle* _veh, double _gap, double _distToCrossing, bool _fromLeft = true, bool _inTheWay = false) :
             vehAndGap(std::make_pair(_veh, _gap)),
             distToCrossing(_distToCrossing),
-            fromLeft(_fromLeft) {
+            fromLeft(_fromLeft),
+            inTheWay(_inTheWay) {
         }
 
         std::pair<MSVehicle*, double> vehAndGap;
         double distToCrossing;
         bool fromLeft;
+        bool inTheWay;
     };
 
     typedef std::vector<LinkLeader> LinkLeaders;
@@ -141,7 +137,7 @@ public:
 
     private:
         /// invalidated assignment operator
-        ApproachingVehicleInformation& operator=(const ApproachingVehicleInformation& s);
+        ApproachingVehicleInformation& operator=(const ApproachingVehicleInformation& s) = delete;
 
     };
 
@@ -219,6 +215,9 @@ public:
         return myApproachingVehicles;
     }
 
+    /** @brief Remove all approaching vehicles before quick-loading state */
+    void clearState();
+
     /** @brief Returns the information whether the link may be passed
      *
      * Valid after the junctions have set their reponds
@@ -231,7 +230,7 @@ public:
                 double posLat = 0,
                 BlockingFoes* collectFoes = nullptr,
                 bool ignoreRed = false,
-                const SUMOVehicle* ego = nullptr) const;
+                const SUMOTrafficObject* ego = nullptr) const;
 
     /** @brief Returns the information whether this link is blocked
      * Valid after the vehicles have set their requests
@@ -249,7 +248,7 @@ public:
      **/
     bool blockedAtTime(SUMOTime arrivalTime, SUMOTime leaveTime, double arrivalSpeed, double leaveSpeed,
                        bool sameTargetLane, double impatience, double decel, SUMOTime waitingTime,
-                       BlockingFoes* collectFoes = nullptr, const SUMOVehicle* ego = nullptr) const;
+                       BlockingFoes* collectFoes = nullptr, const SUMOTrafficObject* ego = nullptr) const;
 
 
     bool isBlockingAnyone() const {
@@ -310,7 +309,10 @@ public:
      *
      * @return The direction of this link
      */
-    LinkDirection getDirection() const;
+    inline LinkDirection getDirection() const {
+        return myDirection;
+    }
+
 
 
     /** @brief Sets the current tl-state
@@ -325,7 +327,9 @@ public:
      *
      * @return The lane approached by this link
      */
-    MSLane* getLane() const;
+    inline MSLane* getLane() const {
+        return myLane;
+    }
 
 
     /** @brief Returns the respond index (for visualization)
@@ -362,6 +366,10 @@ public:
 
     inline bool haveYellow() const {
         return myState == LINKSTATE_TL_YELLOW_MINOR || myState == LINKSTATE_TL_YELLOW_MAJOR;
+    }
+
+    inline bool haveGreen() const {
+        return myState == LINKSTATE_TL_GREEN_MAJOR || myState == LINKSTATE_TL_GREEN_MINOR;
     }
 
     inline bool isTLSControlled() const {
@@ -408,6 +416,9 @@ public:
     /// @brief whether this is a link past an internal junction which currently has priority
     bool lastWasContMajor() const;
 
+    /// @brief whether this is a link past an internal junction which currently has green major
+    bool lastWasContMajorGreen() const;
+
     /** @brief Returns the cumulative length of all internal lanes after this link
      *  @return sum of the lengths of all internal lanes following this link
      */
@@ -438,7 +449,9 @@ public:
      *
      * @return The inner lane to use to cross the junction
      */
-    MSLane* getViaLane() const;
+    inline MSLane* getViaLane() const {
+        return myInternalLane;
+    }
 
     /** @brief Returns all potential link leaders (vehicles on foeLanes)
      * Valid during the planMove() phase
@@ -448,10 +461,7 @@ public:
      * @param[in] isShadowLink whether this link is a shadowLink for ego
      * @return The all vehicles on foeLanes and their (virtual) distances to the asking vehicle
      */
-    LinkLeaders getLeaderInfo(const MSVehicle* ego, double dist, std::vector<const MSPerson*>* collectBlockers = 0, bool isShadowLink = false) const;
-
-    /// @brief check for persons on walkingarea in the path of ego vehicle
-    void checkWalkingAreaFoe(const MSVehicle* ego, const MSLane* foeLane, std::vector<const MSPerson*>* collectBlockers, LinkLeaders& result) const;
+    const LinkLeaders getLeaderInfo(const MSVehicle* ego, double dist, std::vector<const MSPerson*>* collectBlockers = 0, bool isShadowLink = false) const;
 
     /// @brief return the speed at which ego vehicle must approach the zipper link
     double getZipperSpeed(const MSVehicle* ego, const double dist, double vSafe,
@@ -459,13 +469,21 @@ public:
                           BlockingFoes* collectFoes) const;
 
     /// @brief return the via lane if it exists and the lane otherwise
-    MSLane* getViaLaneOrLane() const;
+    inline MSLane* getViaLaneOrLane() const {
+        return  myInternalLane != nullptr ? myInternalLane : myLane;
+    }
+
 
     /// @brief return the internalLaneBefore if it exists and the laneBefore otherwise
-    const MSLane* getLaneBefore() const;
+    inline const MSLane* getLaneBefore() const {
+        assert (myInternalLaneBefore == nullptr || myLaneBefore == myInternalLaneBefore); // lane before mismatch!
+        return myLaneBefore;
+    }
 
     /// @brief return myInternalLaneBefore (always 0 when compiled without internal lanes)
-    const MSLane* getInternalLaneBefore() const;
+    inline const MSLane* getInternalLaneBefore() const {
+        return myInternalLaneBefore;
+    }
 
     /// @brief return the expected time at which the given vehicle will clear the link
     SUMOTime getLeaveTime(const SUMOTime arrivalTime, const double arrivalSpeed, const double leaveSpeed, const double vehicleLength) const;
@@ -477,7 +495,9 @@ public:
     MSLink* getParallelLink(int direction) const;
 
     /// @brief return whether the fromLane of this link is an internal lane
-    bool fromInternalLane() const;
+    inline bool fromInternalLane() const {
+        return myInternalLaneBefore != nullptr;
+    }
 
     /// @brief return whether the toLane of this link is an internal lane and fromLane is a normal lane
     bool isEntryLink() const;
@@ -533,7 +553,7 @@ public:
     void initParallelLinks();
 
     /// @brief return lateral shift that must be applied when passing this link
-    double getLateralShift() {
+    inline double getLateralShift() const {
         return myLateralShift;
     }
 
@@ -552,16 +572,23 @@ private:
 
     MSLink* computeParallelLink(int direction);
 
+    /// @brief check for persons on walkingarea in the path of ego vehicle
+    void checkWalkingAreaFoe(const MSVehicle* ego, const MSLane* foeLane, std::vector<const MSPerson*>* collectBlockers, LinkLeaders& result) const;
+
     bool blockedByFoe(const SUMOVehicle* veh, const ApproachingVehicleInformation& avi,
                       SUMOTime arrivalTime, SUMOTime leaveTime, double arrivalSpeed, double leaveSpeed,
                       bool sameTargetLane, double impatience, double decel, SUMOTime waitingTime,
-                      const SUMOVehicle* ego) const;
+                      const SUMOTrafficObject* ego) const;
 
     /// @brief figure out whether the cont status remains in effect when switching off the tls
     bool checkContOff() const;
 
     /// @brief check if the lane intersects with a foe cont-lane
     bool contIntersect(const MSLane* lane, const MSLane* foe);
+
+    /// @brief compute point of divergence for geomatries with a common start or end
+    double computeDistToDivergence(const MSLane* lane, const MSLane* sibling, double minDist, bool sameSource) const;
+
 
 private:
     /// @brief The lane behind the junction approached by this link
@@ -676,9 +703,3 @@ private:
     MSLink& operator=(const MSLink& s);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

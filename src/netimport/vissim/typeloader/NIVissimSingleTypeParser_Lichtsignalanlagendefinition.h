@@ -17,13 +17,7 @@
 ///
 //
 /****************************************************************************/
-#ifndef NIVissimSingleTypeParser_Lichtsignalanlagendefinition_h
-#define NIVissimSingleTypeParser_Lichtsignalanlagendefinition_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <iostream>
@@ -64,9 +58,3 @@ private:
                            const std::string& type);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

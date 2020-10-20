@@ -17,13 +17,7 @@
 ///
 // A rail signal logic
 /****************************************************************************/
-#ifndef MSRailCrossing_h
-#define MSRailCrossing_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSSimpleTrafficLightLogic.h"
@@ -159,9 +153,3 @@ protected:
     SUMOTime myYellowTime;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

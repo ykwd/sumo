@@ -18,12 +18,7 @@
 ///
 // The class for Swarm-based logics
 /****************************************************************************/
-#ifndef MSSwarmTrafficLightLogic_h
-#define MSSwarmTrafficLightLogic_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 //#define SWARM_DEBUG
@@ -449,9 +444,3 @@ protected:
 
 //	double pheroBegin;
 };
-
-
-
-
-#endif
-/****************************************************************************/

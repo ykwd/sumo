@@ -24,12 +24,7 @@
 //     Control Vehicles. Transportation Research Record: Journal of the
 //     Transportation Research Board, No. 2623, 2017. (DOI: 10.3141/2623-01).
 /****************************************************************************/
-#ifndef MSCFModel_ACC_H
-#define MSCFModel_ACC_H
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSCFModel.h"
@@ -172,4 +167,3 @@ private:
     MSCFModel_ACC& operator=(const MSCFModel_ACC& s);
 };
 
-#endif /* MSCFModel_ACC_H */

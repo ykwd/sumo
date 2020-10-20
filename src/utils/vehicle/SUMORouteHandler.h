@@ -19,13 +19,7 @@
 ///
 // Parser for routes during their loading
 /****************************************************************************/
-#ifndef SUMORouteHandler_h
-#define SUMORouteHandler_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/IDSupplier.h>
@@ -117,6 +111,9 @@ protected:
 
     /// @brief opens a flow for reading
     virtual void openFlow(const SUMOSAXAttributes& attrs) = 0;
+
+    /// @brief opens a route flow for reading
+    virtual void openRouteFlow(const SUMOSAXAttributes& attrs) = 0;
 
     /// @brief opens a trip for reading
     virtual void openTrip(const SUMOSAXAttributes& attrs) = 0;
@@ -258,8 +255,3 @@ private:
     /// @brief Invalidated assignment operator
     SUMORouteHandler& operator=(const SUMORouteHandler& s) = delete;
 };
-
-
-#endif
-
-/****************************************************************************/

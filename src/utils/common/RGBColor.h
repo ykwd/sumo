@@ -19,14 +19,7 @@
 ///
 // A RGB-color definition
 /****************************************************************************/
-#ifndef RGBColor_h
-#define RGBColor_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-
+#pragma once
 #include <iostream>
 #include <random>
 #include <utils/common/UtilExceptions.h>
@@ -52,12 +45,6 @@ public:
      * @param[in] blue The blue component's value
      */
     RGBColor(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha = 255);
-
-    /// @brief Copy constructor
-    RGBColor(const RGBColor& col);
-
-    /// @brief Destructor
-    ~RGBColor();
 
     /** @brief Returns the red-amount of the color
      * @return The red component's value
@@ -216,9 +203,3 @@ private:
     /// @brief A random number generator to generate random colors independent of other randomness
     static std::mt19937 myRNG;
 };
-
-
-#endif
-
-/****************************************************************************/
-

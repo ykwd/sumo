@@ -18,13 +18,7 @@
 ///
 // A loaded (complete) traffic light logic
 /****************************************************************************/
-#ifndef NBLoadedTLDef_h
-#define NBLoadedTLDef_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -366,7 +360,7 @@ protected:
      * @see NBTrafficLightDefinition::replaceRemoved
      */
     void replaceRemoved(NBEdge* removed, int removedLane,
-                        NBEdge* by, int byLane);
+                        NBEdge* by, int byLane, bool incoming);
     /// @}
 
 private:
@@ -390,9 +384,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

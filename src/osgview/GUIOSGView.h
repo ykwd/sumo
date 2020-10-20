@@ -17,21 +17,24 @@
 ///
 // An OSG-based 3D view on the simulation
 /****************************************************************************/
-#ifndef GUIOSGView_h
-#define GUIOSGView_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #ifdef HAVE_OSG
 
 #include <string>
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4275) // do not warn about the DLL interface for OSG
+#endif
 #include <osgGA/TerrainManipulator>
 #include <osgViewer/Viewer>
 #include <osg/PositionAttitudeTransform>
 #include <osg/ShapeDrawable>
+#include <osg/ref_ptr>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 #include <microsim/traffic_lights/MSTLLogicControl.h>
 #include <utils/geom/Boundary.h>
 #include <utils/geom/Position.h>
@@ -115,7 +118,7 @@ public:
 
     };
 
-
+    /// @brief struct for OSG movable elements
     struct OSGMovable {
         osg::ref_ptr<osg::PositionAttitudeTransform> pos;
         osg::ref_ptr<osg::ShapeDrawable> geom;
@@ -123,18 +126,18 @@ public:
         bool active;
     };
 
-
-    /// constructor
+    /// @brief constructor
     GUIOSGView(FXComposite* p, GUIMainWindow& app,
                GUISUMOViewParent* parent, GUINet& net, FXGLVisual* glVis,
                FXGLCanvas* share);
 
+    /// @brief destructor
     virtual ~GUIOSGView();
 
-    /// builds the view toolbars
-    virtual void buildViewToolBars(GUIGlChildWindow&);
+    /// @brief builds the view toolbars
+    virtual void buildViewToolBars(GUIGlChildWindow*);
 
-    /// recenters the view
+    /// @brief recenters the view
     void recenterView();
 
     /** @brief centers to the chosen artifact
@@ -145,12 +148,13 @@ public:
      */
     void centerTo(GUIGlID id, bool applyZoom, double zoomDist = 20);
 
+    /// @brief show viewport editor
     void showViewportEditor();
 
-    /// applies the given viewport settings
+    /// @brief applies the given viewport settings
     void setViewportFromToRot(const Position& lookFrom, const Position& lookAt, double rotation);
 
-    ///@brief copy the viewport to the given view
+    /// @brief copy the viewport to the given view
     void copyViewportTo(GUISUMOAbstractView* view);
 
     /** @brief Starts vehicle tracking
@@ -272,9 +276,3 @@ protected:
 };
 
 #endif
-
-#endif
-
-/****************************************************************************/
-
-

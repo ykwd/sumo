@@ -20,13 +20,7 @@
 ///
 // Stores all persons or containers in the net and handles their waiting for cars.
 /****************************************************************************/
-#ifndef MSTransportableControl_h
-#define MSTransportableControl_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -96,6 +90,9 @@ public:
 
     /// adds a transportable to the list of transportables waiting for a vehicle on the specified edge
     void addWaiting(const MSEdge* edge, MSTransportable* person);
+
+    /// register forced (traci) departure
+    void forceDeparture();
 
     /** @brief board any applicable persons
      * Boards any people who wait on that edge for the given vehicle and removes them from myWaiting
@@ -176,7 +173,12 @@ public:
         myJammedNumber++;
     }
 
-    /// @name Retrieval of transportable statistics (always accessable)
+    /// @brief decrement counter to avoid double counting transportables loaded from state
+    void fixLoadCount() {
+        myLoadedNumber--;
+    }
+
+    /// @name Retrieval of transportable statistics (always accessible)
     /// @{
 
     /** @brief Returns the number of build transportables
@@ -186,6 +188,7 @@ public:
         return myLoadedNumber;
     }
 
+    int getDepartedNumber() const;
 
     /** @brief Returns the number of build and inserted, but not yet deleted transportables
      * @return The number of simulated transportables
@@ -201,10 +204,38 @@ public:
         return myJammedNumber;
     }
 
-    /** @brief Returns the number of vehicles waiting for a ride
+    /** @brief Returns the number of transportables waiting for a ride
      */
     int getWaitingForVehicleNumber() const {
         return myWaitingForVehicleNumber;
+    }
+
+    /** @brief Returns the number of transportables waiting for a specified
+     * amount of time
+     */
+    int getWaitingUntilNumber() const {
+        return myWaitingUntilNumber;
+    }
+
+    /** @brief Returns the number of transportables moving by themselvs (i.e. walking)
+     */
+    int getMovingNumber() const;
+
+    /** @brief Returns the number of transportables riding a vehicle
+     */
+    int getRidingNumber() const;
+
+    /** @brief Returns the number of transportables that exited the simulation
+     */
+    int getEndedNumber() const {
+        return myEndedNumber;
+    }
+
+    /** @brief Returns the number of transportables that arrived at their
+     * destination
+     */
+    int getArrivedNumber() const {
+        return myArrivedNumber;
     }
 
     /// @}
@@ -223,6 +254,22 @@ public:
         return myNonInteractingModel;
     }
 
+    void addArrived() {
+        myArrivedNumber++;
+    }
+
+    void addDiscarded() {
+        myLoadedNumber++;
+        myDiscardedNumber++;
+    }
+
+    /** @brief Saves the current state into the given stream
+     */
+    void saveState(OutputDevice& out);
+
+    /** @brief Reconstruct the current state
+     */
+    void loadState(const std::string& state);
 
 protected:
     /// all currently created transportables by id
@@ -240,14 +287,29 @@ protected:
     /// @brief The number of build transportables
     int myLoadedNumber;
 
+    /// @brief The number of discarded transportables
+    int myDiscardedNumber;
+
     /// @brief The number of transportables within the network (build and inserted but not removed)
     int myRunningNumber;
 
     /// @brief The number of jammed transportables
     int myJammedNumber;
 
+    /// @brief The number of transportables waiting for departure
+    int myWaitingForDepartureNumber;
+
     /// @brief The number of transportables waiting for vehicles
     int myWaitingForVehicleNumber;
+
+    /// @brief The number of transportables waiting for a specified time
+    int myWaitingUntilNumber;
+
+    /// @brief The number of transportables that exited the simulation
+    int myEndedNumber;
+
+    /// @brief The number of transportables that arrived at their destination
+    int myArrivedNumber;
 
     /// @brief whether a new transportable waiting for a vehicle has been added in the last step
     bool myHaveNewWaiting;
@@ -257,9 +319,7 @@ private:
 
     MSPModel* myNonInteractingModel;
 
+private:
+    /// @brief invalidated assignment operator
+    MSTransportableControl& operator=(const MSTransportableControl& src) = delete;
 };
-
-
-#endif
-
-/****************************************************************************/

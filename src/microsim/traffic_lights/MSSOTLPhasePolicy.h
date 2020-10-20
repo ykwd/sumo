@@ -18,12 +18,7 @@
 ///
 // The class for SOTL Phase logics
 /****************************************************************************/
-#ifndef MSTLPhasePolicy_h
-#define MSTLPhasePolicy_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSSOTLPolicy.h"
@@ -49,6 +44,3 @@ protected:
     void init();
     bool m_useVehicleTypesWeights;
 };
-
-#endif
-/****************************************************************************/

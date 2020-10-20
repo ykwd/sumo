@@ -20,13 +20,7 @@
 ///
 // A view on the simulation; this view is a microscopic one
 /****************************************************************************/
-#ifndef GUIViewTraffic_h
-#define GUIViewTraffic_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -58,15 +52,15 @@ class MSRoute;
 class GUIViewTraffic : public GUISUMOAbstractView {
     FXDECLARE(GUIViewTraffic)
 public:
-    /// constructor
+    /// @brief constructor
     GUIViewTraffic(FXComposite* p, GUIMainWindow& app,
                    GUISUMOViewParent* parent, GUINet& net, FXGLVisual* glVis,
                    FXGLCanvas* share);
-    /// destructor
+    /// @brief destructor
     virtual ~GUIViewTraffic();
 
-    /// builds the view toolbars
-    virtual void buildViewToolBars(GUIGlChildWindow&);
+    /// @brief builds the view toolbars
+    virtual void buildViewToolBars(GUIGlChildWindow*);
 
 
     /** @brief Starts vehicle tracking
@@ -99,6 +93,9 @@ public:
 
     /// @brief return list of available vehicle parameters
     std::vector<std::string> getVehicleParamKeys(bool vTypeKeys) const;
+
+    /// @brief return list of available POI parameters
+    std::vector<std::string> getPOIParamKeys() const;
 
     /// @brief handle mouse click in gaming mode
     void onGamingClick(Position pos);
@@ -151,9 +148,3 @@ protected:
     GUIViewTraffic() { }
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -18,13 +18,7 @@
 ///
 // Event sent when the the simulation is over
 /****************************************************************************/
-#ifndef GUIEvent_SimulationEnded_h
-#define GUIEvent_SimulationEnded_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/gui/events/GUIEvent.h>
@@ -80,9 +74,3 @@ protected:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

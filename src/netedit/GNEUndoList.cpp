@@ -23,13 +23,8 @@
 // GNEUndoList inherits from FXUndoList and patches some methods. these are
 // prefixed with p_
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <netedit/changes/GNEChange_Attribute.h>
-#include <utils/common/MsgHandler.h>
+#include <netedit/GNEViewNet.h>
 
 #include "GNEApplicationWindow.h"
 #include "GNEUndoList.h"
@@ -82,14 +77,26 @@ GNEUndoList::p_begin(const std::string& description) {
 void
 GNEUndoList::p_end() {
     myCommandGroups.pop();
+    // check if net has to be updated
+    if (myCommandGroups.empty() && myGNEApplicationWindowParent->getViewNet()) {
+        myGNEApplicationWindowParent->getViewNet()->updateViewNet();
+    }
     end();
 }
 
 
 void
 GNEUndoList::p_clear() {
+    // disable updating of interval bar (check viewNet due #7252)
+    if (myGNEApplicationWindowParent->getViewNet()) {
+        myGNEApplicationWindowParent->getViewNet()->getIntervalBar().disableIntervalBarUpdate();
+    }
     p_abort();
     clear();
+    // enable updating of interval bar again (check viewNet due #7252)
+    if (myGNEApplicationWindowParent->getViewNet()) {
+        myGNEApplicationWindowParent->getViewNet()->getIntervalBar().enableIntervalBarUpdate();
+    }
 }
 
 

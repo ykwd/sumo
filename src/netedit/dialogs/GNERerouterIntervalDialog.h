@@ -17,19 +17,14 @@
 ///
 // Dialog for edit rerouter intervals
 /****************************************************************************/
-#ifndef GNERerouterIntervalDialog_h
-#define GNERerouterIntervalDialog_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
-#include <netedit/additionals/GNERerouterInterval.h>
-#include <netedit/additionals/GNEClosingLaneReroute.h>
-#include <netedit/additionals/GNEParkingAreaReroute.h>
-#include <netedit/additionals/GNEClosingReroute.h>
-#include <netedit/additionals/GNEDestProbReroute.h>
-#include <netedit/additionals/GNERouteProbReroute.h>
+#include <netedit/elements/additional/GNERerouterInterval.h>
+#include <netedit/elements/additional/GNEClosingLaneReroute.h>
+#include <netedit/elements/additional/GNEParkingAreaReroute.h>
+#include <netedit/elements/additional/GNEClosingReroute.h>
+#include <netedit/elements/additional/GNEDestProbReroute.h>
+#include <netedit/elements/additional/GNERouteProbReroute.h>
 
 #include "GNEAdditionalDialog.h"
 
@@ -220,4 +215,3 @@ private:
     GNERerouterIntervalDialog& operator=(const GNERerouterIntervalDialog&) = delete;
 };
 
-#endif

@@ -20,13 +20,7 @@
 ///
 // Class describing the thread that performs the loading of a simulation
 /****************************************************************************/
-#ifndef GUILoadThread_h
-#define GUILoadThread_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/SUMOTime.h>
@@ -64,7 +58,7 @@ public:
     FXint run();
 
     /// begins the loading of the given file
-    void loadConfigOrNet(const std::string& file, bool isNet);
+    void loadConfigOrNet(const std::string& file);
 
     /// Retrieves messages from the loading module
     void retrieveMessage(const MsgHandler::MsgType type, const std::string& msg);
@@ -100,12 +94,4 @@ protected:
 
     FXEX::FXThreadEvent& myEventThrow;
 
-    /// Information whether only the network shall be loaded
-    bool myLoadNet;
-
 };
-
-
-#endif
-
-/****************************************************************************/

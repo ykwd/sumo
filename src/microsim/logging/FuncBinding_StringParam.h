@@ -18,13 +18,7 @@
 ///
 //  Function type template
 /****************************************************************************/
-#ifndef FuncBinding_StringParam_h
-#define FuncBinding_StringParam_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/ValueSource.h>
@@ -78,9 +72,3 @@ private:
     std::string myParam;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

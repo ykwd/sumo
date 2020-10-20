@@ -20,13 +20,7 @@
 ///
 // The base class for a view
 /****************************************************************************/
-#ifndef GUISUMOAbstractView_h
-#define GUISUMOAbstractView_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -84,7 +78,7 @@ public:
     virtual ~GUISUMOAbstractView();
 
     /// @brief builds the view toolbars
-    virtual void buildViewToolBars(GUIGlChildWindow&) { }
+    virtual void buildViewToolBars(GUIGlChildWindow*) { }
 
     /// @brief recenters the view
     virtual void recenterView();
@@ -245,6 +239,11 @@ public:
         return std::vector<std::string>();
     }
 
+    /// @brief return list of available vehicle parameters
+    virtual std::vector<std::string> getPOIParamKeys() const {
+        return std::vector<std::string>();
+    }
+
     /// @brief remove viewport
     void remove(GUIDialog_EditViewport*);
 
@@ -396,8 +395,11 @@ protected:
     /// @brief Draws a line with ticks, and the length information.
     void displayLegend();
 
-    /// @brief Draws a legend for the current edge coloring scheme
-    void displayColorLegend();
+    /// @brief Draws the configured legends
+    void displayLegends();
+
+    /// @brief Draws a legend for the given scheme
+    void displayColorLegend(const GUIColorScheme& scheme, bool leftSide);
 
     /// @brief Draws frames-per-second indicator
     void drawFPS();
@@ -412,7 +414,7 @@ protected:
     std::vector<GUIGlObject*> getGUIGlObjectsUnderCursor();
 
     /// @brief returns the GUIGlObject under the gripped cursor using GL_SELECT (including overlapped objects)
-    std::vector<GUIGlObject*> getGUIGlObjectsUnderGrippedCursor();
+    std::vector<GUIGlObject*> getGUIGlObjectsUnderSnappedCursor();
 
     /// @brief returns the id of the object at position using GL_SELECT
     GUIGlID getObjectAtPosition(Position pos);
@@ -451,7 +453,7 @@ protected:
     GUIGlChildWindow* myParent;
 
     /// @brief The visualization speed-up
-    SUMORTree* myGrid;
+    const SUMORTree* myGrid;
 
     /// @brief The perspective changer
     GUIPerspectiveChanger* myChanger;
@@ -517,9 +519,3 @@ private:
     // @brief sensitivity for "<>AtPosition(...) functions
     static const double SENSITIVITY;
 };
-
-
-#endif
-
-/****************************************************************************/
-

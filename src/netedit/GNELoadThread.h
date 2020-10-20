@@ -18,13 +18,7 @@
 // The thread that performs the loading of a Netedit-net (adapted from
 // GUILoadThread)
 /****************************************************************************/
-#ifndef GNELoadThread_h
-#define GNELoadThread_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/common/MsgHandler.h>
@@ -107,8 +101,3 @@ protected:
     /// @brief if true, a new net is created
     bool myNewNet;
 };
-
-
-#endif
-
-/****************************************************************************/

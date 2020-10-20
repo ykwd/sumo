@@ -17,15 +17,11 @@
 ///
 // Subscription representation for libsumo and TraCI
 /****************************************************************************/
-#ifndef Subscription_h
-#define Subscription_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <vector>
+#include <set>
 #include <libsumo/TraCIDefs.h>
+#include <utils/common/SUMOTime.h>
 
 
 // ===========================================================================
@@ -74,6 +70,7 @@ public:
     * @param[in] commandIdArg The command id of the subscription
     * @param[in] idArg The id of the object that is subscribed
     * @param[in] variablesArg The subscribed variables
+    * @param[in] paramsArg The parameters for the subscribed variables
     * @param[in] beginTimeArg The begin time of the subscription
     * @param[in] endTimeArg The end time of the subscription
     * @param[in] contextDomainArg The domain ID of the context
@@ -101,8 +98,12 @@ public:
           filterFieldOfVisionOpeningAngle(-1),
           filterLateralDist(-1) {}
 
-    bool isVehicleToVehicleContextSubscription() {
+    bool isVehicleToVehicleContextSubscription() const {
         return commandId == CMD_SUBSCRIBE_VEHICLE_CONTEXT && contextDomain == CMD_GET_VEHICLE_VARIABLE;
+    }
+
+    bool isVehicleToPersonContextSubscription() const {
+        return commandId == CMD_SUBSCRIBE_VEHICLE_CONTEXT && contextDomain == CMD_GET_PERSON_VARIABLE;
     }
 
     /// @brief commandIdArg The command id of the subscription
@@ -163,4 +164,3 @@ public:
 }
 
 
-#endif

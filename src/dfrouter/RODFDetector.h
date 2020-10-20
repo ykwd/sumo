@@ -19,13 +19,7 @@
 ///
 // Class representing a detector within the DFROUTER
 /****************************************************************************/
-#ifndef RODFDetector_h
-#define RODFDetector_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <map>
@@ -287,9 +281,3 @@ private:
     RODFDetectorCon& operator=(const RODFDetectorCon& src);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

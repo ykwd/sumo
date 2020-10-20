@@ -32,25 +32,25 @@ neteditProcess, referencePosition = netedit.setupAndStart(neteditTestRoot)
 netedit.rebuildNetwork()
 
 # toogle select lanes
-netedit.changeEditMode('2')
+netedit.changeEditMode('4')
 
 # go to inspect mode
 netedit.inspectMode()
 
 # inspect edge
-netedit.leftClick(referencePosition, 250, 180)
+netedit.leftClick(referencePosition, 250, 165)
 
 # Change parameter 0 with a non valid value (empty speed)
-netedit.modifyAttribute(0, "", False)
+netedit.modifyAttribute(0, "", True)
 
 # Change parameter 0 with a non valid value (dummy speed)
-netedit.modifyAttribute(0, "dummySpeed", False)
+netedit.modifyAttribute(0, "dummySpeed", True)
 
 # Change parameter 0 with a non valid value (negative speed)
-netedit.modifyAttribute(0, "-13", False)
+netedit.modifyAttribute(0, "-13", True)
 
 # Change parameter 0 with a valid value
-netedit.modifyAttribute(0, "120.5", False)
+netedit.modifyAttribute(0, "120.5", True)
 
 # recompute
 netedit.rebuildNetwork()

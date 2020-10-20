@@ -53,14 +53,18 @@ state and must be loaded from input files. When loading vehicles from an
 input file that are already present in the simulation state, these
 vehicles are automatically ignored and loading proceeds without errors.
 
+# Random number generators (RNG)
+By default, the state of the [random number generators](Randomness.md) is not saved. Thus,
+simulations will behave differently from the original after being reloaded from a state.
+
+When setting option **--save-state.rng**, the state of all random number generators will be included in the state and restored upon loading. Saving this extra state costs about 500Kb. If this overhead is too high it can be reduced by setting a lower value of **--thread-rngs** (default 64). The value should be no lower than the number of threads used for routing or simulation (**--threads, **--device.rerouting.threads**).
+
 # Know Issues
 
-- The state of the random number generate is not saved. Thus,
-  simulations will behave differently from the original after being
-  reloaded from a state.
-- The internal state of the lanChangeModel is not saved
+- The internal state of the laneChangeModel is not saved
 - the internal state of the carFollowModel is not saved (not all models have this).
 - Persons are not saved
+- Traffic light states with dynamic / modified timings may not be restored correctly.
 
 # Older Versions of SUMO
 

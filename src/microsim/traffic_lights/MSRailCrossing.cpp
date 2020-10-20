@@ -17,11 +17,6 @@
 ///
 // A rail signal logic
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <cassert>
@@ -44,7 +39,7 @@
 MSRailCrossing::MSRailCrossing(MSTLLogicControl& tlcontrol,
                                const std::string& id, const std::string& programID, SUMOTime delay,
                                const std::map<std::string, std::string>& parameters) :
-    MSSimpleTrafficLightLogic(tlcontrol, id, programID, TLTYPE_RAIL_CROSSING, Phases(), 0, delay, parameters),
+    MSSimpleTrafficLightLogic(tlcontrol, id, programID, TrafficLightType::RAIL_CROSSING, Phases(), 0, delay, parameters),
     // XXX make this configurable
     mySecurityGap(TIME2STEPS(15)),
     myMinGreenTime(TIME2STEPS(5)),
@@ -64,6 +59,7 @@ MSRailCrossing::init(NLDetectorBuilder&) {
     // init phases
     updateCurrentPhase();
     setTrafficLightSignals(MSNet::getInstance()->getCurrentTimeStep());
+    myNumLinks = (int)myLinks.size();
 }
 
 
@@ -93,15 +89,14 @@ MSRailCrossing::updateCurrentPhase() {
     SUMOTime stayRedUntil = now;
     // check rail links for approaching foes to determine whether and how long
     // the crossing must remain closed
-    for (std::vector<MSLink*>::const_iterator it_link = myIncomingRailLinks.begin(); it_link != myIncomingRailLinks.end(); ++it_link) {
-
-        for (auto it_avi : (*it_link)->getApproaching()) {
+    for (const MSLink* const link : myIncomingRailLinks) {
+        for (auto it_avi : link->getApproaching()) {
             const MSLink::ApproachingVehicleInformation& avi = it_avi.second;
             if (avi.arrivalTime - myYellowTime - now < mySecurityGap) {
                 stayRedUntil = MAX2(stayRedUntil, avi.leavingTime);
             }
         }
-        if ((*it_link)->getViaLane() != nullptr && (*it_link)->getViaLane()->getVehicleNumberWithPartials() > 0) {
+        if (link->getViaLane() != nullptr && link->getViaLane()->getVehicleNumberWithPartials() > 0) {
             // do not open if there is still a train on the crossing
             stayRedUntil = MAX2(stayRedUntil, now + DELTA_T);
         }
@@ -161,4 +156,3 @@ MSRailCrossing::addLink(MSLink* link, MSLane* lane, int pos) {
 
 
 /****************************************************************************/
-

@@ -18,13 +18,7 @@
 ///
 // Helper methods for HBEFA-based emission computation
 /****************************************************************************/
-#ifndef HelpersHBEFA_h
-#define HelpersHBEFA_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -48,6 +42,9 @@
  *  (c0, cav1, cav2, c1, c2, c3).
  */
 class HelpersHBEFA : public PollutantsInterface::Helper {
+private:
+    static const int HBEFA_BASE = 1 << 16;
+
 public:
     /** @brief Constructor (initializes myEmissionClassStrings)
      */
@@ -70,10 +67,10 @@ public:
     inline double compute(const SUMOEmissionClass c, const PollutantsInterface::EmissionType e, const double v, const double a, const double slope, const std::map<int, double>* param) const {
         UNUSED_PARAMETER(slope);
         UNUSED_PARAMETER(param);
-        if (c == PollutantsInterface::ZERO_EMISSIONS || e == PollutantsInterface::ELEC) {
+        if (e == PollutantsInterface::ELEC) {
             return 0.;
         }
-        const int index = (c & ~PollutantsInterface::HEAVY_BIT) - 1;
+        const int index = (c & ~PollutantsInterface::HEAVY_BIT) - HBEFA_BASE;
         const double kmh = v * 3.6;
         const double scale = (e == PollutantsInterface::FUEL) ? 3.6 * 790. : 3.6;
         if (index >= 42) {
@@ -84,7 +81,7 @@ public:
             return 0.;
         }
         const double* f = myFunctionParameter[index] + 6 * e;
-        const double alpha = asin(a / 9.81) * 180. / M_PI;
+        const double alpha = RAD2DEG(asin(a / GRAVITY));
         return (double) MAX2((f[0] + f[1] * alpha * kmh + f[2] * alpha * alpha * kmh + f[3] * kmh + f[4] * kmh * kmh + f[5] * kmh * kmh * kmh) / scale, 0.);
     }
 
@@ -94,9 +91,3 @@ private:
     static double myFunctionParameter[42][36];
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

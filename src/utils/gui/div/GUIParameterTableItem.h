@@ -18,13 +18,7 @@
 ///
 // A single line in a parameter window
 /****************************************************************************/
-#ifndef GUIParameterTableItem_h
-#define GUIParameterTableItem_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -154,12 +148,12 @@ public:
         myTable->setItemText(myTablePosition, 1, value.c_str());
         if (dynamic) {
             if (getdoubleSourceCopy() == nullptr) {
-                myTable->setItemIcon(myTablePosition, 2, GUIIconSubSys::getIcon(ICON_YES));
+                myTable->setItemIcon(myTablePosition, 2, GUIIconSubSys::getIcon(GUIIcon::YES));
             } else {
-                myTable->setItemIcon(myTablePosition, 2, GUIIconSubSys::getIcon(ICON_TRACKER));
+                myTable->setItemIcon(myTablePosition, 2, GUIIconSubSys::getIcon(GUIIcon::TRACKER));
             }
         } else {
-            myTable->setItemIcon(myTablePosition, 2, GUIIconSubSys::getIcon(ICON_NO));
+            myTable->setItemIcon(myTablePosition, 2, GUIIconSubSys::getIcon(GUIIcon::NO));
         }
         myTable->setItemJustify(myTablePosition, 2, FXTableItem::CENTER_X | FXTableItem::CENTER_Y);
     }
@@ -227,9 +221,3 @@ private:
     /// @brief The table this entry belongs to
     FXTable* myTable;
 };
-
-
-#endif
-
-/****************************************************************************/
-

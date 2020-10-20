@@ -16,9 +16,7 @@
 # @date    2011-03-16
 
 from __future__ import absolute_import
-import struct
 from .domain import Domain
-from .storage import Storage
 from . import constants as tc
 from .exceptions import TraCIException
 
@@ -115,16 +113,8 @@ def _readLinks(result):
     return signals
 
 
-_RETURN_VALUE_FUNC = {tc.TL_RED_YELLOW_GREEN_STATE: Storage.readString,
-                      tc.TL_COMPLETE_DEFINITION_RYG: _readLogics,
-                      tc.TL_CONTROLLED_LANES: Storage.readStringList,
-                      tc.TL_CONTROLLED_LINKS: _readLinks,
-                      tc.TL_CURRENT_PROGRAM: Storage.readString,
-                      tc.TL_CURRENT_PHASE: Storage.readInt,
-                      tc.VAR_PERSON_NUMBER: Storage.readInt,
-                      tc.VAR_NAME: Storage.readString,
-                      tc.TL_NEXT_SWITCH: Storage.readDouble,
-                      tc.TL_PHASE_DURATION: Storage.readDouble}
+_RETURN_VALUE_FUNC = {tc.TL_COMPLETE_DEFINITION_RYG: _readLogics,
+                      tc.TL_CONTROLLED_LINKS: _readLinks}
 
 
 class TrafficLightDomain(Domain):
@@ -213,12 +203,28 @@ class TrafficLightDomain(Domain):
         """getPhase(string, int) -> int
         Returns the number of persons that would be served in the given phase
         """
-        self._connection._beginMessage(
-            self._cmdGetID, tc.VAR_PERSON_NUMBER, tlsID, 1 + 4)
-        self._connection._string += struct.pack("!Bi", tc.TYPE_INTEGER, index)
-        result = self._connection._checkResult(
-            self._cmdGetID, tc.VAR_PERSON_NUMBER, tlsID)
-        return result.readInt()
+        return self._getUniversal(tc.VAR_PERSON_NUMBER, tlsID, "i", index)
+
+    def getBlockingVehicles(self, tlsID, linkIndex):
+        """getBlockingVehicles(string, int) -> int
+        Returns the list of vehicles that are blocking the subsequent block for
+        the given tls-linkIndex
+        """
+        return self._getUniversal(tc.TL_BLOCKING_VEHICLES, tlsID, "i", linkIndex)
+
+    def getRivalVehicles(self, tlsID, linkIndex):
+        """getRivalVehicles(string, int) -> int
+        Returns the list of vehicles that also wish to enter the subsequent block for
+        the given tls-linkIndex (regardless of priority)
+        """
+        return self._getUniversal(tc.TL_RIVAL_VEHICLES, tlsID, "i", linkIndex)
+
+    def getPriorityVehicles(self, tlsID, linkIndex):
+        """getPriorityVehicles(string, int) -> int
+        Returns the list of vehicles that also wish to enter the subsequent block for
+        the given tls-linkIndex (only those with higher priority)
+        """
+        return self._getUniversal(tc.TL_PRIORITY_VEHICLES, tlsID, "i", linkIndex)
 
     def setRedYellowGreenState(self, tlsID, state):
         """setRedYellowGreenState(string, string) -> None
@@ -227,8 +233,7 @@ class TrafficLightDomain(Domain):
         rugGyYuoO, for red, red-yellow, green, yellow, off, where lower case letters mean that the stream has
         to decelerate.
         """
-        self._connection._sendStringCmd(
-            tc.CMD_SET_TL_VARIABLE, tc.TL_RED_YELLOW_GREEN_STATE, tlsID, state)
+        self._setCmd(tc.TL_RED_YELLOW_GREEN_STATE, tlsID, "s", state)
 
     def setLinkState(self, tlsID, tlsLinkIndex, state):
         """setLinkState(string, string, int, string) -> None
@@ -252,16 +257,14 @@ class TrafficLightDomain(Domain):
         Switches to the phase with the given index in the list of all phases for
         the current program.
         """
-        self._connection._sendIntCmd(
-            tc.CMD_SET_TL_VARIABLE, tc.TL_PHASE_INDEX, tlsID, index)
+        self._setCmd(tc.TL_PHASE_INDEX, tlsID, "i", index)
 
     def setPhaseName(self, tlsID, name):
         """setPhase(string, string) -> None
 
         Sets the name of the current phase within the current program
         """
-        self._connection._sendStringCmd(
-            tc.CMD_SET_TL_VARIABLE, tc.VAR_NAME, tlsID, name)
+        self._setCmd(tc.VAR_NAME, tlsID, "s", name)
 
     def setProgram(self, tlsID, programID):
         """setProgram(string, string) -> None
@@ -270,8 +273,7 @@ class TrafficLightDomain(Domain):
         been loaded earlier. The special value 'off' can always be used to
         switch off the traffic light.
         """
-        self._connection._sendStringCmd(
-            tc.CMD_SET_TL_VARIABLE, tc.TL_PROGRAM, tlsID, programID)
+        self._setCmd(tc.TL_PROGRAM, tlsID, "s", programID)
 
     def setPhaseDuration(self, tlsID, phaseDuration):
         """setPhaseDuration(string, double) -> None
@@ -279,8 +281,7 @@ class TrafficLightDomain(Domain):
         Set the remaining phase duration of the current phase in seconds.
         This value has no effect on subsquent repetitions of this phase.
         """
-        self._connection._sendDoubleCmd(
-            tc.CMD_SET_TL_VARIABLE, tc.TL_PHASE_DURATION, tlsID, phaseDuration)
+        self._setCmd(tc.TL_PHASE_DURATION, tlsID, "d", phaseDuration)
 
     def setProgramLogic(self, tlsID, tls):
         """setProgramLogic(string, Logic) -> None
@@ -288,35 +289,22 @@ class TrafficLightDomain(Domain):
         Sets a new program for the given tlsID from a Logic object.
         See getCompleteRedYellowGreenDefinition.
         """
-        length = 1 + 4 + 1 + 4 + \
-            len(tls.programID) + 1 + 4 + 1 + 4 + 1 + 4  # tls parameter
+        format = "tsiit"
+        values = [5, tls.programID, tls.type, tls.currentPhaseIndex, len(tls.phases)]
         for p in tls.phases:
-            length += (1 + 4 + 1 + 8 + 1 + 4 + len(p.state)
-                       + 1 + 8 + 1 + 8  # minDur, maxDur
-                       + 1 + 4 + len(p.next) * (1 + 4)
-                       + 1 + 4 + len(p.name))
-        length += 1 + 4  # subparams
-        for k, v in tls.subParameter.items():
-            length += 1 + 4 + 4 + len(k) + 4 + len(v)
-        self._connection._beginMessage(
-            tc.CMD_SET_TL_VARIABLE, tc.TL_COMPLETE_PROGRAM_RYG, tlsID, length)
-        self._connection._string += struct.pack("!Bi", tc.TYPE_COMPOUND, 5)
-        self._connection._packString(tls.programID)
-        self._connection._string += struct.pack("!Bi", tc.TYPE_INTEGER, tls.type)
-        self._connection._string += struct.pack("!Bi", tc.TYPE_INTEGER, tls.currentPhaseIndex)
-        self._connection._string += struct.pack("!Bi", tc.TYPE_COMPOUND, len(tls.phases))
-        for p in tls.phases:
-            self._connection._string += struct.pack("!BiBd", tc.TYPE_COMPOUND, 6, tc.TYPE_DOUBLE, p.duration)
-            self._connection._packString(p.state)
-            self._connection._string += struct.pack("!BdBd", tc.TYPE_DOUBLE, p.minDur, tc.TYPE_DOUBLE, p.maxDur)
-            self._connection._string += struct.pack("!Bi", tc.TYPE_COMPOUND, len(p.next))
+            format += "tdsddt"
+            values += [6, p.duration, p.state, p.minDur, p.maxDur, len(p.next)]
             for n in p.next:
-                self._connection._string += struct.pack("!Bi", tc.TYPE_INTEGER, n)
-            self._connection._packString(p.name)
+                format += "i"
+                values += [n]
+            format += "s"
+            values += [p.name]
         # subparams
-        self._connection._string += struct.pack("!Bi", tc.TYPE_COMPOUND, len(tls.subParameter))
+        format += "t"
+        values += [len(tls.subParameter)]
         for par in tls.subParameter.items():
-            self._connection._packStringList(par)
-        self._connection._sendExact()
+            format += "l"
+            values += [par]
+        self._setCmd(tc.TL_COMPLETE_PROGRAM_RYG, tlsID, format, *values)
 
     setCompleteRedYellowGreenDefinition = setProgramLogic

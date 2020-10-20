@@ -18,13 +18,7 @@
 ///
 // APIs for getting/setting induction loop values via TraCI
 /****************************************************************************/
-#ifndef TraCIServerAPI_InductionLoop_h
-#define TraCIServerAPI_InductionLoop_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "TraCIServer.h"
@@ -59,9 +53,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -21,13 +21,7 @@
 ///
 // Detectors container; responsible for string and output generation
 /****************************************************************************/
-#ifndef MSDetectorControl_h
-#define MSDetectorControl_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -155,6 +149,9 @@ public:
      */
     const NamedObjectCont<MSDetectorFileOutput*>& getTypedDetectors(SumoXMLTag type) const;
 
+    const std::map<std::string, std::vector<MSMeanData*> >& getMeanData() const {
+        return myMeanData;
+    }
 
     /** @brief Computes detector values
      *
@@ -180,6 +177,8 @@ public:
      */
     void writeOutput(SUMOTime step, bool closing);
 
+    /** @brief Remove all vehicles before quick-loading state */
+    void clearState();
 
 protected:
     /// @name Structures needed for assigning detectors to intervals
@@ -198,24 +197,6 @@ protected:
     typedef std::map< IntervalsKey, DetectorFileVec > Intervals;
     /// @}
 
-    /**
-     * @struct detectorEquals
-     * @brief Returns true if detectors are equal.
-     *
-     * Binary predicate that compares the passed DetectorFilePair's
-     * detector to a fixed one. Returns true if detectors are
-     * equal. (Used to prevent multiple inclusion of a detector for
-     * the same interval.)
-     *
-     * @see addDetectorAndInterval
-     */
-    struct detectorEquals : public std::binary_function< DetectorFilePair, MSDetectorFileOutput*, bool > {
-        /** @brief Returns true if detectors are equal. */
-        bool operator()(const DetectorFilePair& pair, const MSDetectorFileOutput* det) const {
-            return pair.first == det;
-        }
-    };
-
 protected:
     /// @brief The detectors map, first by detector type, then using NamedObjectCont (@see NamedObjectCont)
     std::map<SumoXMLTag, NamedObjectCont< MSDetectorFileOutput*> > myDetectors;
@@ -227,8 +208,8 @@ protected:
     /// @brief The map that holds the last call for each sample interval
     std::map<IntervalsKey, SUMOTime> myLastCalls;
 
-    /// @brief List of harmonoise detectors
-    std::vector<MSMeanData*> myMeanData;
+    /// @brief List of meanData  detectors
+    std::map<std::string, std::vector<MSMeanData*> > myMeanData;
 
     /// @brief An empty container to return in getTypedDetectors() if no detectors of the asked type exist
     NamedObjectCont< MSDetectorFileOutput*> myEmptyContainer;
@@ -243,9 +224,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

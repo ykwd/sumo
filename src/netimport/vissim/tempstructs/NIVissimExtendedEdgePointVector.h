@@ -17,13 +17,7 @@
 ///
 // -------------------
 /****************************************************************************/
-#ifndef NIVissimExtendedEdgePointVector_h
-#define NIVissimExtendedEdgePointVector_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 
@@ -31,9 +25,3 @@
 #include "NIVissimExtendedEdgePoint.h"
 
 typedef std::vector<NIVissimExtendedEdgePoint*> NIVissimtendedEdgePointVector;
-
-
-#endif
-
-/****************************************************************************/
-

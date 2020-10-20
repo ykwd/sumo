@@ -21,11 +21,6 @@
 ///
 // Main for POLYCONVERT
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #ifdef HAVE_VERSION_H
@@ -76,7 +71,6 @@ fillOptions() {
     oc.addOptionSubTopic("Pruning");
     oc.addOptionSubTopic("Processing");
     oc.addOptionSubTopic("Building Defaults");
-    SystemFrame::addReportOptions(oc); // fill this subtopic, too
 
 
     // register options
@@ -124,6 +118,9 @@ fillOptions() {
     oc.addSynonyme("shapefile.guess-projection", "arcview.guess-projection", true);
     oc.addDescription("shapefile.guess-projection", "Input", "Guesses the shapefile's projection");
 
+    oc.doRegister("shapefile.traditional-axis-mapping", new Option_Bool(false));
+    oc.addDescription("shapefile.traditional-axis-mapping", "Input", "Use traditional axis order (lon, lat)");
+
     oc.doRegister("shapefile.id-column", new Option_String());
     oc.addSynonyme("shapefile.id-column", "shapefile.id-name", true);
     oc.addSynonyme("shapefile.id-column", "shape-files.id-name", true);
@@ -147,6 +144,8 @@ fillOptions() {
     oc.addSynonyme("type-file", "typemap", true);
     oc.addDescription("type-file", "Input", "Reads types from FILE");
 
+    // need to do this here to be able to check for network and route input options
+    SystemFrame::addReportOptions(oc);
 
     // output
     oc.doRegister("output-file", 'o', new Option_FileName());
@@ -240,7 +239,8 @@ main(int argc, char** argv) {
             SystemFrame::close();
             return 0;
         }
-        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"));
+        SystemFrame::checkOptions();
+        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"), "never");
         MsgHandler::initOutputOptions();
         // build the projection
         double scale = 1.0;
@@ -250,7 +250,7 @@ main(int argc, char** argv) {
         if (!oc.isSet("net")) {
             // from the given options
 #ifdef PROJ_API_FILE
-            unsigned numProjections = oc.getBool("simple-projection") + oc.getBool("proj.utm") + oc.getBool("proj.dhdn") + (oc.getString("proj").length() > 1);
+            const int numProjections = oc.getBool("simple-projection") + oc.getBool("proj.utm") + oc.getBool("proj.dhdn") + (oc.getString("proj").length() > 1);
             if ((oc.isSet("osm-files") || oc.isSet("dlr-navteq-poly-files") || oc.isSet("dlr-navteq-poi-files")) && numProjections == 0) {
                 oc.set("proj.utm", "true");
             }
@@ -334,7 +334,6 @@ main(int argc, char** argv) {
             }
             delete reader;
         }
-        SystemFrame::checkOptions();
         // read in the data
         PCLoaderXML::loadIfSet(oc, toFill, tm); // SUMO-XML
         PCLoaderOSM::loadIfSet(oc, toFill, tm); // OSM-XML
@@ -388,6 +387,4 @@ main(int argc, char** argv) {
 }
 
 
-
 /****************************************************************************/
-

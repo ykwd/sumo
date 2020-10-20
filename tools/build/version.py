@@ -42,8 +42,15 @@ def get_version(padZero=True):
     return sumolib.version.gitDescribe(gitDir=join(SUMO_ROOT, ".git"), padZero=padZero)
 
 
-def create_version_file(versionFile, revision, vcsFile):
-    print('generating %s from revision in %s' % (versionFile, vcsFile))
+def get_pep440_version():
+    v = get_version(padZero=False)[1:-11].replace("_", ".").replace("+", ".post")
+    vs = v.split(".")
+    if len(vs) == 4 and vs[3] == "post0":
+        return v[:-6]
+    return v
+
+
+def create_version_file(versionFile, revision):
     with open(versionFile, 'w') as f:
         print('#define VERSION_STRING "%s"' % revision, file=f)
 
@@ -60,17 +67,25 @@ def main():
     versionFile = join(versionDir, 'version.h')
 
     vcsFile = join(SUMO_ROOT, ".git", "index")
-    if exists(vcsFile):
-        if not exists(versionFile) or getmtime(versionFile) < getmtime(vcsFile):
-            # vcsFile is newer. lets update the revision number
-            try:
-                create_version_file(versionFile, get_version(), vcsFile)
-            except Exception as e:
-                print("Error creating", versionFile, e)
-    else:
-        print("unknown revision - version control file '%s' not found" % vcsFile)
-    if not exists(versionFile):
-        create_version_file(versionFile, sumolib.version.UNKNOWN_REVISION, "<None>")
+    try:
+        if exists(vcsFile):
+            if not exists(versionFile) or getmtime(versionFile) < getmtime(vcsFile):
+                # vcsFile is newer. lets update the revision number
+                print('generating %s from revision in %s' % (versionFile, vcsFile))
+                create_version_file(versionFile, get_version())
+        else:
+            print("version control file '%s' not found" % vcsFile)
+        if not exists(versionFile):
+            print('trying to generate version file %s from existing header' % versionFile)
+            create_version_file(versionFile, sumolib.version.fromVersionHeader())
+    except Exception as e:
+        print("Error creating", versionFile, e)
+        try:
+            # try at least to create something
+            create_version_file(versionFile, "UNKNOWN")
+        except Exception as ee:
+            print("Error creating", versionFile, ee)
+            pass
 
 
 if __name__ == "__main__":

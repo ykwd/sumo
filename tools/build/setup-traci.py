@@ -21,22 +21,24 @@ from setuptools import setup
 import os
 import version
 
-SUMO_VERSION = version.get_version(padZero=False)[1:-11].replace("_", ".").replace("+", ".")
+SUMO_VERSION = version.get_pep440_version()
 package_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 setup(
     name='traci',
     version=SUMO_VERSION,
     url='https://sumo.dlr.de/docs/TraCI/Interfacing_TraCI_from_Python.html',
+    download_url='https://sumo.dlr.de/download',
     author='DLR and contributors',
     author_email='sumo@dlr.de',
     license='EPL-2.0',
+    description="The pure python version of the TraCI API to communicate with the traffic simulation SUMO",
 
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
-        'LICENSE :: OSI Approved :: Eclipse Public License v2 (EPL-2.0)',
+        'License :: OSI Approved :: Eclipse Public License 2.0 (EPL-2.0)',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
@@ -45,6 +47,7 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ],
     keywords='traffic simulation traci sumo',
 

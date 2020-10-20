@@ -19,11 +19,6 @@
 ///
 // Assignment methods
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <vector>
@@ -336,6 +331,7 @@ ROMAAssignments::incremental(const int numIter, const bool verbose) {
                     edge->addTravelTime(travelTime, STEPS2TIME(begin), STEPS2TIME(end));
                 }
             }
+            myRouter.reset(myDefaultVehicle);
         }
         lastBegin = intervalStart;
     }
@@ -469,6 +465,6 @@ ROMAAssignments::getTravelTime(const ROEdge* const e, const ROVehicle* const v, 
 // ---------------------------------------------------------------------------
 void
 ROMAAssignments::RoutingTask::run(FXWorkerThread* context) {
-    myAssign.computePath(myCell, myBegin, myLinkFlow, &static_cast<RONet::WorkerThread*>(context)->getVehicleRouter());
+    myAssign.computePath(myCell, myBegin, myLinkFlow, &static_cast<RONet::WorkerThread*>(context)->getVehicleRouter(SVC_IGNORING));
 }
 #endif

@@ -29,26 +29,24 @@ type:
 
 Note, that that the `guiShape="bicycle"` along with [sensible default
 parameters](../Vehicle_Type_Parameter_Defaults.md) are
-automatically used when specifying `vClass="bicycle"`. By adapating [vType-parameters for
+automatically used when specifying `vClass="bicycle"`. By adapting [vType-parameters for
 acceleration,deceleration,maximumSpeed,etc..](../Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#vehicle_types)
 different cyclist types can be modelled.
 
 ### Problems and workarounds
 
-- Turning left by crossing twice does not work. Extra edges need to be
-  added to accommodate these trajectories.
 - No bi-directional movements on bicycle lanes
-- No shared space for bicycles and pedestrians
+- No shared space for bicycles and pedestrians by default. This can be fixed by using the [Sublane Model](../Simulation/SublaneModel.md) and defining lanes that allow bicycles and pedestrians.
 - No overtaking by vehicles on a single-lane road. This can be fixed
   by using the [Sublane Model](../Simulation/SublaneModel.md).
 - The intersection model has no special adaptations for bicycles. This
   results in unrealistic (large) safety gaps when bicycles are
   approaching a large priority intersection from a prioritized road
-- The road speed limit is not meaningful for bicycles. To [model a
-  speed distribution for bicycles with a single vehicle
-  type](../Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#speed_distributions),
-  a speed limit corresponding to the median speed of the bicycles
-  should be set for the cycling lanes.
+- The road speed limit is not meaningful for bicycles. This is a problem because the [default way of modelling speed distributions is by setting a random multiplier for the speed limit](../Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#speed_distributions). There are several possibilities remedies:
+  - define multiple vehicle types with different 'maxSpeed' for the bicycle fleet. This can be done efficiently with [createVehTypeDistribution.py](../Tools/Misc.md#createvehtypedistributionpy]
+  speed distribution for bicycles there are several options
+  - define a meaningful speed limit for bicycle lanes (only useful if bikes always mostly use dedicated lanes)
+  - define [vClass-specific speed limits for bicycles](../Networks/PlainXML.md#vehicle-class_specific_speed_limits) on all edges where bicycles are used 
 
 One way for overcoming most of these problems is to control bicycle
 movements at intersections with an [external control
@@ -56,7 +54,7 @@ script](../TraCI.md). This approach is described in [Integration of
 an external bicycle model in SUMO, Heather
 Twaddle 2016](https://www.researchgate.net/publication/302909195_Integration_of_an_External_Bicycle_Model_in_SUMO).
 
-## Bicyles as fast pedestrians
+## Bicycles as fast pedestrians
 
 In this case, persons walking at high speed are used.
 
@@ -122,9 +120,9 @@ A third option which can be used if no edge types are available is a heuristic b
 
 Option **--bikelanes.guess.from-permissons** {{DT_BOOL}} is suitable for networks which specify their edge permissions (such as [DlrNavteq](../Networks/Import/DlrNavteq.md)). It adds a bike lane for all edges which allow bicycles on any of their lanes. The option **--bikelanes.guess.exclude** {{DT_IDList}}[,{{DT_IDList}}\]* applies here as well. 
 
-### Adding bike lanes with [NETEDIT](../NETEDIT.md)
+### Adding bike lanes with [netedit](../netedit.md)
 
-To add bike lanes to a set of edges in [NETEDIT](../NETEDIT.md) select these and right click on them. From the context-menu select *lane operations->add restricted lane->Bikelane*. 
+To add bike lanes to a set of edges in [netedit](../netedit.md) select these and right click on them. From the context-menu select *lane operations->add restricted lane->Bikelane*. 
 
 ## Notes on Right-of-Way rules
 
@@ -134,6 +132,17 @@ right-of-way rules and builds internal junctions where appropriate.
 
 Likewise, left-turning bicycles one a bicycle lane (on the right side of
 the road) must yield to straight-going vehicles.
+    
+## Indirect left turn
+In reality, left-turning bicycles may move in two stages
+1. move straight across
+2. turn 90° left and then move straight across
 
-!!! caution
-    The trajectories of left-turning bicycles use a wide curve rather than going straight twice. Currently, this can only be remedied by setting [custom shapes for these internal lanes](../Networks/PlainXML.md#custom_shapes_for_internal_lanes_crossings_and_walkingareas).
+By default, [netconvert](../netconvert.md) generates a wide curve rather than going straight twice as above. Currently, this can only be remedied by setting [custom shapes for these internal lanes](../netedit.md#connection). To adjust the waiting position of the bicycle (the point where the first stage ends), [connection attribute 'contPos' must be set](../netedit.md#setting_connection_attributes).
+
+To define a controlled in direct turn where both stages respect the traffic light corresponding to the current movement direction another custom setting is needed. The first part of the left-turn connection will be controlled automatically by the traffic ligh according to the 'linkIndex' attribute of the connection.
+The second part can be controlled by [setting the optional attribute 'linkIndex2'](../netedit.md#setting_connection_attributes). The easiest setup is to copy the linkIndex that controlls the movement of vehicles (or pedestrians) going straight from right to left.
+    
+# Bicycle routing
+
+When [routing bicycles in the simulation](../Demand/Automatic_Routing.md) the option **--device.rerouting.bike-speeds** can be used to enable separate tracking of bicycle speeds. This ensure that routing for bicycles which can use a dedicated bicycle lane is not affected by jammed cars.

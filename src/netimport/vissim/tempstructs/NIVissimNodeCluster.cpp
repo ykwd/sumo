@@ -19,11 +19,6 @@
 ///
 // -------------------
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 
@@ -172,7 +167,7 @@ NIVissimNodeCluster::buildNBNode(NBNodeCont& nc) {
                     "actuated_traffic_light");
             }
         }*/
-    NBNode* node = new NBNode(getNodeName(), pos, NODETYPE_PRIORITY);
+    NBNode* node = new NBNode(getNodeName(), pos, SumoXMLNodeType::PRIORITY);
     if (!nc.insert(node)) {
         delete node;
         throw 1;
@@ -300,6 +295,4 @@ NIVissimNodeCluster::setCurrentVirtID(int id) {
 }
 
 
-
 /****************************************************************************/
-

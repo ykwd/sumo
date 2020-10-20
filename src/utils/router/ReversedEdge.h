@@ -19,11 +19,6 @@
 // backward search
 /****************************************************************************/
 #pragma once
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 
@@ -74,6 +69,10 @@ public:
      */
     double getLength() const {
         return myOriginal->getLength();
+    }
+
+    const ReversedEdge* getBidiEdge() const {
+        return myOriginal->getBidiEdge()->getReversedRoutingEdge();
     }
 
     bool isInternal() const {
@@ -128,6 +127,3 @@ private:
 #endif
 
 };
-
-
-/****************************************************************************/

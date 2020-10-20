@@ -22,11 +22,6 @@
 ///
 // A basic edge for routing applications
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <utils/common/MsgHandler.h>
@@ -50,6 +45,9 @@ bool ROEdge::myInterpolate = false;
 bool ROEdge::myHaveTTWarned = false;
 bool ROEdge::myHaveEWarned = false;
 ROEdgeVector ROEdge::myEdges;
+double ROEdge::myPriorityFactor(0);
+double ROEdge::myMinEdgePriority(std::numeric_limits<double>::max());
+double ROEdge::myEdgePriorityRange(0);
 
 
 // ===========================================================================
@@ -437,6 +435,22 @@ ROEdge::isConnectedTo(const ROEdge& e, const SUMOVehicleClass vClass) const {
     return std::find(followers.begin(), followers.end(), &e) != followers.end();
 }
 
+bool
+ROEdge::initPriorityFactor(double priorityFactor) {
+    myPriorityFactor = priorityFactor;
+    double maxEdgePriority = -std::numeric_limits<double>::max();
+    for (ROEdge* edge : myEdges) {
+        maxEdgePriority = MAX2(maxEdgePriority, (double)edge->getPriority());
+        myMinEdgePriority = MIN2(myMinEdgePriority, (double)edge->getPriority());
+    }
+    myEdgePriorityRange = maxEdgePriority - myMinEdgePriority;
+    if (myEdgePriorityRange == 0) {
+        WRITE_WARNING("Option weights.priority-factor does not take effect because all edges have the same priority.");
+        myPriorityFactor = 0;
+        return false;
+    }
+    return true;
+}
+
 
 /****************************************************************************/
-

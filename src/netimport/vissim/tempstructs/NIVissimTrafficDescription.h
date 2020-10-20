@@ -17,13 +17,7 @@
 ///
 // -------------------
 /****************************************************************************/
-#ifndef NIVissimTrafficDescription_h
-#define NIVissimTrafficDescription_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 
@@ -56,9 +50,3 @@ private:
     typedef std::map<int, NIVissimTrafficDescription*> DictType;
     static DictType myDict;
 };
-
-
-#endif
-
-/****************************************************************************/
-

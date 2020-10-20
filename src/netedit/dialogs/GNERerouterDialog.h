@@ -17,13 +17,7 @@
 ///
 // Dialog for edit rerouters
 /****************************************************************************/
-#ifndef GNERerouterDialog_h
-#define GNERerouterDialog_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-
+#pragma once
 #include <config.h>
 
 #include "GNEAdditionalDialog.h"
@@ -70,9 +64,6 @@ public:
     /// @brief add new interval
     long onCmdAddInterval(FXObject*, FXSelector, void*);
 
-    /// @brief sort current intervals
-    long onCmdSortIntervals(FXObject*, FXSelector, void*);
-
     /// @brief remove or edit interval
     long onCmdClickedInterval(FXObject*, FXSelector, void*);
     /// @}
@@ -100,4 +91,3 @@ private:
     GNERerouterDialog& operator=(const GNERerouterDialog&) = delete;
 };
 
-#endif

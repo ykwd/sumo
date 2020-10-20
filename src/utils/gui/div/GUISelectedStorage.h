@@ -19,13 +19,7 @@
 ///
 // Storage for "selected" objects
 /****************************************************************************/
-#ifndef GUISelectedStorage_h
-#define GUISelectedStorage_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <set>
@@ -288,9 +282,3 @@ private:
     /// @brief saves items from the given set
     static void save(const std::string& filename, const std::set<GUIGlID>& ids);
 };
-
-
-#endif
-
-/****************************************************************************/
-

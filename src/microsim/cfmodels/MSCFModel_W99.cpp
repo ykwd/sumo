@@ -20,11 +20,6 @@
 // code adapted from https://github.com/glgh/w99-demo
 // (MIT License, Copyright (c) 2016 glgh)
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <cmath>
@@ -81,7 +76,7 @@ MSCFModel_W99::computeThresholds(double speed, double predSpeed, double leaderAc
 
     const double dv = predSpeed - speed;
     sdxc = myType->getMinGap(); // cc0
-    if (speed > 0) {
+    if (predSpeed > 0) {
         const double v_slower = (dv >= 0 || leaderAccel < 1) ? speed : predSpeed + dv * rndVal;
         sdxc += myCC1 * MAX2(0.0, v_slower);
     }
@@ -190,9 +185,8 @@ MSCFModel_W99::followSpeed(const MSVehicle* const veh, double speed, double gap2
 
 double
 MSCFModel_W99::stopSpeed(const MSVehicle* const veh, const double speed, double gap) const {
-    // W99 doesn't stop on point so we add some slack
-    const double vFollow = followSpeed(veh, speed, gap + sqrt(gap) + 2, 0, 4.5, 0);
-    return MIN3(vFollow, maximumSafeStopSpeed(gap, speed, false, veh->getActionStepLengthSecs()), maxNextSpeed(speed, veh));
+    // see reasoning in MSCFModel_Wiedemann::stopSpeed
+    return MIN2(maximumSafeStopSpeed(gap, speed, false, veh->getActionStepLengthSecs()), maxNextSpeed(speed, veh));
 }
 
 
@@ -207,13 +201,4 @@ MSCFModel*
 MSCFModel_W99::duplicate(const MSVehicleType* vtype) const {
     return new MSCFModel_W99(vtype);
 }
-
-
-double
-MSCFModel_W99::getSecureGap(const MSVehicle* const veh, const MSVehicle* const pred, const double speed, const double leaderSpeed, const double leaderMaxDecel) const {
-    double sdxc, sdxo, sdxv;
-    computeThresholds(speed, leaderSpeed, 0, 0.5, sdxc, sdxo, sdxv);
-    return MAX2(sdxv, MSCFModel::getSecureGap(veh, pred, speed, leaderSpeed, leaderMaxDecel));
-}
-
 

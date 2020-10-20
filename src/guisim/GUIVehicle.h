@@ -20,13 +20,7 @@
 ///
 // A MSVehicle extended by some values for usage within the gui
 /****************************************************************************/
-#ifndef GUIVehicle_h
-#define GUIVehicle_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -89,7 +83,7 @@ public:
     /** @brief Draws the route
      * @param[in] r The route to draw
      */
-    void drawRouteHelper(const GUIVisualizationSettings& s, const MSRoute& r, bool future, const RGBColor& col) const;
+    void drawRouteHelper(const GUIVisualizationSettings& s, const MSRoute& r, bool future, bool noLoop, const RGBColor& col) const;
 
     void drawAction_drawVehicleBlinker(double length) const;
     void drawAction_drawVehicleBrakeLight(double length, bool onlyOne = false) const;
@@ -150,14 +144,20 @@ public:
     /// @brief return the lanechange state
     std::string getLCStateRight() const;
     std::string getLCStateLeft() const;
+    std::string getLCStateCenter() const;
 
     /// @brief return vehicle lane id
     std::string getLaneID() const;
+    std::string getBackLaneID() const;
     std::string getShadowLaneID() const;
     std::string getTargetLaneID() const;
 
     /// @brief return the lane-change maneuver distance
     double getManeuverDist() const;
+    /// @brief return the speed mode as bit string
+    std::string getSpeedMode() const;
+    /// @brief return the lane change mode as bit string
+    std::string getLaneChangeMode() const;
 
     /// @brief handle route to accomodate to given stop
     void rerouteDRTStop(MSStoppingPlace* busStop);
@@ -183,9 +183,3 @@ private:
     std::string getStopInfo() const;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

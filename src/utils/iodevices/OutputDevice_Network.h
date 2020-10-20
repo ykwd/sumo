@@ -19,14 +19,8 @@
 ///
 // An output device for TCP/IP Network connections
 /****************************************************************************/
-#ifndef OutputDevice_Network_h
-#define OutputDevice_Network_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-#include <config.h> // #ifdef _MSC_VER
+#pragma once
+#include <config.h>
 
 #include "foreign/tcpip/socket.h"
 #include "foreign/tcpip/storage.h"
@@ -97,8 +91,3 @@ private:
     tcpip::Socket* mySocket;
 
 };
-
-
-#endif
-
-/****************************************************************************/

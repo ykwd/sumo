@@ -19,11 +19,6 @@
 ///
 // Sets and checks options for netgen
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include <string>
@@ -55,11 +50,11 @@ NGFrame::fillOptions() {
     oc.addDescription("turn-lanes.length", "Processing", "Set the length of generated turning lanes to FLOAT");
 
     oc.doRegister("perturb-x", new Option_String("0"));
-    oc.addDescription("perturb-x", "Processing", "Apply random spatial pertubation in x direction according the the given distribution");
+    oc.addDescription("perturb-x", "Processing", "Apply random spatial perturbation in x direction according the the given distribution");
     oc.doRegister("perturb-y", new Option_String("0"));
-    oc.addDescription("perturb-y", "Processing", "Apply random spatial pertubation in y direction according the the given distribution");
+    oc.addDescription("perturb-y", "Processing", "Apply random spatial perturbation in y direction according the the given distribution");
     oc.doRegister("perturb-z", new Option_String("0"));
-    oc.addDescription("perturb-z", "Processing", "Apply random spatial pertubation in z direction according the the given distribution");
+    oc.addDescription("perturb-z", "Processing", "Apply random spatial perturbation in z direction according the the given distribution");
 
 
     //  register grid-net options
@@ -234,29 +229,29 @@ NGFrame::checkOptions() {
     // check whether the junction type to use is properly set
     if (oc.isSet("default-junction-type")) {
         std::string type = oc.getString("default-junction-type");
-        if (type != toString(NODETYPE_TRAFFIC_LIGHT) &&
-                type != toString(NODETYPE_TRAFFIC_LIGHT_NOJUNCTION) &&
-                type != toString(NODETYPE_TRAFFIC_LIGHT_RIGHT_ON_RED) &&
-                type != toString(NODETYPE_PRIORITY) &&
-                type != toString(NODETYPE_PRIORITY_STOP) &&
-                type != toString(NODETYPE_ALLWAY_STOP) &&
-                type != toString(NODETYPE_ZIPPER) &&
-                type != toString(NODETYPE_NOJUNCTION) &&
-                type != toString(NODETYPE_RAIL_SIGNAL) &&
-                type != toString(NODETYPE_RAIL_CROSSING) &&
-                type != toString(NODETYPE_RIGHT_BEFORE_LEFT)) {
+        if (type != toString(SumoXMLNodeType::TRAFFIC_LIGHT) &&
+                type != toString(SumoXMLNodeType::TRAFFIC_LIGHT_NOJUNCTION) &&
+                type != toString(SumoXMLNodeType::TRAFFIC_LIGHT_RIGHT_ON_RED) &&
+                type != toString(SumoXMLNodeType::PRIORITY) &&
+                type != toString(SumoXMLNodeType::PRIORITY_STOP) &&
+                type != toString(SumoXMLNodeType::ALLWAY_STOP) &&
+                type != toString(SumoXMLNodeType::ZIPPER) &&
+                type != toString(SumoXMLNodeType::NOJUNCTION) &&
+                type != toString(SumoXMLNodeType::RAIL_SIGNAL) &&
+                type != toString(SumoXMLNodeType::RAIL_CROSSING) &&
+                type != toString(SumoXMLNodeType::RIGHT_BEFORE_LEFT)) {
             WRITE_ERROR("Only the following junction types are known: " +
-                        toString(NODETYPE_TRAFFIC_LIGHT) + ", " +
-                        toString(NODETYPE_TRAFFIC_LIGHT_NOJUNCTION) + ", " +
-                        toString(NODETYPE_TRAFFIC_LIGHT_RIGHT_ON_RED) + ", " +
-                        toString(NODETYPE_PRIORITY) + ", " +
-                        toString(NODETYPE_PRIORITY_STOP) + ", " +
-                        toString(NODETYPE_ALLWAY_STOP) + ", " +
-                        toString(NODETYPE_ZIPPER) + ", " +
-                        toString(NODETYPE_NOJUNCTION) + ", " +
-                        toString(NODETYPE_RAIL_SIGNAL) + ", " +
-                        toString(NODETYPE_RAIL_CROSSING) + ", " +
-                        toString(NODETYPE_RIGHT_BEFORE_LEFT));
+                        toString(SumoXMLNodeType::TRAFFIC_LIGHT) + ", " +
+                        toString(SumoXMLNodeType::TRAFFIC_LIGHT_NOJUNCTION) + ", " +
+                        toString(SumoXMLNodeType::TRAFFIC_LIGHT_RIGHT_ON_RED) + ", " +
+                        toString(SumoXMLNodeType::PRIORITY) + ", " +
+                        toString(SumoXMLNodeType::PRIORITY_STOP) + ", " +
+                        toString(SumoXMLNodeType::ALLWAY_STOP) + ", " +
+                        toString(SumoXMLNodeType::ZIPPER) + ", " +
+                        toString(SumoXMLNodeType::NOJUNCTION) + ", " +
+                        toString(SumoXMLNodeType::RAIL_SIGNAL) + ", " +
+                        toString(SumoXMLNodeType::RAIL_CROSSING) + ", " +
+                        toString(SumoXMLNodeType::RIGHT_BEFORE_LEFT));
             ok = false;
         }
     }
@@ -265,4 +260,3 @@ NGFrame::checkOptions() {
 
 
 /****************************************************************************/
-

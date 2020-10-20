@@ -18,11 +18,7 @@
 ///
 // Representation of a timeline of floats with their names and moments
 /****************************************************************************/
-#ifndef TrackerValueDesc_h
-#define TrackerValueDesc_h
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <fx.h>
@@ -135,9 +131,3 @@ private:
     double myTmpLastAggValue;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -19,15 +19,7 @@
 ///
 //
 /****************************************************************************/
-#ifndef GUIGlChildWindow_h
-#define GUIGlChildWindow_h
-
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
-
+#pragma once
 #include <config.h>
 
 #include <fx.h>
@@ -136,9 +128,3 @@ private:
     /// @brief Invalidated assignment operator.
     GUIGlChildWindow& operator=(const GUIGlChildWindow&) = delete;
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -19,11 +19,6 @@
 ///
 // Some static variables for faster access
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <config.h>
 
 #include "MSGlobals.h"
@@ -54,6 +49,7 @@ bool MSGlobals::gUseMesoSim;
 bool MSGlobals::gMesoLimitedJunctionControl;
 bool MSGlobals::gMesoOvertaking;
 double MSGlobals::gMesoTLSPenalty;
+double MSGlobals::gMesoTLSFlowPenalty;
 SUMOTime MSGlobals::gMesoMinorPenalty;
 MELoop* MSGlobals::gMesoNet;
 
@@ -86,5 +82,5 @@ double MSGlobals::gStopTolerance;
 
 bool MSGlobals::gLefthand(false);
 
-/****************************************************************************/
 
+/****************************************************************************/

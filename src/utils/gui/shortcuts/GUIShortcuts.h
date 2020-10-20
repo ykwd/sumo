@@ -17,13 +17,7 @@
 ///
 // An enumeration of shortcuts used by the gui applications
 /****************************************************************************/
-#ifndef GUIShortcuts_h
-#define GUIShortcuts_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 
@@ -125,8 +119,3 @@ enum GUIShortcutModifier {
     KEYMODIFIER_ALT,
     KEYMODIFIER_CONTROL
 };
-
-#endif
-
-/****************************************************************************/
-

@@ -20,13 +20,7 @@
 ///
 // A detector of vehicles passing an area between entry/exit points
 /****************************************************************************/
-#ifndef MSE3Collector_h
-#define MSE3Collector_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -344,6 +338,8 @@ public:
      */
     void detectorUpdate(const SUMOTime step);
 
+    /** @brief Remove all vehicles before quick-loading state */
+    virtual void clearState();
 
 protected:
     /// @brief The detector's entries
@@ -437,9 +433,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

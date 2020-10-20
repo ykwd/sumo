@@ -17,13 +17,7 @@
 ///
 // A view on the network being edited (adapted from GUIViewTraffic)
 /****************************************************************************/
-#ifndef GNEViewNet_h
-#define GNEViewNet_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include "GNEViewNetHelper.h"
 
 #include <utils/common/SUMOVehicleClass.h>
@@ -69,13 +63,19 @@ public:
     ~GNEViewNet();
 
     /// @brief builds the view toolbars
-    void buildViewToolBars(GUIGlChildWindow&);
+    void buildViewToolBars(GUIGlChildWindow* v);
 
     /// @brief Mark the entire GNEViewNet to be repainted later
-    void update() const;
+    void updateViewNet() const;
+
+    /// @brief set supermode Network (used after load/create new network)
+    void forceSupermodeNetwork();
 
     /// @brief get AttributeCarriers in Boundary
     std::set<std::pair<std::string, GNEAttributeCarrier*> > getAttributeCarriersInBoundary(const Boundary& boundary, bool forceSelectEdges = false);
+
+    /// @brief get objects under cursor
+    const GNEViewNetHelper::ObjectsUnderCursor &getObjectsUnderCursor() const;
 
     /** @brief Builds an entry which allows to (de)select the object
      * @param ret The popup menu to add the entry to
@@ -93,6 +93,9 @@ public:
     /// @brief return list of available edge parameters
     std::vector<std::string> getEdgeLaneParamKeys(bool edgeKeys) const;
 
+    /// @brief return list of loaded edgeData attributes
+    std::vector<std::string> getEdgeDataAttrs() const;
+
     /// @brief open object dialog
     void openObjectDialog();
 
@@ -105,20 +108,20 @@ public:
     /// @brief get testing mode
     const GNEViewNetHelper::TestingMode& getTestingMode() const;
 
-    /// @brief get Common view options
-    const GNEViewNetHelper::CommonViewOptions& getCommonViewOptions() const;
-
     /// @brief get network view options
     const GNEViewNetHelper::NetworkViewOptions& getNetworkViewOptions() const;
 
     /// @brief get demand view options
     const GNEViewNetHelper::DemandViewOptions& getDemandViewOptions() const;
 
+    /// @brief get data view options
+    const GNEViewNetHelper::DataViewOptions& getDataViewOptions() const;
+
     /// @brief get Key Pressed modul
-    const GNEViewNetHelper::KeyPressed& getKeyPressed() const;
+    const GNEViewNetHelper::MouseButtonKeyPressed& getMouseButtonKeyPressed() const;
 
     /// @brief get Edit Shape modul
-    const GNEViewNetHelper::EditShapes& getEditShapes() const;
+    const GNEViewNetHelper::EditNetworkElementShapes& getEditNetworkElementShapes() const;
 
     /// @name overloaded handlers
     /// @{
@@ -214,6 +217,9 @@ public:
     /// @brief add/remove/restrict lane
     long onCmdLaneOperation(FXObject*, FXSelector sel, void*);
 
+    /// @brief show lane reachability
+    long onCmdLaneReachability(FXObject*, FXSelector sel, void*);
+
     /// @brief open additional dialog
     long onCmdOpenAdditionalDialog(FXObject*, FXSelector, void*);
 
@@ -232,6 +238,12 @@ public:
     /// @brief split junction into multiple junctions and reconnect them
     long onCmdSplitJunctionReconnect(FXObject*, FXSelector, void*);
 
+    /// @brief select all roundabout nodes and edges
+    long onCmdSelectRoundabout(FXObject*, FXSelector, void*);
+
+    /// @brief convert junction to roundabout
+    long onCmdConvertRoundabout(FXObject*, FXSelector, void*);
+
     /// @brief clear junction connections
     long onCmdClearConnections(FXObject*, FXSelector, void*);
 
@@ -246,8 +258,6 @@ public:
 
     /// @name View options network call backs
     /// @{
-    /// @brief toogle show demand elements
-    long onCmdToogleShowDemandElements(FXObject*, FXSelector, void*);
 
     /// @brief toogle select edges
     long onCmdToogleSelectEdges(FXObject*, FXSelector, void*);
@@ -265,7 +275,10 @@ public:
     long onCmdToogleChangeAllPhases(FXObject*, FXSelector, void*);
 
     /// @brief toogle show grid
-    long onCmdToogleShowGrid(FXObject*, FXSelector, void*);
+    long onCmdToogleShowGridNetwork(FXObject*, FXSelector, void*);
+
+    /// @brief toogle show grid
+    long onCmdToogleShowGridDemand(FXObject*, FXSelector, void*);
 
     /// @brief toogle draw vehicles in begin position or spread in lane
     long onCmdToogleDrawSpreadVehicles(FXObject*, FXSelector, void*);
@@ -296,6 +309,39 @@ public:
 
     /// @brief toogle lock person in super mode demand
     long onCmdToogleLockPerson(FXObject*, FXSelector, void*);
+
+    /// @brief toogle show additionals in super mode data
+    long onCmdToogleShowAdditionals(FXObject*, FXSelector, void*);
+
+    /// @brief toogle show shapes in super mode data
+    long onCmdToogleShowShapes(FXObject*, FXSelector, void*);
+
+    /// @brief toogle show demand elements
+    long onCmdToogleShowDemandElements(FXObject*, FXSelector, void*);
+
+    /// @}
+
+    //// @name interval bar functions
+    /// @{
+
+    /// @brief change generic data type in interval bar
+    long onCmdIntervalBarGenericDataType(FXObject*, FXSelector, void*);
+
+    /// @brief change data set in interval bar
+    long onCmdIntervalBarDataSet(FXObject*, FXSelector, void*);
+
+    /// @brief change limit interval in interval bar
+    long onCmdIntervalBarLimit(FXObject*, FXSelector, void*);
+
+    /// @brief change begin in interval bar
+    long onCmdIntervalBarSetBegin(FXObject*, FXSelector, void*);
+
+    /// @brief change end in interval bar
+    long onCmdIntervalBarSetEnd(FXObject*, FXSelector, void*);
+
+    /// @brief change attribute in interval bar
+    long onCmdIntervalBarSetAttribute(FXObject*, FXSelector, void*);
+
     /// @}
 
     /// @brief select AC under cursor
@@ -328,11 +374,29 @@ public:
     /// @brief get the undoList object
     GNEUndoList* getUndoList() const;
 
-    /// @brief get AttributeCarrier under cursor
-    const GNEAttributeCarrier* getDottedAC() const;
+    /// @brief get interval bar
+    GNEViewNetHelper::IntervalBar& getIntervalBar();
 
-    /// @brief set attributeCarrier under cursor
-    void setDottedAC(GNEAttributeCarrier* AC);
+    /// @brief get inspected attribute carriers
+    const std::vector<GNEAttributeCarrier*> &getInspectedAttributeCarriers() const;
+
+    /// @brief set inspected attributeCarrier
+    void setInspectedAttributeCarriers(const std::vector<GNEAttributeCarrier*> ACs);
+
+    /// @brief check if attribute carrier is being inspected
+    bool isAttributeCarrierInspected(const GNEAttributeCarrier* AC) const;
+
+    /// @brief remove given AC of list of inspected Attribute Carriers
+    void removeFromAttributeCarrierInspected(const GNEAttributeCarrier* AC);
+
+    /// @brief get front attributeCarrier
+    const GNEAttributeCarrier* getFrontAttributeCarrier() const;
+
+    /// @brief set front attributeCarrier
+    void setFrontAttributeCarrier(const GNEAttributeCarrier* AC);
+
+    /// @brief draw front attributeCarrier
+    void drawTranslateFrontAttributeCarrier(const GNEAttributeCarrier* AC, GUIGlObjectType objectType, const double extraOffset = 0);
 
     /// @brief check if lock icon should be visible
     bool showLockIcon() const;
@@ -343,8 +407,8 @@ public:
     /// @brief whether to autoselect nodes or to lanes
     bool autoSelectNodes();
 
-    /// @brief set selection scaling
-    void setSelectionScaling(double selectionScale);
+    /// @brief set selection scaling (in GNESelectorFrame)
+    void setSelectorFrameScale(double selectionScale);
 
     /// @brief update control contents after undo/redo or recompute
     void updateControls();
@@ -354,6 +418,9 @@ public:
 
     /// @brief return true if junction must be showed as bubbles
     bool showJunctionAsBubbles() const;
+
+    /// @brief try to merge moved junction with another junction in that spot return true if merging did take place
+    bool mergeJunctions(GNEJunction* movedJunction, GNEJunction* targetJunction);
 
 protected:
     /// @brief FOX needs this
@@ -380,13 +447,10 @@ private:
     /// @{
 
     /// @brief variable used to save key status after certain events
-    GNEViewNetHelper::KeyPressed myKeyPressed;
+    GNEViewNetHelper::MouseButtonKeyPressed myMouseButtonKeyPressed;
 
     /// @brief variable use to save all pointers to objects under cursor after a click
     GNEViewNetHelper::ObjectsUnderCursor myObjectsUnderCursor;
-
-    /// @brief variable use to save all pointers to objects under cursor after a click with grid enabled
-    GNEViewNetHelper::ObjectsUnderCursor myObjectsUnderGrippedCursor;
     /// @}
 
     /// @name structs related with checkable buttons
@@ -400,20 +464,26 @@ private:
 
     /// @brief variable used to save checkable buttons for Supermode Demand
     GNEViewNetHelper::DemandCheckableButtons myDemandCheckableButtons;
+
+    /// @brief variable used to save checkable buttons for Supermode Data
+    GNEViewNetHelper::DataCheckableButtons myDataCheckableButtons;
     /// @}
 
     /// @name structs related with view options
     /// @{
 
-    /// @brief variable used to save variables related with common view options
-    GNEViewNetHelper::CommonViewOptions myCommonViewOptions;
-
-    /// @brief variable used to save variables related with view options in Network Supermode
+    /// @brief variable used to save variables related with view options in supermode Network
     GNEViewNetHelper::NetworkViewOptions myNetworkViewOptions;
 
-    /// @brief variable used to save variables related with view options in Demand Supermode
+    /// @brief variable used to save variables related with view options in supermode Demand
     GNEViewNetHelper::DemandViewOptions myDemandViewOptions;
+
+    /// @brief variable used to save variables related with view options in supermode Data
+    GNEViewNetHelper::DataViewOptions myDataViewOptions;
     /// @}
+
+    /// @brief variable used to save IntervalBar
+    GNEViewNetHelper::IntervalBar myIntervalBar;
 
     /// @name structs related with move elements
     /// @{
@@ -441,7 +511,7 @@ private:
     GNEViewNetHelper::SelectingArea mySelectingArea;
 
     /// @brief struct for grouping all variables related with edit shapes
-    GNEViewNetHelper::EditShapes myEditShapes;
+    GNEViewNetHelper::EditNetworkElementShapes myEditNetworkElementShapes;
 
     /// @brief view parent
     GNEViewParent* myViewParent;
@@ -455,10 +525,11 @@ private:
     /// @brief a reference to the undolist maintained in the application
     GNEUndoList* myUndoList;
 
-    /**@brief current AttributeCarrier that is drawn using with a dotted contour
-     * note: it's constant because is edited from constant functions (example: drawGL(...) const)
-     */
-    GNEAttributeCarrier* myDottedAC;
+    /// @brief current inspected attribute carrier
+    std::vector<GNEAttributeCarrier*> myInspectedAttributeCarriers;
+
+    /// @brief front attribute carrier
+    const GNEAttributeCarrier* myFrontAttributeCarrier;
 
     /// @brief create edit mode buttons and elements
     void buildEditModeControls();
@@ -468,6 +539,9 @@ private:
 
     /// @brief updates Demand mode specific controls
     void updateDemandModeSpecificControls();
+
+    /// @brief updates Data mode specific controls
+    void updateDataModeSpecificControls();
 
     /// @brief delete all currently selected junctions
     void deleteSelectedJunctions();
@@ -484,6 +558,9 @@ private:
     /// @brief delete all currently selected demand elements
     void deleteSelectedDemandElements();
 
+    /// @brief delete all currently selected generic data elements
+    void deleteSelectedGenericDatas();
+
     /// @brief delete all currently selected crossings
     void deleteSelectedCrossings();
 
@@ -493,8 +570,8 @@ private:
     /// @brief delete all currently selected shapes
     void deleteSelectedShapes();
 
-    /// @brief try to merge moved junction with another junction in that spot return true if merging did take place
-    bool mergeJunctions(GNEJunction* moved, const Position& oldPos);
+    /// @brief delete all currently selected TAZ Elements
+    void deleteSelectedTAZElements();
 
     /// @brief try to retrieve an edge at popup position
     GNEEdge* getEdgeAtPopupPosition();
@@ -541,8 +618,11 @@ private:
     /// @brief draw connections between lane candidates during selecting lane mode in Additional mode
     void drawLaneCandidates() const;
 
-    /// @brief draw temporal polygon  shape in Polygon Mode
+    /// @brief draw temporal polygon shape in Polygon Mode
     void drawTemporalDrawShape() const;
+
+    /// @brief draw temporal junction in create edge mode
+    void drawTemporalJunction() const;
     /// @}
 
     /// @brief mouse process functions
@@ -555,7 +635,7 @@ private:
     void processLeftButtonReleaseNetwork();
 
     /// @brief process move mouse function in Supermode Network
-    void processMoveMouseNetwork();
+    void processMoveMouseNetwork(const bool mouseLeftButtonPressed);
 
     /// @brief process left button press function in Supermode Demand
     void processLeftButtonPressDemand(void* eventData);
@@ -564,7 +644,16 @@ private:
     void processLeftButtonReleaseDemand();
 
     /// @brief process move mouse function in Supermode Demand
-    void processMoveMouseDemand();
+    void processMoveMouseDemand(const bool mouseLeftButtonPressed);
+
+    /// @brief process left button press function in Supermode Data
+    void processLeftButtonPressData(void* eventData);
+
+    /// @brief process left button release function in Supermode Data
+    void processLeftButtonReleaseData();
+
+    /// @brief process move mouse function in Supermode Data
+    void processMoveMouseData(const bool mouseLeftButtonPressed);
 
     /// @brief Invalidated copy constructor.
     GNEViewNet(const GNEViewNet&) = delete;
@@ -572,8 +661,3 @@ private:
     /// @brief Invalidated assignment operator.
     GNEViewNet& operator=(const GNEViewNet&) = delete;
 };
-
-
-#endif
-
-/****************************************************************************/

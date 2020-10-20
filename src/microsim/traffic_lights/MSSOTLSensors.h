@@ -18,12 +18,7 @@
 ///
 // The base abstract class for SOTL sensors
 /****************************************************************************/
-#ifndef MSSOTLSensors_h
-#define MSSOTLSensors_h
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include "MSSOTLDefinitions.h"
@@ -132,6 +127,3 @@ public:
         currentStep = newStep;
     }
 };
-
-#endif
-/****************************************************************************/

@@ -18,13 +18,7 @@
 ///
 // Sets and checks options for microsim; inits global outputs and settings
 /****************************************************************************/
-#ifndef MSFrame_h
-#define MSFrame_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 
@@ -87,9 +81,3 @@ public:
     static void setMSGlobals(OptionsCont& oc);
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

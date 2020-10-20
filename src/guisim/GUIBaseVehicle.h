@@ -20,13 +20,7 @@
 ///
 // A MSVehicle extended by some values for usage within the gui
 /****************************************************************************/
-#ifndef GUIBaseVehicle_h
-#define GUIBaseVehicle_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <vector>
@@ -115,7 +109,7 @@ public:
     /** @brief Draws the route
      * @param[in] r The route to draw
      */
-    virtual void drawRouteHelper(const GUIVisualizationSettings& s, const MSRoute& r, bool future, const RGBColor& col) const = 0;
+    virtual void drawRouteHelper(const GUIVisualizationSettings& s, const MSRoute& r, bool future, bool noLoop, const RGBColor& col) const = 0;
 
     /// @brief retrieve information about the current stop state
     virtual std::string getStopInfo() const = 0;
@@ -271,6 +265,10 @@ public:
         long onCmdShowFutureRoute(FXObject*, FXSelector, void*);
         /// @brief Called if the current route of the vehicle shall be hidden
         long onCmdHideFutureRoute(FXObject*, FXSelector, void*);
+        /// @brief Called if the current route of the vehicle shall be shown
+        long onCmdShowRouteNoLoops(FXObject*, FXSelector, void*);
+        /// @brief Called if the current route of the vehicle shall be hidden
+        long onCmdHideRouteNoLoops(FXObject*, FXSelector, void*);
         /// @brief Called if the vehicle's best lanes shall be shown
         long onCmdShowBestLanes(FXObject*, FXSelector, void*);
         /// @brief Called if the vehicle's best lanes shall be hidden
@@ -287,6 +285,8 @@ public:
         long onCmdShowFoes(FXObject*, FXSelector, void*);
         /// @brief Called when removing the vehicle
         long onCmdRemoveObject(FXObject*, FXSelector, void*);
+        /// @brief Called when toggling stop state
+        long onCmdToggleStop(FXObject*, FXSelector, void*);
 
     protected:
         FOX_CONSTRUCTOR(GUIBaseVehiclePopupMenu)
@@ -311,7 +311,9 @@ public:
         /// @brief draw vehicle outside the road network
         VO_DRAW_OUTSIDE_NETWORK = 16,
         /// @brief show vehicle's current continued from the current position
-        VO_SHOW_FUTURE_ROUTE = 32
+        VO_SHOW_FUTURE_ROUTE = 32,
+        /// @brief show vehicle's routes without loops
+        VO_SHOW_ROUTE_NOLOOP = 64
     };
 
     /// @brief Enabled visualisations, per view
@@ -323,7 +325,7 @@ public:
      * @param[in] routeNo The route to show (0: the current, >0: prior)
      * @param[in] darken The amount to darken the route by
      */
-    void drawRoute(const GUIVisualizationSettings& s, int routeNo, double darken, bool future = false) const;
+    void drawRoute(const GUIVisualizationSettings& s, int routeNo, double darken, bool future = false, bool noLoop = false) const;
 
 
     /// @}
@@ -372,9 +374,3 @@ private:
     GUIGLObjectPopupMenu* myPopup;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

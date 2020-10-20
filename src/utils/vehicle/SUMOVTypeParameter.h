@@ -19,13 +19,7 @@
 ///
 // Structure representing possible vehicle parameter
 /****************************************************************************/
-#ifndef SUMOVTypeParameter_h
-#define SUMOVTypeParameter_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -319,6 +313,11 @@ public:
     /// @brief cached value of parameters which may restrict access to certain edges
     std::vector<double> paramRestrictions;
 
+    /// @brief satisfy vType / router template requirements
+    inline double getLength() const {
+        return length;
+    }
+
     /** @brief Returns the default acceleration for the given vehicle class
      * This needs to be a function because the actual value is stored in the car following model
      * @param[in] vc the vehicle class
@@ -382,8 +381,3 @@ public:
      */
     std::string getManoeuverAngleTimesS() const;
 };
-
-#endif
-
-/****************************************************************************/
-

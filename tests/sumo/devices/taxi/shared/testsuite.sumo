@@ -1,6 +1,12 @@
 # secondary passenger has the same origin and destination
 same_trip
 
+# secondary passengers have the same origin and destination
+same_trip3
+
+# secondary passengers have the same origin and destination (as persontrip rather than ride)
+same_persontrip3
+
 # secondary passenger has the same origin and destination but arrives a bit later
 same_trip_wait
 
@@ -21,3 +27,6 @@ same_to
 
 # secondary passenger can be picked up with detour direct path
 same_to_detour
+
+# secondary passenger has subroute of the first passenger
+subroute

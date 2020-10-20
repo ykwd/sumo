@@ -18,11 +18,6 @@
 // The thread that performs the loading of a Netedit-net (adapted from
 // GUILoadThread)
 /****************************************************************************/
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
 #include <netbuild/NBFrame.h>
 #include <netbuild/NBNetBuilder.h>
 #include <netimport/NIFrame.h>
@@ -110,7 +105,7 @@ GNELoadThread::run() {
         submitEndAndCleanup(net);
         return 0;
     }
-    XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"));
+    XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"), oc.getString("xml-validation.routes"));
     // check if Debug has to be enabled
     MsgHandler::enableDebugMessages(oc.getBool("gui-testing-debug"));
     // check if GL Debug has to be enabled
@@ -243,6 +238,13 @@ GNELoadThread::fillOptions(OptionsCont& oc) {
     oc.doRegister("demandelements-output", new Option_String());
     oc.addDescription("demandelements-output", "Netedit", "file in which demand elements must be saved");
 
+    oc.doRegister("data-files", 'd', new Option_FileName());
+    oc.addSynonyme("data-files", "data");
+    oc.addDescription("data-files", "Netedit", "Load data elements descriptions from FILE(s)");
+
+    oc.doRegister("dataelements-output", new Option_String());
+    oc.addDescription("dataelements-output", "Netedit", "file in which data elements must be saved");
+
     oc.doRegister("TLSPrograms-output", new Option_String());
     oc.addDescription("TLSPrograms-output", "Netedit", "file in which TLS Programs must be saved");
 
@@ -287,8 +289,6 @@ GNELoadThread::fillOptions(OptionsCont& oc) {
 
     oc.doRegister("default.action-step-length", new Option_Float(0.0));
     oc.addDescription("default.action-step-length", "Processing", "Length of the default interval length between action points for the car-following and lane-change models (in seconds). If not specified, the simulation step-length is used per default. Vehicle- or VType-specific settings override the default. Must be a multiple of the simulation step-length.");
-
-    SystemFrame::addReportOptions(oc); // this subtopic is filled here, too
 
     NIFrame::fillOptions(true);
     NBFrame::fillOptions(false);

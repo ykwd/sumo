@@ -46,7 +46,7 @@ try:
 except (OSError, subprocess.CalledProcessError):
     HAVE_ASTYLE = False
 
-_SOURCE_EXT = set([".h", ".cpp", ".py", ".pyw", ".pl", ".java", ".am", ".cs"])
+_SOURCE_EXT = set([".h", ".cpp", ".py", ".pyw", ".pl", ".java", ".am", ".cs", ".c"])
 _TESTDATA_EXT = [".xml", ".prog", ".csv",
                  ".complex", ".dfrouter", ".duarouter", ".jtrrouter", ".marouter",
                  ".astar", ".chrouter", ".internal", ".tcl", ".txt",
@@ -138,7 +138,7 @@ class PropertyReader(xml.sax.handler.ContentHandler):
             return
         self._haveFixed = False
         idx = 0
-        if ext in (".cpp", ".h", ".java"):
+        if ext in (".cpp", ".h", ".java", ".c"):
             if lines[idx] == SEPARATOR:
                 year = lines[idx + 2][17:21]
                 end = lines.index(SEPARATOR, idx + 1) + 1
@@ -169,7 +169,7 @@ class PropertyReader(xml.sax.handler.ContentHandler):
         if ext in (".py", ".pyw"):
             if lines[0][:2] == '#!':
                 idx += 1
-                if lines[0] != '#!/usr/bin/env python\n':
+                if lines[0] not in ('#!/usr/bin/env python\n', '#!/usr/bin/env python3\n'):
                     print(self._file, "wrong shebang")
                     if self._fix:
                         lines[0] = '#!/usr/bin/env python\n'
@@ -346,6 +346,7 @@ for repoRoot in repoRoots:
                     procs.append(proc)
                     if len(procs) == multiprocessing.cpu_count():
                         [p.wait() for p in procs]
+                        procs = []
         os.chdir(oldDir)
         continue
     except (OSError, subprocess.CalledProcessError) as e:

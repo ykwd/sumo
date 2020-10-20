@@ -18,13 +18,7 @@
 ///
 // Some OS-dependant functions to ease cliboard manipulation
 /****************************************************************************/
-#ifndef GUIUserIO_h
-#define GUIUserIO_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -64,9 +58,3 @@ public:
     static std::string clipped;
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

@@ -22,13 +22,7 @@
 // Main class that manages activities taken in account and generates the
 // inhabitants' trip list.
 /****************************************************************************/
-#ifndef AGACTIVITIES_H
-#define AGACTIVITIES_H
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <list>
@@ -74,7 +68,3 @@ private:
     int nbrDays;
 
 };
-
-#endif
-
-/****************************************************************************/

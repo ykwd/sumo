@@ -40,6 +40,23 @@ def print_remaining_plan(personID, comment=""):
         print("  %s: %s" % (i, traci.person.getStage(personID, i)))
 
 
+def print_prior_plan(personID, comment=""):
+    print("prio stages for '%s' %s" % (personID, comment))
+    stages = []
+    i = -1
+    while True:
+        try:
+            stages.append((i, traci.person.getStage(personID, i)))
+            i -= 1
+        except traci.TraCIException as e:
+            if traci.isLibsumo():
+                print(e, file=sys.stderr)
+            break
+    stages.reverse()
+    for i, stage in stages:
+        print("  %s: %s" % (i, stage))
+
+
 traci.start([sumolib.checkBinary('sumo'), "-c", "sumo.sumocfg", "--fcd-output", "fcd.xml"])
 # add walking person
 traci.person.add("newPerson", "3si", -10)
@@ -86,6 +103,7 @@ def check(personID):
     print("angle", traci.person.getAngle(personID))
     print("slope", traci.person.getSlope(personID))
     print("road", traci.person.getRoadID(personID))
+    print("lane", traci.person.getLaneID(personID))
     print("type", traci.person.getTypeID(personID))
     print("lanePos", traci.person.getLanePosition(personID))
     print("color", traci.person.getColor(personID))
@@ -139,9 +157,11 @@ print("persons on edge %s at time %s: %s" % (
     traci.simulation.getTime(),
     traci.edge.getLastStepPersonIDs(traci.person.getRoadID("newPerson"))))
 
+print_remaining_plan("newPerson", "remaining plan before jump")
 traci.person.removeStages("newPerson")
-traci.person.appendWaitingStage(
-    "newPerson", 10, "Jumped out of a moving vehicle. Ouch!")
+traci.person.appendWaitingStage("newPerson", 10, "Jumped out of a moving vehicle. Ouch!")
+print_prior_plan("newPerson", "past plan")
+print_remaining_plan("newPerson", "remaining plan after jump")
 
 step()
 # change plan on junction
@@ -207,32 +227,16 @@ for i in range(5):
 traci.person.add("p3", "1fi", -10)
 stage = traci.simulation.Stage(
     type=traci.constants.STAGE_WALKING,
-    vType="", line="", destStop="",
-    edges=["1fi", "1si"],
-    travelTime=-1, cost=-1, length=-1,
-    intended="", depart=-1, departPos=-20, arrivalPos=10,
-    description="foo")
+    edges=["1fi", "1si"], departPos=-20, arrivalPos=10, description="foo")
 stage2 = traci.simulation.Stage(
     type=traci.constants.STAGE_WALKING,
-    vType="car", line="", destStop="",
-    edges=["1fi", "1o"],
-    travelTime=-1, cost=-1, length=-1,
-    intended="", depart=-1, departPos=-20, arrivalPos=10,
-    description="foo")
+    vType="car", edges=["1fi", "1o"], departPos=-20, arrivalPos=10, description="foo")
 stage3 = traci.simulation.Stage(
     type=traci.constants.STAGE_WALKING,
-    vType="car", line="", destStop="",
-    edges=["1o", "3o"],
-    travelTime=-1, cost=-1, length=-1,
-    intended="", depart=-1, departPos=-20, arrivalPos=10,
-    description="foo")
+    vType="car", edges=["1o", "3o"], departPos=-20, arrivalPos=10, description="foo")
 stage4 = traci.simulation.Stage(
     type=traci.constants.STAGE_WALKING,
-    vType="car", line="", destStop="",
-    edges=["1o", "4o"],
-    travelTime=-1, cost=-1, length=-1,
-    intended="", depart=-1, departPos=-20, arrivalPos=10,
-    description="foo")
+    vType="car", edges=["1o", "4o"], departPos=-20, arrivalPos=10, description="foo")
 
 traci.person.appendStage("p3", stage)
 for i in range(10):

@@ -33,11 +33,11 @@ alternatives below.
 - For the build infrastructure you will need cmake together with a moderately
   recent g++ (4.8 will do) or clang++ (or any other C++11 enabled compiler).
 - The library Xerces-C is always needed. To use
-  [SUMO-GUI](../SUMO-GUI.md) you also need Fox Toolkit in version
+  [sumo-gui](../sumo-gui.md) you also need Fox Toolkit in version
   1.6.x. It is highly recommended to also install Proj to have support
   for geo-conversion and referencing. Another common requirement is
   network import from shapefile (arcgis). This requires the GDAL
-  libray. To compile you will need the devel versions of all packages.
+  library. To compile you will need the devel versions of all packages.
   For openSUSE this means installing libxerces-c-devel, libproj-devel,
   libgdal-devel, and fox16-devel. There are some [platform specific
   and manual build instructions for the
@@ -73,7 +73,7 @@ local project history.
 ### release version or nightly tarball
 
 Download
-[sumo-src-{{Version}}.tar.gz](https://sumo.dlr.de/sumo/sumo-src-{{Version}}.tar.gz?download) or <http://sumo.dlr.de/daily/sumo-src-git.tar.gz>
+[sumo-src-{{Version}}.tar.gz](https://sumo.dlr.de/releases/{{Version}}/sumo-src-{{Version}}.tar.gz) or <http://sumo.dlr.de/daily/sumo-src-git.tar.gz>
 
 ```
 tar xzf sumo-src-<version>.tar.gz
@@ -83,7 +83,7 @@ pwd
 
 ## Definition of SUMO_HOME
 
-Before compiling is advisable (essential if you want to use Clang) to
+Before compiling is advisable to
 define the environment variable SUMO_HOME. SUMO_HOME must be set to
 the SUMO build path from the previous step. Assuming that you placed
 SUMO in the folder "*/home/<user\>/sumo-<version\>*", if you want to
@@ -108,7 +108,7 @@ echo $SUMO_HOME
 
 and console shows "/home/<user\>/sumo-<version\>"
 
-## Building the SUMO binaries with cmake (recommended)
+## Building the SUMO binaries with cmake
 
 To build with cmake version 3 or higher is required.
 
@@ -158,6 +158,8 @@ Other useful cmake options:
   only)
 - `-D CHECK_OPTIONAL_LIBS=OFF` disable all optional libraries (only
   include EPL compatible licensed code)
+- `-D CMAKE_BUILD_TYPE=RelWithDebInfo` enable debug symbols for
+  debugging the release build or using a different profiler
 - `-D PROJ_LIBRARY=` disable PROJ
 - `-D FOX_CONFIG=` disable FOX toolkit (GUI and multithreading)
 
@@ -191,23 +193,28 @@ that you can delete all source and intermediate files afterwards. If you
 do not want (or need) to do that, you can simply skip this step and run
 SUMO from the bin subfolder (bin/sumo-gui and bin/sumo).
 
-If you want to install the SUMO binaries, run
-
-```
-make install
-```
-
-or
-
+If you want to install the SUMO binaries into your system, run
 ```
 sudo make install
 ```
 
 You have to adjust your SUMO_HOME variable to the install dir (usually
 /usr/local/share/sumo)
-
 ```
 export SUMO_HOME=/usr/local/share/sumo
+```
+
+## Uninstalling
+
+CMake provides no `make uninstall` so if you ever want to uninstall, run
+```
+sudo xargs rm < install_manifest.txt
+```
+from the same folder you ran `make install`. This will leave some empty
+directories, so if you want to remove them as well, double check that
+$SUMO_HOME points to the right directory (see above) and run
+```
+sudo xargs rm -r $SUMO_HOME
 ```
 
 ## Troubleshooting

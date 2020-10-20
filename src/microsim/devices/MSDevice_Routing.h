@@ -19,13 +19,7 @@
 ///
 // A device that performs vehicle rerouting based on current edge speeds
 /****************************************************************************/
-#ifndef MSDevice_Routing_h
-#define MSDevice_Routing_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <set>
@@ -158,6 +152,11 @@ public:
         return myPeriod;
     }
 
+    /// @brief return whether the equipped vehicle may receive dispatch information at a rail signal
+    bool mayRerouteRailSignal() const {
+        return myRerouteRailSignal;
+    }
+
     /// @brief try to retrieve the given parameter from this device. Throw exception for unsupported key
     std::string getParameter(const std::string& key) const;
 
@@ -222,6 +221,9 @@ private:
     /// @brief The (optional) command responsible for rerouting
     WrappingCommand< MSDevice_Routing >* myRerouteCommand;
 
+    /// @brief Whether the equipped vehicle may receive dispatch information at a rail signal
+    bool myRerouteRailSignal;
+
 private:
     /// @brief Invalidated copy constructor.
     MSDevice_Routing(const MSDevice_Routing&);
@@ -231,9 +233,3 @@ private:
 
 
 };
-
-
-#endif
-
-/****************************************************************************/
-

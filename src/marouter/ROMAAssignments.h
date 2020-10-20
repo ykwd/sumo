@@ -19,13 +19,7 @@
 ///
 // Assignment methods
 /****************************************************************************/
-#ifndef ROMAAssignments_h
-#define ROMAAssignments_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <utils/router/SUMOAbstractRouter.h>
@@ -168,4 +162,3 @@ private:
 
 };
 
-#endif

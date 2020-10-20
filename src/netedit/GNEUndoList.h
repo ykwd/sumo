@@ -23,13 +23,7 @@
 // GNEUndoList inherits from FXUndoList and patches some methods. these are
 // prefixed with p_
 /****************************************************************************/
-#ifndef GNEUndoList_h
-#define GNEUndoList_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <stack>
@@ -132,9 +126,3 @@ private:
     // @brief the parent GNEApplicationWindow for this undolist
     GNEApplicationWindow* const myGNEApplicationWindowParent;
 };
-
-
-#endif
-
-/****************************************************************************/
-

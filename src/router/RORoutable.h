@@ -17,13 +17,7 @@
 ///
 // A routable thing such as a vehicle or person
 /****************************************************************************/
-#ifndef RORoutable_h
-#define RORoutable_h
-
-
-// ===========================================================================
-// included modules
-// ===========================================================================
+#pragma once
 #include <config.h>
 
 #include <string>
@@ -193,8 +187,3 @@ private:
     RORoutable& operator=(const RORoutable& src);
 
 };
-
-
-#endif
-
-/****************************************************************************/

@@ -19,9 +19,6 @@
 from __future__ import absolute_import
 from . import constants as tc
 from .domain import Domain
-from .storage import Storage
-
-_RETURN_VALUE_FUNC = {tc.VAR_EDGES: Storage.readStringList}
 
 
 class RouteDomain(Domain):
@@ -29,8 +26,7 @@ class RouteDomain(Domain):
     def __init__(self):
         Domain.__init__(self, "route", tc.CMD_GET_ROUTE_VARIABLE, tc.CMD_SET_ROUTE_VARIABLE,
                         tc.CMD_SUBSCRIBE_ROUTE_VARIABLE, tc.RESPONSE_SUBSCRIBE_ROUTE_VARIABLE,
-                        tc.CMD_SUBSCRIBE_ROUTE_CONTEXT, tc.RESPONSE_SUBSCRIBE_ROUTE_CONTEXT,
-                        _RETURN_VALUE_FUNC)
+                        tc.CMD_SUBSCRIBE_ROUTE_CONTEXT, tc.RESPONSE_SUBSCRIBE_ROUTE_CONTEXT)
 
     def getEdges(self, routeID):
         """getEdges(string) -> list(string)
@@ -44,7 +40,4 @@ class RouteDomain(Domain):
 
         Adds a new route with the given id consisting of the given list of edge IDs.
         """
-        self._connection._beginMessage(tc.CMD_SET_ROUTE_VARIABLE, tc.ADD, routeID,
-                                       1 + 4 + sum(map(len, edges)) + 4 * len(edges))
-        self._connection._packStringList(edges)
-        self._connection._sendExact()
+        self._setCmd(tc.ADD, routeID, "l", edges)

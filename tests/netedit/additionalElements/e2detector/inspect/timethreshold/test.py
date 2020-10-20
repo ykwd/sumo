@@ -35,22 +35,22 @@ netedit.additionalMode()
 netedit.changeElement("e2Detector")
 
 # create E2
-netedit.leftClick(referencePosition, 250, 170)
+netedit.leftClick(referencePosition, 250, 175)
 
 # go to inspect mode
 netedit.inspectMode()
 
 # inspect first E2
-netedit.leftClick(referencePosition, 260, 170)
+netedit.leftClick(referencePosition, 230, 175)
 
 # Change parameter TimeTreshold with a non valid value
-netedit.modifyAttribute(8, "dummyTimeTreshold", True)
+netedit.modifyAttribute(9, "dummyTimeTreshold", True)
 
 # Change parameter TimeTreshold with a non valid value
-netedit.modifyAttribute(8, "-5", True)
+netedit.modifyAttribute(9, "-5", True)
 
 # Change parameter TimeTreshold with a valid value
-netedit.modifyAttribute(8, "4.5", True)
+netedit.modifyAttribute(9, "4.5", True)
 
 # Check undos and redos
 netedit.undo(referencePosition, 2)
